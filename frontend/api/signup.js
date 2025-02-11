@@ -11,19 +11,28 @@ document.getElementById('signup-form').addEventListener('submit', async function
     }
 
     try {
-        const response = await fetch('http://127.0.0.1:8080/api/register', { // 🔹 ส่งไปที่ Backend
+        const response = await fetch('http://127.0.0.1:8080/api/v1/auth/register', { // ✅ อัปเดต Endpoint
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         });
 
         const data = await response.json();
+        
         if (response.ok) {
-            localStorage.setItem("user_id", data.user_id);  // 🔹 บันทึก User ID
-            localStorage.setItem('user_email', email); // 🔹 เก็บอีเมลไว้ใช้ในหน้าถัดไป
+            // ✅ บันทึกข้อมูลจาก Backend
+            if (data.user_id) {
+                localStorage.setItem("user_id", data.user_id);
+            }
+            if (data.token) { // ✅ หากมี token ให้เก็บไว้
+                localStorage.setItem("auth_token", data.token);
+            }
+            localStorage.setItem('user_email', email); 
+
+            alert("Signup successful! Redirecting to Role Selection...");
             window.location.href = 'Role.html';
         } else {
-            alert(data.error || 'Registration failed!');
+            alert(data.message || 'Registration failed!');
         }
     } catch (error) {
         console.error('Error:', error);

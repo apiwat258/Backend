@@ -12,11 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function selectRole(role) {
     const email = localStorage.getItem("user_email");
-    const userID = localStorage.getItem("user_id");
+    const token = localStorage.getItem("auth_token"); // ✅ ใช้ Token (ถ้ามี)
 
-    fetch("http://127.0.0.1:8080/api/v1/update-role", {
+    fetch("http://127.0.0.1:8080/api/v1/auth/update-role", { // ✅ อัปเดต API Path
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : "" // ✅ ใส่ Token (ถ้ามี)
+        },
         body: JSON.stringify({ email: email, role: role })
     })
     .then(response => response.json())

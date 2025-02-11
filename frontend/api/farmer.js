@@ -13,45 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error: Element with ID 'email' not found in DOM.");
     }
 
-    // ✅ อัปโหลดไฟล์ไปยัง IPFS เมื่อเลือกไฟล์
-    document.getElementById("upload_certification").addEventListener("change", async function (event) {
-        const file = event.target.files[0];
-        if (!file) {
-            alert("Please select a file.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-            console.log("📌 Uploading file to IPFS...");
-            const response = await fetch("http://127.0.0.1:8080/api/v1/uploadCertificate", {
-                method: "POST",
-                body: formData
-            });
-
-            const result = await response.json();
-            console.log("✅ IPFS Upload Result:", result);
-
-            if (!response.ok || !result.cid) {
-                alert("❌ Failed to upload file to IPFS");
-                return;
-            }
-
-            const certificationCID = result.cid;  
-            console.log("✅ Certification CID:", certificationCID);
-
-            // ✅ เก็บ `CID` ไว้ใน localStorage
-            localStorage.setItem("certification_cid", certificationCID);
-            alert("File uploaded successfully! CID: " + certificationCID);
-
-        } catch (error) {
-            console.error("❌ Error uploading file:", error);
-            alert("An error occurred while uploading.");
-        }
-    });
-
     // ✅ เมื่อกด Submit จะส่งทั้งข้อมูลฟาร์ม + CID ที่อัปโหลดไว้ไปยัง Backend
     const farmerForm = document.getElementById("farmer-form");
     if (farmerForm) {
@@ -83,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             try {
-                const response = await fetch("http://127.0.0.1:8080/api/v1/farmer", {
+                const response = await fetch("http://127.0.0.1:8080/api/v1/farmers", { // ✅ เปลี่ยน API Path
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(farmerData)
@@ -103,11 +64,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 // ✅ หลังจากบันทึกฟาร์มแล้ว → บันทึก Certification CID ลงตาราง organiccertification
                 if (certificationCID) {
                     console.log("📌 Sending certification data to backend...");
-                    const certResponse = await fetch("http://127.0.0.1:8080/api/v1/createCertification", {
+                    const certResponse = await fetch("http://127.0.0.1:8080/api/v1/certifications/create", { // ✅ เปลี่ยน API Path
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             farmerid: data.farmer_id, // ✅ ใช้ farmer_id ที่เพิ่งบันทึก
                             certificationtype: "Organic ACT",

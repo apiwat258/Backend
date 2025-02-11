@@ -1,17 +1,19 @@
 package controllers
 
 import (
-	"bytes"
 	"finalyearproject/Backend/database"
 	"finalyearproject/Backend/models"
+	"finalyearproject/Backend/services"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	shell "github.com/ipfs/go-ipfs-api"
 )
 
+// ✅ สร้างอินสแตนซ์ของ IPFSService (ที่หายไป)
+var ipfsService = services.NewIPFSService()
+
+// ✅ API: อัปโหลดไฟล์ไปยัง IPFS และส่ง CID กลับไปยัง Frontend
 func UploadCertificate(c *fiber.Ctx) error {
 	fmt.Println("📌 UploadCertificate API called...")
 
@@ -31,25 +33,8 @@ func UploadCertificate(c *fiber.Ctx) error {
 	}
 	defer src.Close()
 
-	// ✅ อ่านไฟล์เป็น bytes
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, src)
-	if err != nil {
-		fmt.Println("❌ Error copying file content:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read file content"})
-	}
-
-	// ✅ เชื่อมต่อกับ IPFS
-	sh := shell.NewShell("localhost:5001")
-
-	// ✅ ตรวจสอบว่า IPFS Daemon ทำงานอยู่หรือไม่
-	if !sh.IsUp() {
-		fmt.Println("❌ IPFS Daemon is not running!")
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "IPFS node is not available"})
-	}
-
-	// ✅ อัปโหลดไปยัง IPFS
-	cid, err := sh.Add(buf)
+	// ✅ อัปโหลดไปยัง IPFS ผ่าน `ipfsService`
+	cid, err := ipfsService.UploadFile(src)
 	if err != nil {
 		fmt.Println("❌ Failed to upload to IPFS:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload to IPFS"})
@@ -58,7 +43,10 @@ func UploadCertificate(c *fiber.Ctx) error {
 	fmt.Println("✅ Uploaded file to IPFS with CID:", cid)
 
 	// ✅ ส่ง CID กลับไปยัง Frontend
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"cid": cid})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "File uploaded successfully",
+		"cid":     cid,
+	})
 }
 
 func CreateCertification(c *fiber.Ctx) error {
@@ -113,7 +101,7 @@ func CreateCertification(c *fiber.Ctx) error {
 		CertificationID:   certID,
 		FarmerID:          req.FarmerID,
 		CertificationType: req.CertificationType,
-		CertificationCID:  req.CertificationCID,
+		CertificationCID:  req.CertificationCID, // ✅ ใช้ CID ที่ได้จาก IPFS
 		EffectiveDate:     time.Now(),
 		IssuedDate:        issuedDate,
 		CreatedOn:         time.Now(),
@@ -126,6 +114,7 @@ func CreateCertification(c *fiber.Ctx) error {
 
 	fmt.Println("✅ Certification saved:", certification)
 
+	// ✅ ส่งข้อมูลกลับไปยัง Frontend
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":          "Certification saved successfully",
 		"certification_id": certification.CertificationID,

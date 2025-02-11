@@ -1,10 +1,8 @@
 package main
 
 import (
-	"finalyearproject/Backend/api/controllers" // ✅ เพิ่ม import controllers
 	"finalyearproject/Backend/api/routes"
 	"finalyearproject/Backend/database"
-	"finalyearproject/Backend/middleware"
 	"finalyearproject/Backend/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,11 +25,7 @@ func main() {
 	// ✅ ให้บริการไฟล์ Static (Frontend)
 	app.Static("/", "./frontend")
 
-	// ✅ กำหนด Route API
-	app.Post("/api/register", middleware.Register)                    // ลงทะเบียนผู้ใช้
-	app.Post("/api/uploadCertificate", controllers.UploadCertificate) // ✅ แก้ไขให้ใช้ `controllers.UploadCertificate`
-
-	// ✅ เรียกใช้ SetupRoutes() เพื่อกำหนดเส้นทาง API อื่นๆ
+	// ✅ เรียกใช้ SetupRoutes() เพื่อกำหนดเส้นทาง API ทั้งหมด
 	routes.SetupRoutes(app)
 
 	// ✅ เริ่มเซิร์ฟเวอร์

@@ -7,12 +7,19 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-	api := app.Group("/api/v1") // เปลี่ยนให้ทุก API ใช้ /api/v1
+	api := app.Group("/api/v1") // กำหนด Prefix "/api/v1" ให้ทุก API
 
-	api.Get("/", controllers.Welcome)
-	api.Get("/health", controllers.HealthCheck)
-	api.Post("/update-role", controllers.UpdateUserRole)
-	api.Post("/farmer", controllers.CreateFarmer)                     // ✅ เพิ่ม Route สำหรับ Farmer
-	api.Post("/createCertification", controllers.CreateCertification) // ✅ บันทึกใบรับรอง
-	api.Post("/uploadCertificate", controllers.UploadCertificate)     // ✅ อัปโหลดใบรับรองไป IPFS
+	// ✅ Authentication Routes
+	auth := api.Group("/auth")
+	auth.Post("/update-role", controllers.UpdateUserRole)
+	auth.Post("/register", controllers.Register) // ✅ เส้นทาง /auth/register
+
+	// ✅ Farmer Routes
+	farmer := api.Group("/farmers")
+	farmer.Post("/", controllers.CreateFarmer)
+
+	// ✅ Certification Routes
+	certification := api.Group("/certifications")
+	certification.Post("/upload", controllers.UploadCertificate) // ✅ อัปโหลดไฟล์ไป IPFS
+	certification.Post("/create", controllers.CreateCertification)
 }
