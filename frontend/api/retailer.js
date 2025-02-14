@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("Error: Element with ID 'email' not found in DOM.");
     }
 
-    // ✅ เมื่อกด Submit จะส่งทั้งข้อมูลฟาร์ม + CID ที่อัปโหลดไว้ไปยัง Backend
-    const farmerForm = document.getElementById("farmer-form");
-    if (farmerForm) {
-        farmerForm.addEventListener("submit", async function (event) {
+    // ✅ เมื่อกด Submit จะส่งข้อมูลร้านค้า + CID ที่อัปโหลดไว้ไปยัง Backend
+    const retailerForm = document.getElementById("retailer-form");
+    if (retailerForm) {
+        retailerForm.addEventListener("submit", async function (event) {
             event.preventDefault();
 
             const userID = localStorage.getItem("user_id");
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            const farmerData = {
+            const retailerData = {
                 userid: userID,
                 company_name: document.getElementById("company_name").value,
                 firstname: document.getElementById("firstname").value,
@@ -44,15 +44,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 areacode: document.getElementById("areacode").value,
                 phone: document.getElementById("phone").value,
                 post: document.getElementById("post").value,
-                city: document.getElementById("city").value, 
+                city: document.getElementById("city").value,
                 location_link: document.getElementById("location_link").value
             };
 
             try {
-                const response = await fetch("http://127.0.0.1:8080/api/v1/farmers", { 
+                const response = await fetch("http://127.0.0.1:8080/api/v1/retailers", { 
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(farmerData)
+                    body: JSON.stringify(retailerData)
                 });
 
                 const textResponse = await response.text();
@@ -64,16 +64,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 const data = JSON.parse(textResponse);
-                alert("Farmer information saved successfully!");
+                alert("Retailer information saved successfully!");
 
-                // ✅ บันทึกใบเซอร์หลังจากลงทะเบียนฟาร์ม
+                // ✅ เพิ่มการบันทึกใบเซอร์ให้ร้านค้า (เหมือนของฟาร์ม)
                 console.log("📌 Sending certification data to backend...");
                 const certResponse = await fetch("http://127.0.0.1:8080/api/v1/certifications/create", { 
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        entity_type: "Farmer",  // ✅ แก้ให้ตรงกับ Backend
-                        entity_id: data.farmer_id, 
+                        entity_type: "Retailer",  // ✅ ต้องแก้ให้ตรงกับ Backend
+                        entity_id: data.retailer_id, 
                         certification_cid: certificationCID,
                         issued_date: "2025-02-07",
                         expiry_date: "2026-06-01"
@@ -98,6 +98,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     } else {
-        console.error("Error: Form with ID 'farmer-form' not found in DOM.");
+        console.error("Error: Form with ID 'retailer-form' not found in DOM.");
     }
 });

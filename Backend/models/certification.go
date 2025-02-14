@@ -6,12 +6,14 @@ import (
 
 type Certification struct {
 	CertificationID   string    `gorm:"primaryKey;column:certificationid"`
-	FarmerID          string    `gorm:"column:farmerid"`
+	EntityID          string    `gorm:"column:entityid"`
+	EntityType        string    `gorm:"column:entitytype"`
 	CertificationType string    `gorm:"column:certificationtype"`
 	CertificationCID  string    `gorm:"column:certificationcid;unique"`
 	EffectiveDate     time.Time `gorm:"column:effective_date"`
 	IssuedDate        time.Time `gorm:"column:issued_date"`
-	CreatedOn         time.Time `gorm:"column:createdon;autoCreateTime"`
+	CreatedOn         time.Time `gorm:"column:created_on;autoCreateTime"`
+	BlockchainTxHash  string    `gorm:"column:blockchain_tx"`
 }
 
 // ✅ บังคับ GORM ให้ใช้ตาราง `organiccertification` ที่มีอยู่

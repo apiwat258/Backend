@@ -1,73 +1,103 @@
 package controllers
 
 import (
+	"log"
+	"math/rand"
+
 	"database/sql"
 	"finalyearproject/Backend/database"
 	"finalyearproject/Backend/models"
+	"finalyearproject/Backend/services"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-func CreateFarmer(c *fiber.Ctx) error {
-	type FarmerRequest struct {
-		UserID       string  `json:"userid"`
-		CompanyName  string  `json:"company_name"`
-		FirstName    string  `json:"firstname"`
-		LastName     string  `json:"lastname"`
-		Email        string  `json:"email"`
-		Address      string  `json:"address"`
-		Address2     *string `json:"address2"`
-		AreaCode     *string `json:"areacode"`
-		Phone        string  `json:"phone"`
-		PostCode     string  `json:"post"`
-		City         string  `json:"city"`
-		Province     string  `json:"province"`
-		Country      string  `json:"country"`
-		LineID       *string `json:"lineid"`
-		Facebook     *string `json:"facebook"`
-		LocationLink *string `json:"location_link"`
+// ✅ โครงสร้างข้อมูลที่รับจาก JSON Request
+type FarmerRequest struct {
+	UserID       string  `json:"userid"`
+	CompanyName  string  `json:"company_name"`
+	FirstName    string  `json:"firstname"`
+	LastName     string  `json:"lastname"`
+	Email        string  `json:"email"`
+	Address      string  `json:"address"`
+	Address2     *string `json:"address2"`
+	AreaCode     *string `json:"areacode"`
+	Phone        string  `json:"phone"`
+	PostCode     string  `json:"post"`
+	City         string  `json:"city"`
+	Province     string  `json:"province"`
+	Country      string  `json:"country"`
+	LineID       *string `json:"lineid"`
+	Facebook     *string `json:"facebook"`
+	LocationLink *string `json:"location_link"`
+}
+
+// ✅ ใช้ Account จริงจาก Ganache แทนการสุ่ม
+func getGanacheAccount() string {
+	client, err := rpc.Dial("http://127.0.0.1:7545")
+	if err != nil {
+		log.Println("❌ Failed to connect to Ganache:", err)
+		return "0x0000000000000000000000000000000000000000"
 	}
 
+	var accounts []common.Address
+	err = client.Call(&accounts, "eth_accounts")
+	if err != nil {
+		log.Println("❌ Failed to get accounts from Ganache:", err)
+		return "0x0000000000000000000000000000000000000000"
+	}
+
+	// ✅ เลือก Account ที่ยังไม่ถูกใช้
+	selected := accounts[rand.Intn(len(accounts))] // สุ่ม 1 อันจาก Account ที่มีอยู่
+	return selected.Hex()
+}
+
+func CreateFarmer(c *fiber.Ctx) error {
 	var req FarmerRequest
+
+	// ✅ แปลง JSON เป็น Struct
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
 	}
 
 	// ✅ ตรวจสอบว่า User ID มีอยู่ในฐานข้อมูล `users` หรือไม่
 	var user models.User
 	if err := database.DB.Where("userid = ?", req.UserID).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User ID not found in users table"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User ID not found"})
 	}
 
 	// ✅ ตรวจสอบว่าผู้ใช้เคยลงทะเบียนเป็น Farmer แล้วหรือไม่
 	var existingFarmer models.Farmer
 	err := database.DB.Where("userid = ?", req.UserID).First(&existingFarmer).Error
-
 	if err == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User is already registered as a farmer"})
 	} else if err != nil && err != gorm.ErrRecordNotFound {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error"})
 	}
 
-	// ✅ Log ที่ชัดเจนขึ้น (ไม่มี Error)
-	fmt.Println("UserID", req.UserID, "is not registered as a farmer yet. Proceeding with registration.")
-
 	// ✅ อัปเดต Role ของ User เป็น "farmer"
 	if err := database.DB.Model(&models.User{}).Where("userid = ?", req.UserID).Update("role", "farmer").Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user role"})
 	}
 
-	// ✅ สร้าง FarmerID ใหม่ (YYNNNNN)
+	// ✅ สร้าง FarmerID ใหม่ (FAYYNNNNN)
 	var sequence int64
 	if err := database.DB.Raw("SELECT nextval('farmer_id_seq')").Scan(&sequence).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate farmer ID"})
 	}
 	yearPrefix := time.Now().Format("06")
-	farmerID := fmt.Sprintf("%s%05d", yearPrefix, sequence)
+	farmerID := fmt.Sprintf("FA%s%05d", yearPrefix, sequence)
+
+	// ✅ ดึง Wallet จริงจาก Ganache
+	walletAddress := getGanacheAccount()
+	fmt.Println("📌 DEBUG - Assigned Wallet Address:", walletAddress)
 
 	// ✅ รวม `address2` กับ `address`
 	fullAddress := strings.TrimSpace(req.Address)
@@ -97,45 +127,27 @@ func CreateFarmer(c *fiber.Ctx) error {
 		province = req.City
 	}
 
-	// ✅ ตรวจสอบ `email` ถ้าเป็น `""` ให้ใช้ NULL
+	// ✅ แปลง `*string` เป็น `sql.NullString`
 	email := sql.NullString{}
 	if strings.TrimSpace(req.Email) != "" {
 		email = sql.NullString{String: strings.TrimSpace(req.Email), Valid: true}
 	}
 
-	// ✅ แปลง `*string` เป็น `sql.NullString`
-	lineID := sql.NullString{}
-	if req.LineID != nil && strings.TrimSpace(*req.LineID) != "" {
-		lineID = sql.NullString{String: strings.TrimSpace(*req.LineID), Valid: true}
-	}
-
-	facebook := sql.NullString{}
-	if req.Facebook != nil && strings.TrimSpace(*req.Facebook) != "" {
-		facebook = sql.NullString{String: strings.TrimSpace(*req.Facebook), Valid: true}
-	}
-
-	locationLink := sql.NullString{}
-	if req.LocationLink != nil && strings.TrimSpace(*req.LocationLink) != "" {
-		locationLink = sql.NullString{String: strings.TrimSpace(*req.LocationLink), Valid: true}
-	}
-
 	// ✅ สร้างข้อมูล Farmer
 	farmer := models.Farmer{
-		FarmerID:     farmerID,
-		UserID:       req.UserID,
-		FarmerName:   strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName),
-		CompanyName:  companyName,
-		Address:      fullAddress,
-		City:         req.City,
-		Province:     province,
-		Country:      req.Country,
-		PostCode:     req.PostCode,
-		Telephone:    fullPhone,
-		LineID:       lineID,
-		Facebook:     facebook,
-		LocationLink: locationLink,
-		CreatedOn:    time.Now(),
-		Email:        email.String,
+		FarmerID:      farmerID,
+		UserID:        req.UserID,
+		FarmerName:    req.FirstName + " " + req.LastName,
+		CompanyName:   companyName,
+		Address:       fullAddress,
+		City:          req.City,
+		Province:      province,
+		Country:       req.Country,
+		PostCode:      req.PostCode,
+		Telephone:     fullPhone,
+		CreatedOn:     time.Now(),
+		Email:         email.String,
+		WalletAddress: walletAddress, // ✅ ใช้ Wallet ที่ Generate อัตโนมัติ
 	}
 
 	// ✅ บันทึกลง Database
@@ -143,5 +155,31 @@ func CreateFarmer(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save farmer data"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Farmer registered successfully", "farmer_id": farmer.FarmerID})
+	// ✅ 🔗 ลงทะเบียนฟาร์มบน Blockchain
+	txHash, err := services.BlockchainServiceInstance.RegisterFarmOnBlockchain(walletAddress)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to register farm on blockchain", "details": err.Error()})
+	}
+
+	fmt.Println("✅ Farmer Registered on Blockchain:", txHash)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":       "Farmer registered successfully",
+		"farmer_id":     farmerID,
+		"walletAddress": walletAddress, // ✅ คืนค่า Wallet Address ให้ Frontend
+		"txHash":        txHash,
+	})
+}
+
+// ✅ ฟังก์ชันสำหรับดึงข้อมูลฟาร์มเมอร์ตาม UserID
+func GetFarmerByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var farmer models.Farmer
+
+	// ค้นหาข้อมูล Farmer จาก userID
+	if err := database.DB.Where("userid = ?", id).First(&farmer).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer not found"})
+	}
+
+	return c.JSON(farmer)
 }

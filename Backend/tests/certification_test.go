@@ -15,7 +15,7 @@ import (
 
 func TestUploadCertificateCertification(t *testing.T) {
 	app := fiber.New()
-	app.Post("/upload", controllers.UploadCertificateCertification)
+	app.Post("/upload", controllers.UploadCertificate)
 
 	// ✅ จำลองไฟล์อัปโหลด
 	fileContent := []byte("test file content")

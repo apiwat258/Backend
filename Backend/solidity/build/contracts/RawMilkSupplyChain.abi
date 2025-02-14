@@ -1,0 +1,288 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "farmWallet",
+        "type": "address"
+      }
+    ],
+    "name": "FarmRegistered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "rawMilkID",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "farmWallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum RawMilkSupplyChain.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ipfsCid",
+        "type": "string"
+      }
+    ],
+    "name": "RawMilkAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "rawMilkID",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum RawMilkSupplyChain.MilkStatus",
+        "name": "newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "RawMilkStatusUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "farms",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "rawMilkRecords",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "farmWallet",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "temperature",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pH",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fat",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "protein",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "ipfsCid",
+        "type": "string"
+      },
+      {
+        "internalType": "enum RawMilkSupplyChain.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_farmWallet",
+        "type": "address"
+      }
+    ],
+    "name": "registerFarm",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_rawMilkID",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_temperature",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_pH",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_fat",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_protein",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_ipfsCid",
+        "type": "string"
+      }
+    ],
+    "name": "addRawMilk",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_rawMilkID",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRawMilk",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "farmWallet",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "temperature",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pH",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fat",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "protein",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "ipfsCid",
+        "type": "string"
+      },
+      {
+        "internalType": "enum RawMilkSupplyChain.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_rawMilkID",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "enum RawMilkSupplyChain.MilkStatus",
+        "name": "_newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "updateRawMilkStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

@@ -102,7 +102,7 @@ https://templatemo.com/tm-587-tiya-golf-club
                 </div>
                 
                 <div class="offcanvas-body d-flex flex-column">
-                    <form id="loginForm" class="custom-form member-login-form" action="#" method="post" role="form">
+                    <form id="loginForm" class="custom-form member-login-form">
                         <div class="member-login-form-body">
                             <div class="mb-4">
                                 <label class="form-label mb-2" for="member-login-number">Email</label>
@@ -111,7 +111,8 @@ https://templatemo.com/tm-587-tiya-golf-club
                 
                             <div class="mb-4">
                                 <label class="form-label mb-2" for="member-login-password">Password</label>
-                                <input type="password" name="member-login-password" id="member-login-password" pattern="[0-9a-zA-Z]{4,10}" class="form-control" placeholder="Password" required>
+                                <input type="password" name="member-login-password" id="member-login-password" pattern=".{4,50}" class="form-control" placeholder="Password" required>
+
                             </div>
                 
                             <div class="form-check mb-4">
@@ -139,6 +140,7 @@ https://templatemo.com/tm-587-tiya-golf-club
                             </div>
                         </div>
                     </form>
+                    
 
                     <div class="mt-auto mb-5">
                         <p>
@@ -497,7 +499,8 @@ https://templatemo.com/tm-587-tiya-golf-club
         <script src="js/animated-headline.js"></script>
         <script src="js/modernizr.js"></script>
         <script src="js/custom.js"></script>
-        <script src="api/api.js"></script>
+        <script src="api/auth.js"></script>
+        <script src="api/login.js"></script>
 
     </body>
 </html>
