@@ -181,5 +181,158 @@ func GetFarmerByID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer not found"})
 	}
 
-	return c.JSON(farmer)
+	// ✅ แยกชื่อ-นามสกุลออกจาก `FarmerName`
+	nameParts := strings.SplitN(farmer.FarmerName, " ", 2)
+	firstName := nameParts[0]
+	lastName := ""
+	if len(nameParts) > 1 {
+		lastName = nameParts[1]
+	}
+
+	// ✅ แยก Area Code ออกจากเบอร์โทรศัพท์
+	areaCode := "+66" // ค่าเริ่มต้น (ประเทศไทย)
+	phoneNumber := farmer.Telephone
+
+	if strings.HasPrefix(farmer.Telephone, "+") {
+		parts := strings.SplitN(farmer.Telephone, " ", 2)
+		if len(parts) == 2 {
+			areaCode = parts[0]    // ดึงรหัสประเทศ
+			phoneNumber = parts[1] // ดึงเบอร์โทรจริง
+		}
+	}
+
+	// ✅ ตรวจสอบค่าว่างของ `sql.NullString`
+	lineID := ""
+	if farmer.LineID.Valid {
+		lineID = farmer.LineID.String
+	}
+
+	facebook := ""
+	if farmer.Facebook.Valid {
+		facebook = farmer.Facebook.String
+	}
+
+	locationLink := ""
+	if farmer.LocationLink.Valid {
+		locationLink = farmer.LocationLink.String
+	}
+
+	// ✅ สร้าง JSON Response
+	response := fiber.Map{
+		"farmerID":    farmer.FarmerID,
+		"userID":      farmer.UserID,
+		"firstName":   firstName,
+		"lastName":    lastName,
+		"companyName": farmer.CompanyName,
+		"address":     farmer.Address,
+		"city":        farmer.City,
+		"province":    farmer.Province,
+		"country":     farmer.Country,
+		"postCode":    farmer.PostCode,
+		"areaCode":    areaCode,
+		"telephone":   phoneNumber,
+		"email":       farmer.Email,
+		"wallet":      farmer.WalletAddress,
+		"lineID":      lineID,
+		"facebook":    facebook,
+		"location":    locationLink,
+	}
+
+	return c.JSON(response)
+}
+
+// ✅ ดึงข้อมูลฟาร์มของ User ที่ล็อกอินอยู่
+func GetFarmerByUser(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(string) // ✅ ดึงจาก Middleware
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	fmt.Println("🔍 [GetFarmerByUser] Fetching farmer for userID:", userID)
+
+	var farmer models.Farmer
+	if err := database.DB.Where("userid = ?", userID).First(&farmer).Error; err != nil {
+		fmt.Println("❌ [GetFarmerByUser] Farmer not found for userID:", userID)
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer profile not found"})
+	}
+
+	fmt.Println("✅ [GetFarmerByUser] Farmer data found:", farmer.FarmerID)
+
+	// ✅ แยกชื่อ-นามสกุลออกจาก `FarmerName`
+	nameParts := strings.SplitN(farmer.FarmerName, " ", 2)
+	firstName := nameParts[0]
+	lastName := ""
+	if len(nameParts) > 1 {
+		lastName = nameParts[1]
+	}
+
+	// ✅ แยก Area Code ออกจากเบอร์โทรศัพท์
+	areaCode := "+66"
+	phoneNumber := farmer.Telephone
+	if strings.HasPrefix(farmer.Telephone, "+") {
+		parts := strings.SplitN(farmer.Telephone, " ", 2)
+		if len(parts) == 2 {
+			areaCode = parts[0]
+			phoneNumber = parts[1]
+		}
+	}
+
+	// ✅ ตรวจสอบค่าว่างของ `sql.NullString`
+	lineID := ""
+	if farmer.LineID.Valid {
+		lineID = farmer.LineID.String
+	}
+
+	facebook := ""
+	if farmer.Facebook.Valid {
+		facebook = farmer.Facebook.String
+	}
+
+	locationLink := ""
+	if farmer.LocationLink.Valid {
+		locationLink = farmer.LocationLink.String
+	}
+
+	// ✅ สร้าง JSON Response
+	response := fiber.Map{
+		"farmerID":    farmer.FarmerID,
+		"userID":      farmer.UserID,
+		"firstName":   firstName,
+		"lastName":    lastName,
+		"companyName": farmer.CompanyName,
+		"address":     farmer.Address,
+		"city":        farmer.City,
+		"province":    farmer.Province,
+		"country":     farmer.Country,
+		"postCode":    farmer.PostCode,
+		"areaCode":    areaCode,
+		"telephone":   phoneNumber,
+		"email":       farmer.Email,
+		"wallet":      farmer.WalletAddress,
+		"lineID":      lineID,
+		"facebook":    facebook,
+		"location":    locationLink,
+	}
+
+	return c.JSON(response)
+}
+
+// ✅ อัปเดตข้อมูลฟาร์ม
+func UpdateFarmer(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+
+	var updatedFarmer models.Farmer
+	if err := c.BodyParser(&updatedFarmer); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request data"})
+	}
+
+	// ค้นหาข้อมูลฟาร์มเดิม
+	var farmer models.Farmer
+	if err := database.DB.Where("user_id = ?", userID).First(&farmer).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer profile not found"})
+	}
+
+	// อัปเดตข้อมูล
+	database.DB.Model(&farmer).Updates(updatedFarmer)
+
+	return c.JSON(fiber.Map{"message": "Farm information updated successfully!"})
 }

@@ -18,37 +18,84 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// LoginResponse struct
+type LoginResponse struct {
+	Message string `json:"message"`
+	Role    string `json:"role"`
+}
+
 // Login handles user authentication
 func Login(c *fiber.Ctx) error {
 	var req LoginRequest
 
-	// Bind JSON data
+	// ✅ Bind JSON data
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
 	}
 
-	// Find user in database
+	// ✅ ค้นหาผู้ใช้จาก Database
 	var user models.User
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email or password"})
 	}
 
-	// Check password
+	// ✅ ตรวจสอบรหัสผ่าน
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email or password"})
 	}
 
-	// Generate JWT token
+	// ✅ สร้าง JWT Token
 	token, err := middleware.GenerateToken(user.UserID, user.Email, user.Role)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
 
-	// Return token
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Login successful",
-		"token":   token,
+	// ✅ ตั้งค่าคุกกี้
+	c.Cookie(&fiber.Cookie{
+		Name:     "auth_token",
+		Value:    token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   false,  // ✅ ถ้าใช้ HTTPS ให้เป็น `true`
+		SameSite: "None", // ✅ ต้องใช้ `None` ถ้าทำงาน Cross-Site
+		Path:     "/",
+		Domain:   "", // ✅ ใส่ให้ตรงกับ Frontend
 	})
+
+	// ✅ Debug ตรวจสอบว่าคุกกี้ถูกเซ็ตหรือไม่
+	fmt.Println("✅ [Login] Token set in cookie for user:", user.UserID)
+
+	// ✅ ส่ง Role กลับไปให้ Frontend
+	response := LoginResponse{
+		Message: "Login successful",
+		Role:    user.Role,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+// ✅ ดึง Role จาก JWT Token ใน Cookie
+func GetUserRole(c *fiber.Ctx) error {
+	// ✅ ใช้ Fiber API ดึง Token โดยตรง
+	tokenString := c.Cookies("auth_token")
+	if tokenString == "" {
+		fmt.Println("❌ [GetUserRole] No token found in Cookie")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "No authentication token found. Please login again.",
+		})
+	}
+
+	// ✅ Validate Token
+	claims, err := middleware.ValidateToken(tokenString)
+	if err != nil {
+		fmt.Println("❌ [GetUserRole] Invalid token:", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid or expired token. Please login again.",
+		})
+	}
+
+	fmt.Println("✅ [GetUserRole] Authenticated User Role:", claims.Role)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"role": claims.Role})
 }
 
 func UpdateUserRole(c *fiber.Ctx) error {
@@ -120,4 +167,19 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User registered successfully", "user_id": user.UserID})
+}
+
+// Logout API: ลบคุกกี้
+func Logout(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "auth_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour), // หมดอายุทันที
+		HTTPOnly: true,
+		Secure:   false,
+		SameSite: "Strict",
+		Path:     "/",
+	})
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout successful"})
 }

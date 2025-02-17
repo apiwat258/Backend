@@ -30,16 +30,18 @@ func main() {
 	// ✅ เริ่มต้น Fiber App
 	app := fiber.New()
 
-	// ✅ อนุญาตให้ Frontend เชื่อมต่อ API
+	// ✅ แก้ CORS Policy
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://0.0.0.0:8081",
-		AllowMethods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+		AllowOrigins:     "http://192.168.43.218:3000", // ✅ ระบุ Origin ของ Frontend
+		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders:     "Content-Type, Authorization",
+		AllowCredentials: true, // ✅ ต้องใส่ true เพื่อให้ Cookie ใช้งานได้
 	}))
 
 	// ✅ เชื่อมต่อฐานข้อมูล
 	database.Connect()
 
-	// ✅ Migrate Tables (Users, Farmers, Certifications)
+	// ✅ Migrate Tables
 	database.DB.AutoMigrate(&models.User{}, &models.Farmer{}, &models.Certification{}, &models.Logistics{}, &models.Factory{}, &models.Retailer{})
 
 	// ✅ เริ่มต้น Blockchain Service
