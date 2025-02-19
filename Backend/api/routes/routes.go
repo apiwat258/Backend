@@ -33,8 +33,10 @@ func SetupRoutes(app *fiber.App) {
 
 	// ✅ Raw Milk Routes (เกษตรกรใช้เพิ่มข้อมูลน้ำนมดิบ)
 	rawMilk := api.Group("/rawmilk")
-	rawMilk.Post("/", middleware.AuthMiddleware(), controllers.AddRawMilkHandler) // 🔐 ใช้ Middleware เฉพาะ POST
-	rawMilk.Get("/:id", controllers.GetRawMilkHandler)                            // ✅ เอา Middleware ออก
+	rawMilk.Post("/", middleware.AuthMiddleware(), controllers.AddRawMilkHandler)              // 🔐 ใช้ Middleware เฉพาะ POST
+	rawMilk.Get("/:id", controllers.GetRawMilkHandler)                                         // ✅ เอา Middleware ออก
+	rawMilk.Post("/upload", middleware.AuthMiddleware(), controllers.UploadRawMilkFileHandler) // ✅ ใหม่: อัปโหลดไฟล์ JSON ไป IPFS
+	rawMilk.Get("/ipfs/:cid", controllers.GetRawMilkFromIPFSHandler)                           // ✅ ใหม่: ดึง JSON จาก IPFS
 
 	// ✅ Factory Routes
 	factory := api.Group("/factories")
@@ -56,4 +58,5 @@ func SetupRoutes(app *fiber.App) {
 	// ✅ QR Code Routes (ใหม่)
 	qr := api.Group("/qr")
 	qr.Get("/rawmilk/:id", controllers.GenerateQRCodeHandler) // ✅ ใช้ "/api/v1/qr/rawmilk/:id"
+
 }

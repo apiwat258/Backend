@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"finalyearproject/Backend/services"
+	"finalyearproject/Backend/utils"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gofiber/fiber/v2"
@@ -61,10 +63,25 @@ func AddRawMilkHandler(c *fiber.Ctx) error {
 
 	// ✅ สร้าง RawMilkID ทั้งแบบ 16-char (UI) และ bytes32 (Blockchain)
 	rawMilkShortID, rawMilkHash := generateRawMilkID(request.FarmWallet)
-	fmt.Printf("✅ Generated RawMilkID: %s\n", rawMilkShortID)
+	request.IPFSCid = "" // ตั้งค่าเริ่มต้นให้ว่างก่อนอัปโหลด
 
 	// ✅ Debug: Log ค่าที่ได้รับ
 	fmt.Printf("Received Raw Milk Data: %+v\n", request)
+
+	// ✅ แปลง JSON เป็นไฟล์แล้วอัปโหลดไป IPFS
+	requestData, err := json.Marshal(request)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate JSON"})
+	}
+
+	ipfsService := services.NewIPFSService()
+	ipfsCid, err := ipfsService.UploadFile(bytes.NewReader(requestData))
+	if err != nil {
+		log.Println("❌ Failed to upload file to IPFS:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload file to IPFS"})
+	}
+
+	fmt.Printf("✅ Raw Milk JSON uploaded to IPFS: %s\n", ipfsCid)
 
 	// ✅ เช็คว่า Blockchain Service ทำงานอยู่หรือไม่
 	if services.BlockchainServiceInstance == nil {
@@ -80,7 +97,7 @@ func AddRawMilkHandler(c *fiber.Ctx) error {
 		request.PH,
 		request.Fat,
 		request.Protein,
-		request.IPFSCid,
+		ipfsCid, // ✅ ใช้ CID ที่อัปโหลดจาก IPFS
 	)
 	if err != nil {
 		log.Println("❌ Failed to store raw milk on blockchain:", err)
@@ -92,6 +109,7 @@ func AddRawMilkHandler(c *fiber.Ctx) error {
 		"message":   "Raw milk data stored on blockchain",
 		"txHash":    txHash,
 		"rawMilkID": rawMilkShortID, // ✅ UI ใช้ 16-char ID
+		"ipfsCid":   ipfsCid,        // ✅ ส่ง CID กลับให้ผู้ใช้
 	})
 }
 
@@ -176,5 +194,67 @@ func GenerateQRCodeHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "QR Code generated successfully",
 		"qrCode":  qrCodeImage,
+	})
+}
+
+// UploadRawMilkFileHandler - API สำหรับอัปโหลดไฟล์ Raw Milk ไปยัง IPFS
+func UploadRawMilkFileHandler(c *fiber.Ctx) error {
+	var request RawMilkRequest
+
+	// ✅ แปลง JSON request เป็น struct
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
+	}
+
+	// ✅ สร้าง RawMilkID
+	rawMilkShortID, _ := generateRawMilkID(request.FarmWallet)
+	request.IPFSCid = "" // ตั้งค่าเริ่มต้นให้ว่างก่อนอัปโหลด
+
+	// ✅ เพิ่ม RawMilkID ลงใน JSON
+	requestData, err := json.Marshal(request)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate JSON"})
+	}
+
+	// ✅ อัปโหลด JSON ไปยัง IPFS
+	ipfsService := services.NewIPFSService()
+	ipfsCid, err := ipfsService.UploadFile(bytes.NewReader(requestData))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload file to IPFS"})
+	}
+
+	fmt.Printf("✅ Raw Milk JSON uploaded to IPFS: %s\n", ipfsCid)
+
+	// ✅ คืนค่า `CID` และ `RawMilkID`
+	return c.JSON(fiber.Map{
+		"message":   "Raw milk JSON uploaded to IPFS",
+		"rawMilkID": rawMilkShortID,
+		"ipfsCid":   ipfsCid,
+	})
+}
+
+// GetRawMilkFromIPFSHandler - ดึงข้อมูล Raw Milk JSON จาก IPFS
+func GetRawMilkFromIPFSHandler(c *fiber.Ctx) error {
+	ipfsCid := c.Params("cid") // ✅ รับ CID จาก URL
+
+	if ipfsCid == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "IPFS CID is required"})
+	}
+
+	// ✅ ดึงข้อมูลจาก IPFS
+	ipfsService := services.NewIPFSService()
+	rawMilkJSON, err := ipfsService.GetFile(ipfsCid)
+	if err != nil {
+		log.Println("❌ Failed to retrieve file from IPFS:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve file from IPFS"})
+	}
+
+	fmt.Printf("✅ Raw Milk JSON retrieved from IPFS: %s\n", ipfsCid)
+
+	// ✅ คืน JSON ให้ผู้ใช้
+	return c.JSON(fiber.Map{
+		"message": "Raw milk JSON retrieved successfully",
+		"ipfsCid": ipfsCid,
+		"data":    json.RawMessage(rawMilkJSON),
 	})
 }
