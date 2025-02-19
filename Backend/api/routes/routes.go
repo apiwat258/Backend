@@ -52,4 +52,8 @@ func SetupRoutes(app *fiber.App) {
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
 	certification.Post("/create", controllers.CreateCertification)
+
+	// ✅ QR Code Routes (ใหม่)
+	qr := api.Group("/qr")
+	qr.Get("/rawmilk/:id", controllers.GenerateQRCodeHandler) // ✅ ใช้ "/api/v1/qr/rawmilk/:id"
 }

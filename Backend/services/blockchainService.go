@@ -145,26 +145,19 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 
 // StoreRawMilkOnBlockchain - บันทึกข้อมูลน้ำนมดิบลง Blockchain
 func (b *BlockchainService) StoreRawMilkOnBlockchain(
-	rawMilkID string, // ✅ ให้ฟาร์มกำหนด ID เอง
+	rawMilkHash [32]byte, // ✅ ใช้ bytes32
 	farmWallet string,
 	temperature, pH, fat, protein float64,
 	ipfsCid string,
 ) (string, error) {
-
-	// ✅ แปลงค่าจาก float64 → big.Int
 	tempBigInt := big.NewInt(int64(temperature * 100))
 	pHBigInt := big.NewInt(int64(pH * 100))
 	fatBigInt := big.NewInt(int64(fat * 100))
 	proteinBigInt := big.NewInt(int64(protein * 100))
 
-	// ✅ เรียกใช้ Smart Contract `addRawMilk`
-	// ✅ แปลง rawMilkID เป็น [32]byte แทน Hash
-	var rawMilkBytes [32]byte
-	copy(rawMilkBytes[:], rawMilkID[:32]) // ✅ ตัดให้เหลือ 32 ไบต์
-
 	tx, err := b.rawMilkContract.AddRawMilk(
 		b.auth,
-		rawMilkBytes, // ✅ ใช้ bytes32 ตามที่ Smart Contract กำหนด
+		rawMilkHash, // ✅ ใช้ bytes32 ตาม Smart Contract
 		tempBigInt,
 		pHBigInt,
 		fatBigInt,
@@ -181,10 +174,8 @@ func (b *BlockchainService) StoreRawMilkOnBlockchain(
 }
 
 // GetRawMilkFromBlockchain - ดึงข้อมูลน้ำนมดิบจาก Blockchain
-func (b *BlockchainService) GetRawMilkFromBlockchain(rawMilkID string) (*RawMilkData, error) {
-	rawMilkBytes := common.HexToHash(rawMilkID)
-
-	milk, err := b.rawMilkContract.GetRawMilk(&bind.CallOpts{}, rawMilkBytes)
+func (b *BlockchainService) GetRawMilkFromBlockchain(rawMilkID common.Hash) (*RawMilkData, error) {
+	milk, err := b.rawMilkContract.GetRawMilk(&bind.CallOpts{}, rawMilkID)
 	if err != nil {
 		log.Println("❌ Failed to fetch raw milk data from blockchain:", err)
 		return nil, err
