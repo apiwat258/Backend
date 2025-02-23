@@ -56,10 +56,10 @@ func Login(c *fiber.Ctx) error {
 		Value:    token,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HTTPOnly: true,
-		Secure:   false,  // ✅ ถ้าใช้ HTTPS ให้เป็น `true`
+		Secure:   true,   // ✅ ถ้าใช้ HTTPS ให้เป็น `true`
 		SameSite: "None", // ✅ ต้องใช้ `None` ถ้าทำงาน Cross-Site
 		Path:     "/",
-		Domain:   "", // ✅ ใส่ให้ตรงกับ Frontend
+		Domain:   "10.110.194.195", // ✅ ใส่ให้ตรงกับ Frontend
 	})
 
 	// ✅ Debug ตรวจสอบว่าคุกกี้ถูกเซ็ตหรือไม่
@@ -177,9 +177,66 @@ func Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour), // หมดอายุทันที
 		HTTPOnly: true,
 		Secure:   false,
-		SameSite: "Strict",
+		SameSite: "None",
 		Path:     "/",
 	})
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout successful"})
+}
+
+// เพิ่มส่วนนี้ลงใน authController.go
+
+// GetUserInfo handles fetching user information (email and password) from the user table.
+func GetUserInfo(c *fiber.Ctx) error {
+	// ดึง userID จาก context ที่ถูกตั้งโดย JWT middleware
+	userID, ok := c.Locals("userID").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var user models.User
+	if err := database.DB.Where("userid = ?", userID).First(&user).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	// ส่งกลับ email และ password (hashed) ของผู้ใช้
+	return c.JSON(fiber.Map{
+		"email":    user.Email,
+		"password": user.Password,
+	})
+}
+
+// UpdateUserInfo handles updating user's email and password.
+func UpdateUserInfo(c *fiber.Ctx) error {
+	// ดึง userID จาก context
+	userID, ok := c.Locals("userID").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	type UpdateRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	}
+
+	// hash รหัสผ่านใหม่
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to hash password"})
+	}
+
+	// อัปเดต email และ password ของผู้ใช้ในตาราง user
+	if err := database.DB.Model(&models.User{}).Where("userid = ?", userID).Updates(models.User{
+		Email:    req.Email,
+		Password: hashedPassword,
+	}).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user info"})
+	}
+
+	return c.JSON(fiber.Map{"message": "User info updated successfully"})
 }

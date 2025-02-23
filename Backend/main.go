@@ -32,7 +32,7 @@ func main() {
 
 	// ✅ แก้ CORS Policy
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://192.168.43.218:3000", // ✅ ระบุ Origin ของ Frontend
+		AllowOrigins:     "http://10.110.194.195:3000", // ✅ ระบุ Origin ของ Frontend
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Content-Type, Authorization",
 		AllowCredentials: true, // ✅ ต้องใส่ true เพื่อให้ Cookie ใช้งานได้

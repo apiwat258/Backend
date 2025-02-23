@@ -327,7 +327,7 @@ func UpdateFarmer(c *fiber.Ctx) error {
 
 	// ค้นหาข้อมูลฟาร์มเดิม
 	var farmer models.Farmer
-	if err := database.DB.Where("user_id = ?", userID).First(&farmer).Error; err != nil {
+	if err := database.DB.Where("userid = ?", userID).First(&farmer).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer profile not found"})
 	}
 

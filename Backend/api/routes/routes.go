@@ -18,6 +18,8 @@ func SetupRoutes(app *fiber.App) {
 	auth.Post("/login", controllers.Login)
 	auth.Post("/logout", controllers.Logout)       // ✅ เพิ่มเส้นทาง Logout
 	auth.Get("/get-role", controllers.GetUserRole) // ✅ เพิ่ม API ดึง Role ของผู้ใช้
+	auth.Get("/user-info", middleware.AuthMiddleware(), controllers.GetUserInfo)
+	auth.Put("/update-user", middleware.AuthMiddleware(), controllers.UpdateUserInfo)
 
 	// ✅ Protected Routes (ใช้ Middleware JWT)
 	protected := api.Group("/protected", middleware.AuthMiddleware())
@@ -26,10 +28,9 @@ func SetupRoutes(app *fiber.App) {
 	// ✅ Farmer Routes
 	farmer := api.Group("/farmers")
 	farmer.Post("/", controllers.CreateFarmer)
-	farmer.Get("/:id", controllers.GetFarmerByID) // ✅ เพิ่ม API สำหรับดึงข้อมูล Farmer ตาม ID
-	// ✅ Route สำหรับอัปเดตข้อมูลฟาร์ม
-	farmer.Put("/update", middleware.AuthMiddleware(), controllers.UpdateFarmer)
 	farmer.Get("/me", middleware.AuthMiddleware(), controllers.GetFarmerByUser) // ✅ ใช้ Middleware
+	farmer.Get("/:id", controllers.GetFarmerByID)                               // ✅ เพิ่ม API สำหรับดึงข้อมูล Farmer ตาม ID
+	farmer.Put("/update", middleware.AuthMiddleware(), controllers.UpdateFarmer)
 
 	// ✅ Raw Milk Routes (เกษตรกรใช้เพิ่มข้อมูลน้ำนมดิบ)
 	rawMilk := api.Group("/rawmilk")

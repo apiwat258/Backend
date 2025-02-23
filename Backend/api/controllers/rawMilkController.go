@@ -171,10 +171,9 @@ func GenerateQRCodeHandler(c *fiber.Ctx) error {
 
 	// ✅ สร้าง JSON Data สำหรับ QR Code
 	qrData := map[string]interface{}{
-		"rawMilkID":   rawMilkID,
-		"farmID":      rawMilk.FarmWallet, // ❌ ต้องแก้เป็น FarmID ถ้ามีใน Blockchain
-		"milkTankNum": rawMilk.MilkTankNum,
-		"ipfsCid":     rawMilk.IPFSCid,
+		"rawMilkID": rawMilkID,
+		"farmID":    rawMilk.FarmWallet, // ❌ ต้องแก้เป็น FarmID ถ้ามีใน Blockchain
+		"ipfsCid":   rawMilk.IPFSCid,
 	}
 
 	qrJSON, err := json.Marshal(qrData)
