@@ -143,6 +143,33 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 	return tx.Hash().Hex(), nil
 }
 
+// GetCertificationFromBlockchain - ดึงข้อมูลใบเซอร์จาก Blockchain
+func (b *BlockchainService) GetCertificationFromBlockchain(eventID string) (*models.Certification, error) {
+	// ✅ เรียกใช้งาน Smart Contract เพื่อนำข้อมูลมา
+	certEvent, err := b.certificationContract.GetCertificationEvent(&bind.CallOpts{}, eventID)
+	if err != nil {
+		log.Println("❌ [Blockchain] Failed to fetch certification:", err)
+		return nil, err
+	}
+
+	// ✅ แปลงค่า timestamp เป็น `time.Time`
+	issuedDate := time.Unix(certEvent.IssuedDate.Int64(), 0)
+	expiryDate := time.Unix(certEvent.ExpiryDate.Int64(), 0)
+
+	// ✅ คืนค่าเป็น Struct ที่ใช้ในระบบ
+	return &models.Certification{
+		CertificationID:   certEvent.EventID,
+		EntityType:        certEvent.EntityType,
+		EntityID:          certEvent.EntityID,
+		CertificationCID:  certEvent.CertificationCID,
+		IssuedDate:        issuedDate,
+		EffectiveDate:     expiryDate,
+		BlockchainTxHash:  "", // ไม่มีค่าจาก Smart Contract
+		CreatedOn:         time.Unix(certEvent.CreatedOn.Int64(), 0),
+	}, nil
+}
+
+
 // StoreRawMilkOnBlockchain - บันทึกข้อมูลน้ำนมดิบลง Blockchain
 func (b *BlockchainService) StoreRawMilkOnBlockchain(
 	rawMilkHash [32]byte, // ✅ ใช้ bytes32

@@ -27,17 +27,18 @@ type FarmerRequest struct {
 	LastName     string  `json:"lastname"`
 	Email        string  `json:"email"`
 	Address      string  `json:"address"`
-	Address2     *string `json:"address2"`
-	AreaCode     *string `json:"areacode"`
+	AreaCode     string  `json:"areacode"`
 	Phone        string  `json:"phone"`
-	PostCode     string  `json:"post"`
-	City         string  `json:"city"`
+	PostCode     string  `json:"postcode"`
+	District     string  `json:"district"`    
+	SubDistrict  string  `json:"subdistrict"` 
 	Province     string  `json:"province"`
 	Country      string  `json:"country"`
 	LineID       *string `json:"lineid"`
 	Facebook     *string `json:"facebook"`
 	LocationLink *string `json:"location_link"`
 }
+
 
 // ✅ ใช้ Account จริงจาก Ganache แทนการสุ่ม
 func getGanacheAccount() string {
@@ -99,38 +100,29 @@ func CreateFarmer(c *fiber.Ctx) error {
 	walletAddress := getGanacheAccount()
 	fmt.Println("📌 DEBUG - Assigned Wallet Address:", walletAddress)
 
-	// ✅ รวม `address2` กับ `address`
-	fullAddress := strings.TrimSpace(req.Address)
-	if req.Address2 != nil && strings.TrimSpace(*req.Address2) != "" {
-		fullAddress = fullAddress + ", " + strings.TrimSpace(*req.Address2)
-	}
-
 	// ✅ รวม `area code` กับ `phone`
-	fullPhone := strings.TrimSpace(req.Phone)
-	if req.AreaCode != nil && strings.TrimSpace(*req.AreaCode) != "" {
-		areaCode := strings.TrimSpace(*req.AreaCode)
-		if !strings.HasPrefix(areaCode, "+") {
-			areaCode = "+" + areaCode
-		}
-		fullPhone = areaCode + " " + fullPhone
-	}
+	fullPhone := fmt.Sprintf("%s %s", strings.TrimSpace(req.AreaCode), strings.TrimSpace(req.Phone))
 
 	// ✅ ตรวจสอบ `companyname` ถ้าว่างให้ใช้ "N/A"
-	companyName := strings.TrimSpace(req.CompanyName)
-	if companyName == "" {
-		companyName = "N/A"
-	}
-
-	// ✅ ถ้า `province` ว่างให้ใช้ `city`
-	province := strings.TrimSpace(req.Province)
-	if province == "" {
-		province = req.City
+	companyName := "N/A"
+	if strings.TrimSpace(req.CompanyName) != "" {
+		companyName = strings.TrimSpace(req.CompanyName)
 	}
 
 	// ✅ แปลง `*string` เป็น `sql.NullString`
-	email := sql.NullString{}
-	if strings.TrimSpace(req.Email) != "" {
-		email = sql.NullString{String: strings.TrimSpace(req.Email), Valid: true}
+	lineID := sql.NullString{}
+	if req.LineID != nil && strings.TrimSpace(*req.LineID) != "" {
+		lineID = sql.NullString{String: strings.TrimSpace(*req.LineID), Valid: true}
+	}
+
+	facebook := sql.NullString{}
+	if req.Facebook != nil && strings.TrimSpace(*req.Facebook) != "" {
+		facebook = sql.NullString{String: strings.TrimSpace(*req.Facebook), Valid: true}
+	}
+
+	locationLink := sql.NullString{}
+	if req.LocationLink != nil && strings.TrimSpace(*req.LocationLink) != "" {
+		locationLink = sql.NullString{String: strings.TrimSpace(*req.LocationLink), Valid: true}
 	}
 
 	// ✅ สร้างข้อมูล Farmer
@@ -139,14 +131,18 @@ func CreateFarmer(c *fiber.Ctx) error {
 		UserID:        req.UserID,
 		FarmerName:    req.FirstName + " " + req.LastName,
 		CompanyName:   companyName,
-		Address:       fullAddress,
-		City:          req.City,
-		Province:      province,
-		Country:       req.Country,
-		PostCode:      req.PostCode,
+		Address:       strings.TrimSpace(req.Address),
+		District:      strings.TrimSpace(req.District),    // ✅ เปลี่ยนจาก `city` เป็น `district`
+		SubDistrict:   strings.TrimSpace(req.SubDistrict), // ✅ เพิ่ม `subdistrict`
+		Province:      strings.TrimSpace(req.Province),
+		Country:       strings.TrimSpace(req.Country),
+		PostCode:      strings.TrimSpace(req.PostCode),
 		Telephone:     fullPhone,
+		LineID:        lineID,
+		Facebook:      facebook,
+		LocationLink:  locationLink,
 		CreatedOn:     time.Now(),
-		Email:         email.String,
+		Email:         req.Email,
 		WalletAddress: walletAddress, // ✅ ใช้ Wallet ที่ Generate อัตโนมัติ
 	}
 
@@ -300,7 +296,8 @@ func GetFarmerByUser(c *fiber.Ctx) error {
 		"lastName":    lastName,
 		"companyName": farmer.CompanyName,
 		"address":     farmer.Address,
-		"city":        farmer.City,
+		"district":    farmer.District,    
+		"subdistrict": farmer.SubDistrict, 
 		"province":    farmer.Province,
 		"country":     farmer.Country,
 		"postCode":    farmer.PostCode,
@@ -316,23 +313,112 @@ func GetFarmerByUser(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// ✅ อัปเดตข้อมูลฟาร์ม
-func UpdateFarmer(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
 
-	var updatedFarmer models.Farmer
-	if err := c.BodyParser(&updatedFarmer); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request data"})
+func UpdateFarmer(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	// ค้นหาข้อมูลฟาร์มเดิม
+	fmt.Println("🔍 [UpdateFarmer] Fetching farmer for userID:", userID)
+
 	var farmer models.Farmer
 	if err := database.DB.Where("userid = ?", userID).First(&farmer).Error; err != nil {
+		fmt.Println("❌ [UpdateFarmer] Farmer not found for userID:", userID)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer profile not found"})
 	}
 
-	// อัปเดตข้อมูล
-	database.DB.Model(&farmer).Updates(updatedFarmer)
+	// ✅ อ่านข้อมูลใหม่จาก Request Body
+	var req struct {
+		FirstName    string  `json:"firstname"`
+		LastName     string  `json:"lastname"`
+		CompanyName  string  `json:"company_name"`
+		Address      string  `json:"address"`
+		District     string  `json:"district"`
+		SubDistrict  string  `json:"subdistrict"`
+		Province     string  `json:"province"`
+		Country      string  `json:"country"`
+		PostCode     string  `json:"postcode"`
+		AreaCode     string  `json:"area_code"`
+		Phone        string  `json:"phone"`
+		LineID       *string `json:"lineid"`
+		Facebook     *string `json:"facebook"`
+		LocationLink *string `json:"location_link"`
+		CertFile     string  `json:"cert_file"` // ✅ ฟิลด์ไฟล์ใบเซอร์จาก frontend
+	}
 
-	return c.JSON(fiber.Map{"message": "Farm information updated successfully!"})
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
+	}
+
+	// ✅ ตรวจสอบว่าไฟล์ใบรับรองถูกอัปโหลดใหม่หรือไม่
+	var certCID string
+	if req.CertFile != "" {
+		fmt.Println("📌 Uploading new certification file to IPFS...")
+
+		// ✅ อัปโหลดไฟล์ไปยัง IPFS
+		certCID, err := ipfsService.UploadBase64File(req.CertFile)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload certification file to IPFS"})
+		}
+		fmt.Println("✅ Certification file uploaded to IPFS with CID:", certCID)
+	} else {
+		// ✅ ดึง CID เดิมจาก Blockchain
+		eventID := fmt.Sprintf("EVENT-%s", farmer.FarmerID)
+		certCID, err := BlockchainServiceInstance.GetCertificationCID(eventID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch certification CID from blockchain"})
+		}
+		fmt.Println("📌 Using existing Certification CID:", certCID)
+	}
+
+	// ✅ รวม Area Code กับ Phone
+	fullPhone := fmt.Sprintf("%s %s", req.AreaCode, req.Phone)
+
+	// ✅ อัปเดตข้อมูลฟาร์มใน PostgreSQL
+	updatedFarmer := models.Farmer{
+		FarmerID:     farmer.FarmerID,
+		UserID:       farmer.UserID,
+		FarmerName:   fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		CompanyName:  req.CompanyName,
+		Address:      req.Address,
+		District:     req.District,
+		SubDistrict:  req.SubDistrict,
+		Province:     req.Province,
+		Country:      req.Country,
+		PostCode:     req.PostCode,
+		Telephone:    fullPhone,
+		Email:        farmer.Email,
+		WalletAddress: farmer.WalletAddress,
+		LineID:       sql.NullString{String: *req.LineID, Valid: req.LineID != nil},
+		Facebook:     sql.NullString{String: *req.Facebook, Valid: req.Facebook != nil},
+		LocationLink: sql.NullString{String: *req.LocationLink, Valid: req.LocationLink != nil},
+	}
+
+	// ✅ อัปเดตข้อมูลลง PostgreSQL
+	if err := database.DB.Model(&farmer).Updates(updatedFarmer).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update farm information"})
+	}
+
+	// ✅ บันทึกใบรับรองใหม่ลง Blockchain (ถ้ามีการเปลี่ยนแปลง)
+	if req.CertFile != "" {
+		txHash, err := BlockchainServiceInstance.StoreCertificationOnBlockchain(
+			fmt.Sprintf("EVENT-%s", farmer.FarmerID),
+			"Farmer",
+			farmer.FarmerID,
+			certCID,
+			big.NewInt(time.Now().Unix()), // วันที่ออกใบเซอร์
+			big.NewInt(time.Now().AddDate(1, 0, 0).Unix()), // วันหมดอายุ (1 ปี)
+		)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update certification on blockchain"})
+		}
+		fmt.Println("✅ Certification updated on Blockchain:", txHash)
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Farm information updated successfully!",
+		"certCID": certCID,
+	})
 }
+

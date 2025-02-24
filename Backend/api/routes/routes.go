@@ -55,6 +55,7 @@ func SetupRoutes(app *fiber.App) {
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
 	certification.Post("/create", controllers.CreateCertification)
+	certification.Get("/:entityID", controllers.GetCertificationByEntity) 
 
 	// ✅ QR Code Routes (ใหม่)
 	qr := api.Group("/qr")
