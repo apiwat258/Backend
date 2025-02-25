@@ -94,7 +94,7 @@ func CreateCertification(c *fiber.Ctx) error {
 
 	if err == nil {
 		// ✅ ถ้าใบเซอร์เก่ามีอยู่ และยังไม่หมดอายุ → อัปเดตแทน
-		if existingCert.ExpiryDate.After(time.Now()) {
+		if existingCert.IssuedDate.After(time.Now()) {
 			fmt.Println("📌 Updating existing certification on Blockchain...")
 
 			txHash, err := services.BlockchainServiceInstance.StoreCertificationOnBlockchain(
@@ -160,7 +160,6 @@ func CreateCertification(c *fiber.Ctx) error {
 	})
 }
 
-
 func GetCertificationByEntity(c *fiber.Ctx) error {
 	entityID := c.Params("entityID")
 	if entityID == "" {
@@ -172,7 +171,7 @@ func GetCertificationByEntity(c *fiber.Ctx) error {
 	certification, err := services.BlockchainServiceInstance.GetCertificationFromBlockchain(eventID)
 	if err != nil {
 		fmt.Println("❌ [GetCertification] Failed to fetch from Blockchain, trying database...")
-		
+
 		// ✅ ถ้า Blockchain ไม่มีข้อมูล ลองดึงจาก PostgreSQL
 		var cert models.Certification
 		if err := database.DB.Where("entity_id = ?", entityID).First(&cert).Error; err != nil {
@@ -181,12 +180,12 @@ func GetCertificationByEntity(c *fiber.Ctx) error {
 
 		// ✅ ส่งข้อมูลใบเซอร์จาก Database กลับไป
 		return c.JSON(fiber.Map{
-			"event_id":     cert.CertificationID,
-			"entity_type":  cert.EntityType,
-			"entity_id":    cert.EntityID,
-			"cid":          cert.CertificationCID,
-			"issued_date":  cert.IssuedDate.Format("2006-01-02"),
-			"expiry_date":  cert.EffectiveDate.Format("2006-01-02"),
+			"event_id":      cert.CertificationID,
+			"entity_type":   cert.EntityType,
+			"entity_id":     cert.EntityID,
+			"cid":           cert.CertificationCID,
+			"issued_date":   cert.IssuedDate.Format("2006-01-02"),
+			"expiry_date":   cert.EffectiveDate.Format("2006-01-02"),
 			"blockchain_tx": cert.BlockchainTxHash,
 		})
 	}

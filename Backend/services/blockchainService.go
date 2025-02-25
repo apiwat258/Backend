@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 
+	"finalyearproject/Backend/models"
 	"finalyearproject/Backend/services/certification_event" // ✅ สำหรับ Certification Event
 	"finalyearproject/Backend/services/rawmilk"             // ✅ สำหรับ Raw Milk
 )
@@ -146,29 +148,30 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 // GetCertificationFromBlockchain - ดึงข้อมูลใบเซอร์จาก Blockchain
 func (b *BlockchainService) GetCertificationFromBlockchain(eventID string) (*models.Certification, error) {
 	// ✅ เรียกใช้งาน Smart Contract เพื่อนำข้อมูลมา
-	certEvent, err := b.certificationContract.GetCertificationEvent(&bind.CallOpts{}, eventID)
+	eventID, entityType, entityID, certCID, issuedDate, expiryDate, createdOn, err :=
+		b.certificationContract.GetCertificationEvent(&bind.CallOpts{}, eventID)
 	if err != nil {
 		log.Println("❌ [Blockchain] Failed to fetch certification:", err)
 		return nil, err
 	}
 
 	// ✅ แปลงค่า timestamp เป็น `time.Time`
-	issuedDate := time.Unix(certEvent.IssuedDate.Int64(), 0)
-	expiryDate := time.Unix(certEvent.ExpiryDate.Int64(), 0)
+	issuedDateTime := time.Unix(issuedDate.Int64(), 0)
+	expiryDateTime := time.Unix(expiryDate.Int64(), 0)
+	createdOnTime := time.Unix(createdOn.Int64(), 0)
 
 	// ✅ คืนค่าเป็น Struct ที่ใช้ในระบบ
 	return &models.Certification{
-		CertificationID:   certEvent.EventID,
-		EntityType:        certEvent.EntityType,
-		EntityID:          certEvent.EntityID,
-		CertificationCID:  certEvent.CertificationCID,
-		IssuedDate:        issuedDate,
-		EffectiveDate:     expiryDate,
-		BlockchainTxHash:  "", // ไม่มีค่าจาก Smart Contract
-		CreatedOn:         time.Unix(certEvent.CreatedOn.Int64(), 0),
+		CertificationID:  eventID,
+		EntityType:       entityType,
+		EntityID:         entityID,
+		CertificationCID: certCID,
+		IssuedDate:       issuedDateTime,
+		EffectiveDate:    expiryDateTime,
+		BlockchainTxHash: "", // ไม่มีค่าจาก Smart Contract
+		CreatedOn:        createdOnTime,
 	}, nil
 }
-
 
 // StoreRawMilkOnBlockchain - บันทึกข้อมูลน้ำนมดิบลง Blockchain
 func (b *BlockchainService) StoreRawMilkOnBlockchain(

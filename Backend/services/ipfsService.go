@@ -2,9 +2,11 @@ package services
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	shell "github.com/ipfs/go-ipfs-api"
 )
@@ -77,4 +79,47 @@ func (s *IPFSService) GetFile(cid string) (string, error) {
 
 	fmt.Println("✅ File retrieved from IPFS successfully")
 	return string(data), nil
+}
+
+// ✅ ฟังก์ชันอัปโหลดไฟล์จาก Base64 ไปยัง IPFS
+func (s *IPFSService) UploadBase64File(base64Str string) (string, error) {
+	fmt.Println("📌 Uploading Base64 file to IPFS...")
+
+	// ✅ ตรวจสอบว่า Base64 String ไม่ว่าง
+	if base64Str == "" {
+		fmt.Println("❌ Base64 string is empty")
+		return "", fmt.Errorf("empty base64 string")
+	}
+
+	// ✅ ตัด `data:image/png;base64,` หรือ `data:application/pdf;base64,` ออกถ้ามี
+	if strings.Contains(base64Str, ",") {
+		parts := strings.SplitN(base64Str, ",", 2)
+		base64Str = parts[1] // ใช้เฉพาะส่วนข้อมูล
+	}
+
+	// ✅ แปลง Base64 เป็นไบต์
+	data, err := base64.StdEncoding.DecodeString(base64Str)
+	if err != nil {
+		fmt.Println("❌ Failed to decode Base64:", err)
+		return "", fmt.Errorf("failed to decode Base64")
+	}
+
+	// ✅ แปลงเป็น Buffer
+	buf := bytes.NewReader(data)
+
+	// ✅ ตรวจสอบว่า IPFS Daemon ทำงานอยู่หรือไม่
+	if !s.shell.IsUp() {
+		fmt.Println("❌ IPFS Daemon is not running!")
+		return "", fmt.Errorf("IPFS node is not available")
+	}
+
+	// ✅ อัปโหลดไฟล์ไปยัง IPFS
+	cid, err := s.shell.Add(buf)
+	if err != nil {
+		fmt.Println("❌ Failed to upload to IPFS:", err)
+		return "", fmt.Errorf("failed to upload to IPFS")
+	}
+
+	fmt.Println("✅ File uploaded to IPFS with CID:", cid)
+	return cid, nil
 }

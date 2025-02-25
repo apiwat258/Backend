@@ -59,7 +59,7 @@ func Login(c *fiber.Ctx) error {
 		Secure:   true,   // ✅ ถ้าใช้ HTTPS ให้เป็น `true`
 		SameSite: "None", // ✅ ต้องใช้ `None` ถ้าทำงาน Cross-Site
 		Path:     "/",
-		Domain:   "10.110.194.195", // ✅ ใส่ให้ตรงกับ Frontend
+		Domain:   "", // ✅ ใส่ให้ตรงกับ Frontend
 	})
 
 	// ✅ Debug ตรวจสอบว่าคุกกี้ถูกเซ็ตหรือไม่

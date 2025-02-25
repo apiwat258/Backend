@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"math/big"
 	"math/rand"
 
 	"database/sql"
@@ -30,15 +31,14 @@ type FarmerRequest struct {
 	AreaCode     string  `json:"areacode"`
 	Phone        string  `json:"phone"`
 	PostCode     string  `json:"postcode"`
-	District     string  `json:"district"`    
-	SubDistrict  string  `json:"subdistrict"` 
+	District     string  `json:"district"`
+	SubDistrict  string  `json:"subdistrict"`
 	Province     string  `json:"province"`
 	Country      string  `json:"country"`
 	LineID       *string `json:"lineid"`
 	Facebook     *string `json:"facebook"`
 	LocationLink *string `json:"location_link"`
 }
-
 
 // ✅ ใช้ Account จริงจาก Ganache แทนการสุ่ม
 func getGanacheAccount() string {
@@ -221,7 +221,7 @@ func GetFarmerByID(c *fiber.Ctx) error {
 		"lastName":    lastName,
 		"companyName": farmer.CompanyName,
 		"address":     farmer.Address,
-		"city":        farmer.City,
+		"city":        farmer.District,
 		"province":    farmer.Province,
 		"country":     farmer.Country,
 		"postCode":    farmer.PostCode,
@@ -296,8 +296,8 @@ func GetFarmerByUser(c *fiber.Ctx) error {
 		"lastName":    lastName,
 		"companyName": farmer.CompanyName,
 		"address":     farmer.Address,
-		"district":    farmer.District,    
-		"subdistrict": farmer.SubDistrict, 
+		"district":    farmer.District,
+		"subdistrict": farmer.SubDistrict,
 		"province":    farmer.Province,
 		"country":     farmer.Country,
 		"postCode":    farmer.PostCode,
@@ -313,7 +313,6 @@ func GetFarmerByUser(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-
 func UpdateFarmer(c *fiber.Ctx) error {
 	userID, ok := c.Locals("userID").(string)
 	if !ok || userID == "" {
@@ -328,7 +327,7 @@ func UpdateFarmer(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farmer profile not found"})
 	}
 
-	// ✅ อ่านข้อมูลใหม่จาก Request Body
+	// โครงสร้าง request สำหรับรับข้อมูลแบบ snake_case
 	var req struct {
 		FirstName    string  `json:"firstname"`
 		LastName     string  `json:"lastname"`
@@ -344,65 +343,89 @@ func UpdateFarmer(c *fiber.Ctx) error {
 		LineID       *string `json:"lineid"`
 		Facebook     *string `json:"facebook"`
 		LocationLink *string `json:"location_link"`
-		CertFile     string  `json:"cert_file"` // ✅ ฟิลด์ไฟล์ใบเซอร์จาก frontend
+		CertFile     string  `json:"cert_file"` // ไฟล์ใบเซอร์ (ในรูปแบบ Base64) จาก frontend
 	}
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
 	}
 
-	// ✅ ตรวจสอบว่าไฟล์ใบรับรองถูกอัปโหลดใหม่หรือไม่
+	// ประกาศตัวแปรสำหรับเก็บ CID ของใบรับรอง
 	var certCID string
+	var err error
+
 	if req.CertFile != "" {
 		fmt.Println("📌 Uploading new certification file to IPFS...")
-
-		// ✅ อัปโหลดไฟล์ไปยัง IPFS
-		certCID, err := ipfsService.UploadBase64File(req.CertFile)
+		// อัปโหลดไฟล์ใบรับรอง (Base64) ไปยัง IPFS
+		certCID, err = ipfsService.UploadBase64File(req.CertFile)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload certification file to IPFS"})
 		}
 		fmt.Println("✅ Certification file uploaded to IPFS with CID:", certCID)
 	} else {
-		// ✅ ดึง CID เดิมจาก Blockchain
+		// ดึง CID เดิมจาก Blockchain (ใช้ event ID ที่อิงกับ FarmerID)
 		eventID := fmt.Sprintf("EVENT-%s", farmer.FarmerID)
-		certCID, err := BlockchainServiceInstance.GetCertificationCID(eventID)
+		certification, err := services.BlockchainServiceInstance.GetCertificationFromBlockchain(eventID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch certification CID from blockchain"})
 		}
+		// สมมติว่า models.Certification มีฟิลด์ CertificationCID เป็น string
+		certCID = certification.CertificationCID
 		fmt.Println("📌 Using existing Certification CID:", certCID)
 	}
 
-	// ✅ รวม Area Code กับ Phone
+	// รวม Area Code กับ Phone ให้เป็นเบอร์โทรศัพท์ที่สมบูรณ์
 	fullPhone := fmt.Sprintf("%s %s", req.AreaCode, req.Phone)
 
-	// ✅ อัปเดตข้อมูลฟาร์มใน PostgreSQL
+	// สร้างข้อมูล Farmer ใหม่เพื่ออัปเดต (แมปจาก snake_case payload)
 	updatedFarmer := models.Farmer{
-		FarmerID:     farmer.FarmerID,
-		UserID:       farmer.UserID,
-		FarmerName:   fmt.Sprintf("%s %s", req.FirstName, req.LastName),
-		CompanyName:  req.CompanyName,
-		Address:      req.Address,
-		District:     req.District,
-		SubDistrict:  req.SubDistrict,
-		Province:     req.Province,
-		Country:      req.Country,
-		PostCode:     req.PostCode,
-		Telephone:    fullPhone,
-		Email:        farmer.Email,
+		// คงค่า FarmerID, UserID, Email, WalletAddress จากข้อมูลเดิม
+		FarmerID: farmer.FarmerID,
+		UserID:   farmer.UserID,
+		// รวม first name กับ last name ให้เป็น FarmerName
+		FarmerName:  fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		CompanyName: req.CompanyName,
+		Address:     req.Address,
+		// สมมติว่าฟิลด์ District และ SubDistrict มีอยู่ใน models.Farmer
+		District:      req.District,
+		SubDistrict:   req.SubDistrict,
+		Province:      req.Province,
+		Country:       req.Country,
+		PostCode:      req.PostCode,
+		Telephone:     fullPhone,
+		Email:         farmer.Email,
 		WalletAddress: farmer.WalletAddress,
-		LineID:       sql.NullString{String: *req.LineID, Valid: req.LineID != nil},
-		Facebook:     sql.NullString{String: *req.Facebook, Valid: req.Facebook != nil},
-		LocationLink: sql.NullString{String: *req.LocationLink, Valid: req.LocationLink != nil},
+		LineID: sql.NullString{String: func() string {
+			if req.LineID != nil {
+				return *req.LineID
+			} else {
+				return ""
+			}
+		}(), Valid: req.LineID != nil},
+		Facebook: sql.NullString{String: func() string {
+			if req.Facebook != nil {
+				return *req.Facebook
+			} else {
+				return ""
+			}
+		}(), Valid: req.Facebook != nil},
+		LocationLink: sql.NullString{String: func() string {
+			if req.LocationLink != nil {
+				return *req.LocationLink
+			} else {
+				return ""
+			}
+		}(), Valid: req.LocationLink != nil},
 	}
 
-	// ✅ อัปเดตข้อมูลลง PostgreSQL
+	// อัปเดตข้อมูลลง PostgreSQL
 	if err := database.DB.Model(&farmer).Updates(updatedFarmer).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update farm information"})
 	}
 
-	// ✅ บันทึกใบรับรองใหม่ลง Blockchain (ถ้ามีการเปลี่ยนแปลง)
+	// ถ้ามีการอัปโหลดใบรับรองใหม่ ให้บันทึกลง Blockchain
 	if req.CertFile != "" {
-		txHash, err := BlockchainServiceInstance.StoreCertificationOnBlockchain(
+		txHash, err := services.BlockchainServiceInstance.StoreCertificationOnBlockchain(
 			fmt.Sprintf("EVENT-%s", farmer.FarmerID),
 			"Farmer",
 			farmer.FarmerID,
@@ -421,4 +444,3 @@ func UpdateFarmer(c *fiber.Ctx) error {
 		"certCID": certCID,
 	})
 }
-
