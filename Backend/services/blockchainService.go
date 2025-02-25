@@ -139,24 +139,44 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 		return "", err
 	}
 
+	// รอให้ธุรกรรมถูก Mine
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		log.Println("❌ Transaction not mined:", err)
+		return "", err
+	}
+	if receipt.Status == types.ReceiptStatusFailed {
+		log.Println("❌ Transaction failed!")
+		return "", errors.New("transaction failed")
+	}
+
 	fmt.Println("✅ Certification Event stored on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
+}
+
+// DeactivateCertificationOnBlockchain - ปิดใช้งานใบเซอร์บน Blockchain
+func (b *BlockchainService) DeactivateCertificationOnBlockchain(eventID string) (string, error) {
+	tx, err := b.certificationContract.DeactivateCertificationEvent(b.auth, eventID)
+	if err != nil {
+		log.Println("❌ Failed to deactivate certification event on blockchain:", err)
+		return "", err
+	}
+
+	fmt.Println("✅ Certification Event deactivated on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
 }
 
 // GetCertificationFromBlockchain - ดึงข้อมูลใบเซอร์จาก Blockchain
 func (b *BlockchainService) GetCertificationFromBlockchain(eventID string) (*models.Certification, error) {
-	// ✅ เรียกใช้งาน Smart Contract เพื่อนำข้อมูลมา
 	certEvent, err := b.certificationContract.GetCertificationEvent(&bind.CallOpts{}, eventID)
 	if err != nil {
 		log.Println("❌ [Blockchain] Failed to fetch certification:", err)
 		return nil, err
 	}
 
-	// ✅ แปลงค่า timestamp เป็น `time.Time`
 	issuedDate := time.Unix(certEvent.IssuedDate.Int64(), 0)
 	expiryDate := time.Unix(certEvent.ExpiryDate.Int64(), 0)
 
-	// ✅ คืนค่าเป็น Struct ที่ใช้ในระบบ
 	return &models.Certification{
 		CertificationID:   certEvent.EventID,
 		EntityType:        certEvent.EntityType,
@@ -164,10 +184,13 @@ func (b *BlockchainService) GetCertificationFromBlockchain(eventID string) (*mod
 		CertificationCID:  certEvent.CertificationCID,
 		IssuedDate:        issuedDate,
 		EffectiveDate:     expiryDate,
-		BlockchainTxHash:  "", // ไม่มีค่าจาก Smart Contract
+		BlockchainTxHash:  "",
 		CreatedOn:         time.Unix(certEvent.CreatedOn.Int64(), 0),
+		IsActive:          certEvent.IsActive, // ✅ เพิ่มฟิลด์ isActive
 	}, nil
 }
+
+
 
 
 // StoreRawMilkOnBlockchain - บันทึกข้อมูลน้ำนมดิบลง Blockchain

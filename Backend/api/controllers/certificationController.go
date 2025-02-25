@@ -68,12 +68,12 @@ func CreateCertification(c *fiber.Ctx) error {
 
 	fmt.Println("📌 Received Certification Request:", req)
 
-	// ✅ ตรวจสอบค่า CID
+	// ตรวจสอบค่า CID
 	if req.CertificationCID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Certification CID is required"})
 	}
 
-	// ✅ แปลงวันที่จาก `string` → `time.Time`
+	// แปลงวันที่จาก string → time.Time
 	issuedDate, err := time.Parse("2006-01-02", req.IssuedDate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid issued date format. Use YYYY-MM-DD"})
@@ -84,16 +84,17 @@ func CreateCertification(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid expiry date format. Use YYYY-MM-DD"})
 	}
 
-	// ✅ แปลง `time.Time` → `*big.Int`
+	// แปลง time.Time → *big.Int
 	issuedDateBigInt := big.NewInt(issuedDate.Unix())
 	expiryDateBigInt := big.NewInt(expiryDate.Unix())
 
-	// ✅ ตรวจสอบว่ามีใบเซอร์อยู่แล้วหรือไม่ (จาก Blockchain)
+	// สร้าง eventID สำหรับใบเซอร์
 	eventID := fmt.Sprintf("EVENT-%s", req.EntityID)
-	existingCert, err := services.BlockchainServiceInstance.GetCertificationFromBlockchain(eventID)
 
+	// ตรวจสอบว่ามีใบเซอร์อยู่แล้วหรือไม่ (จาก Blockchain)
+	existingCert, err := services.BlockchainServiceInstance.GetCertificationFromBlockchain(eventID)
 	if err == nil {
-		// ✅ ถ้าใบเซอร์เก่ามีอยู่ และยังไม่หมดอายุ → อัปเดตแทน
+		// ถ้าใบเซอร์เก่ามีอยู่และยังไม่หมดอายุ → อัปเดตแทน
 		if existingCert.ExpiryDate.After(time.Now()) {
 			fmt.Println("📌 Updating existing certification on Blockchain...")
 
@@ -105,7 +106,6 @@ func CreateCertification(c *fiber.Ctx) error {
 				issuedDateBigInt,
 				expiryDateBigInt,
 			)
-
 			if err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update certification on blockchain"})
 			}
@@ -120,7 +120,7 @@ func CreateCertification(c *fiber.Ctx) error {
 		}
 	}
 
-	// ✅ ถ้าไม่มีใบเซอร์เก่าหรือหมดอายุ → สร้างใหม่
+	// ถ้าไม่มีใบเซอร์เก่าหรือใบเซอร์เก่าหมดอายุ → สร้างใหม่
 	txHash, err := services.BlockchainServiceInstance.StoreCertificationOnBlockchain(
 		eventID,
 		req.EntityType,
@@ -133,25 +133,7 @@ func CreateCertification(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to store certification on blockchain"})
 	}
 
-	// ✅ บันทึกข้อมูลลง PostgreSQL
-	certification := models.Certification{
-		CertificationID:   eventID,
-		EntityType:        req.EntityType,
-		EntityID:          req.EntityID,
-		CertificationType: "Organic",
-		CertificationCID:  req.CertificationCID,
-		IssuedDate:        issuedDate,
-		EffectiveDate:     expiryDate,
-		BlockchainTxHash:  txHash,
-		CreatedOn:         time.Now(),
-	}
-
-	if err := database.DB.Create(&certification).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save certification to database"})
-	}
-
-	fmt.Println("✅ Certification saved to PostgreSQL:", certification)
-
+	fmt.Println("✅ Certification Event stored on Blockchain:", txHash)
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":       "Certification event saved successfully",
 		"event_id":      eventID,
@@ -159,7 +141,6 @@ func CreateCertification(c *fiber.Ctx) error {
 		"blockchain_tx": txHash,
 	})
 }
-
 
 func GetCertificationByEntity(c *fiber.Ctx) error {
 	entityID := c.Params("entityID")
@@ -194,3 +175,26 @@ func GetCertificationByEntity(c *fiber.Ctx) error {
 	// ✅ ส่งข้อมูลใบเซอร์จาก Blockchain กลับไป
 	return c.JSON(certification)
 }
+
+func DeleteCertification(c *fiber.Ctx) error {
+	entityID := c.Params("entityID")
+	if entityID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing entity ID"})
+	}
+
+	eventID := fmt.Sprintf("EVENT-%s", entityID)
+
+	// ✅ Deactivate Certification บน Blockchain
+	txHash, err := services.BlockchainServiceInstance.DeactivateCertificationOnBlockchain(eventID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to deactivate certification on blockchain"})
+	}
+
+	fmt.Println("✅ Certification deactivated on Blockchain:", txHash)
+	return c.JSON(fiber.Map{
+		"message":       "Certification deactivated successfully",
+		"event_id":      eventID,
+		"blockchain_tx": txHash,
+	})
+}
+
