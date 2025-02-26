@@ -19,6 +19,7 @@ type JWTClaims struct {
 
 // GenerateToken creates a new JWT token
 func GenerateToken(userID, email, role string) (string, error) {
+
 	expirationTime := time.Now().Add(24 * time.Hour) // ✅ อายุ 1 วัน
 
 	claims := &JWTClaims{
@@ -44,6 +45,9 @@ func GenerateToken(userID, email, role string) (string, error) {
 		return "", err
 	}
 
+	// ✅ Debug ตรวจสอบค่า UserID, Email, Role ก่อนสร้าง Token
+	fmt.Println("🛠 [GenerateToken] Creating token for User ID:", userID, "Email:", email, "Role:", role)
+
 	return signedToken, nil
 }
 
@@ -67,8 +71,7 @@ func ValidateToken(tokenString string) (*JWTClaims, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 	// ✅ Debug ค่า UserID ที่ Extract ได้
-	fmt.Println("🔍 [ValidateToken] Extracted User ID:", claims.UserID)
-
+	fmt.Println("🔍 [ValidateToken] Extracted - User ID:", claims.UserID, "Email:", claims.Email, "Role:", claims.Role)
 	return claims, nil
 }
 
@@ -78,6 +81,14 @@ func AuthMiddleware() fiber.Handler {
 		// ✅ ดึง Token จาก Cookie
 		tokenString := c.Cookies("auth_token")
 		fmt.Println("🔍 [AuthMiddleware] Received Token from Cookie:", tokenString)
+
+		if tokenString == "" {
+			fmt.Println("❌ [AuthMiddleware] No token found in Cookie")
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Authorization token required"})
+		}
+
+		// ✅ Debug ตรวจสอบ Token ก่อน Validate
+		fmt.Println("🛠 [AuthMiddleware] Validating Token:", tokenString)
 
 		if tokenString == "" {
 			fmt.Println("❌ [AuthMiddleware] No token found in Cookie")

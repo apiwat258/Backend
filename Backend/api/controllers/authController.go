@@ -125,6 +125,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 // Register a new user
 func Register(c *fiber.Ctx) error {
 	type Request struct {
+		Username string `json:"username"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
@@ -140,33 +141,55 @@ func Register(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Email already exists"})
 	}
 
+	// ตรวจสอบว่า Username ซ้ำหรือไม่
+	var existingUsername models.User
+	if err := database.DB.Where("username = ?", req.Username).First(&existingUsername).Error; err == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Username already exists"})
+	}
+
+	// Hash Password
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to hash password"})
 	}
 
-	// ดึงค่าลำดับถัดไปจากลำดับในฐานข้อมูล
+	// ✅ ดึงเลขลำดับถัดไปจาก Database
 	var sequence int64
 	if err := database.DB.Raw("SELECT nextval('user_id_seq')").Scan(&sequence).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate user ID"})
 	}
 
-	// สร้าง userid ในรูปแบบ YYNNNNN
-	yearPrefix := time.Now().Format("06") // ได้เลขปีสองหลัก เช่น "25" สำหรับปี 2025
-	userID := fmt.Sprintf("%s%05d", yearPrefix, sequence)
+	// ✅ สร้าง UserID ในรูปแบบ `YYNNNNN` (ปี + เลขลำดับ)
+	yearPrefix := time.Now().Format("06")                 // ได้เลขปีสองหลัก เช่น "25" สำหรับปี 2025
+	userID := fmt.Sprintf("%s%05d", yearPrefix, sequence) // ตัวเลข 5 หลัก, 00001-99999
 
+	// กำหนดค่า EntityID เป็นค่า Default (ยังไม่ได้เลือก Role)
+	entityID := "PENDING_ROLE" // ค่าเริ่มต้นก่อนเลือก Role
+
+	// ✅ สร้าง User ในระบบ
 	user := models.User{
-		UserID:   userID,
-		Email:    req.Email,
-		Password: hashedPassword,
+		UserID:    userID,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  hashedPassword,
+		Role:      "pending", // ยังไม่มี Role ที่เลือก
+		EntityID:  entityID,  // ยังไม่ได้เชื่อมกับ Entity
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
+	// ✅ บันทึก User ลง Database
 	result := database.DB.Create(&user)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create user"})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "User registered successfully", "user_id": user.UserID})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message":  "User registered successfully",
+		"user_id":  user.UserID,
+		"username": user.Username,
+		"email":    user.Email,
+	})
 }
 
 // Logout API: ลบคุกกี้
@@ -183,8 +206,6 @@ func Logout(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout successful"})
 }
-
-// เพิ่มส่วนนี้ลงใน authController.go
 
 // GetUserInfo handles fetching user information (email and password) from the user table.
 func GetUserInfo(c *fiber.Ctx) error {
@@ -239,4 +260,29 @@ func UpdateUserInfo(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"message": "User info updated successfully"})
+}
+
+// CheckEmailAvailability ตรวจสอบว่าอีเมลซ้ำหรือไม่
+func CheckEmailAvailability(c *fiber.Ctx) error {
+	// ✅ ดึงค่าพารามิเตอร์ `email` จาก Query String
+	email := c.Query("email")
+	if email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Email is required"})
+	}
+
+	// ✅ ตรวจสอบอีเมลในฐานข้อมูล
+	var existingUser models.User
+	if err := database.DB.Where("email = ?", email).First(&existingUser).Error; err == nil {
+		// ❌ อีเมลนี้ถูกใช้แล้ว
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"email":     email,
+			"available": false,
+		})
+	}
+
+	// ✅ อีเมลนี้สามารถใช้ได้
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"email":     email,
+		"available": true,
+	})
 }

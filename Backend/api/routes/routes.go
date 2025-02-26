@@ -15,6 +15,7 @@ func SetupRoutes(app *fiber.App) {
 	auth := api.Group("/auth")
 	auth.Post("/update-role", controllers.UpdateUserRole)
 	auth.Post("/register", controllers.Register)
+	auth.Get("/check-email", controllers.CheckEmailAvailability)
 	auth.Post("/login", controllers.Login)
 	auth.Post("/logout", controllers.Logout)       // ✅ เพิ่มเส้นทาง Logout
 	auth.Get("/get-role", controllers.GetUserRole) // ✅ เพิ่ม API ดึง Role ของผู้ใช้
@@ -51,11 +52,12 @@ func SetupRoutes(app *fiber.App) {
 	retailer := api.Group("/retailers")
 	retailer.Post("/", controllers.CreateRetailer)
 
-	// ✅ Certification Routes
+	// ✅ Certification Routes (เพิ่มเส้นทางสำหรับลบใบเซอร์)
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
 	certification.Post("/create", controllers.CreateCertification)
-	certification.Get("/:entityID", controllers.GetCertificationByEntity) 
+	certification.Get("/:entityID", controllers.GetCertificationByEntity)
+	certification.Delete("/:entityID", controllers.DeleteCertification) // ✅ ใหม่: เส้นทางลบใบเซอร์
 
 	// ✅ QR Code Routes (ใหม่)
 	qr := api.Group("/qr")

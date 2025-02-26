@@ -97,8 +97,14 @@ func (s *IPFSService) UploadBase64File(base64Str string) (string, error) {
 		base64Str = parts[1] // ใช้เฉพาะส่วนข้อมูล
 	}
 
-	// ✅ แปลง Base64 เป็นไบต์
-	data, err := base64.StdEncoding.DecodeString(base64Str)
+	// ✅ เติม Padding (`=`) ให้ครบถ้าขาดไป
+	padding := len(base64Str) % 4
+	if padding > 0 {
+		base64Str += strings.Repeat("=", 4-padding)
+	}
+
+	// ✅ แปลง Base64 เป็นไบต์ (ใช้ `RawStdEncoding` รองรับข้อมูลแบบไม่มี padding)
+	data, err := base64.RawStdEncoding.DecodeString(base64Str)
 	if err != nil {
 		fmt.Println("❌ Failed to decode Base64:", err)
 		return "", fmt.Errorf("failed to decode Base64")

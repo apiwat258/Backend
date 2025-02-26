@@ -1,7 +1,9 @@
+const UserRegistry = artifacts.require("UserRegistry");
 const CertificationEvent = artifacts.require("CertificationEvent");
-const RawMilkSupplyChain = artifacts.require("RawMilkSupplyChain");
 
-module.exports = function (deployer) {
-  deployer.deploy(CertificationEvent);
-  deployer.deploy(RawMilkSupplyChain);
+module.exports = async function (deployer) {
+  await deployer.deploy(UserRegistry);
+  const userRegistryInstance = await UserRegistry.deployed();
+
+  await deployer.deploy(CertificationEvent, userRegistryInstance.address);
 };

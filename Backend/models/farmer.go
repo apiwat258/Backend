@@ -7,25 +7,24 @@ import (
 
 type Farmer struct {
 	FarmerID      string         `gorm:"primaryKey;column:farmerid"`
-	UserID        string         `gorm:"column:userid;unique"`
-	FarmerName    string         `gorm:"column:farmer_name"`
-	CompanyName   string         `gorm:"column:companyname"` // ✅ ใช้ชื่อให้ตรงกับ DB
+	EntityID      string         `gorm:"column:entityid;not null;unique"`
+	CompanyName   string         `gorm:"column:companyname"`
 	Address       string         `gorm:"column:address"`
 	District      string         `gorm:"column:district"`
-	SubDistrict   string         `gorm:"column:subdistrict"` // ✅ เพิ่มฟิลด์เก็บตำบล
+	SubDistrict   string         `gorm:"column:subdistrict"`
 	Province      string         `gorm:"column:province"`
 	Country       string         `gorm:"column:country;default:Thailand"`
 	PostCode      string         `gorm:"column:postcode"`
-	Telephone     string         `gorm:"column:telephone"` // ✅ ต้องรวม areaCode + telephone
+	Telephone     string         `gorm:"column:telephone"`
+	Email         string         `gorm:"column:email;unique;not null"` // ✅ เพิ่ม Email ของฟาร์ม
 	LineID        sql.NullString `gorm:"column:lineid"`
 	Facebook      sql.NullString `gorm:"column:facebook"`
-	LocationLink  sql.NullString `gorm:"column:location_link"` // ✅ ใช้เก็บพิกัดจาก Map
+	LocationLink  sql.NullString `gorm:"column:location_link"`
 	CreatedOn     time.Time      `gorm:"column:createdon;autoCreateTime"`
-	Email         string         `gorm:"column:email;unique"`
-	WalletAddress string         `gorm:"not null"` // ✅ ใช้สำหรับ blockchain
+	WalletAddress string         `gorm:"column:wallet_address;not null"`
 }
 
-// ✅ บังคับ GORM ให้ใช้ตาราง `farmer` ที่มีอยู่
+// ✅ ใช้ตาราง `farmer`
 func (Farmer) TableName() string {
 	return "farmer"
 }

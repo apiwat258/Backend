@@ -99,10 +99,10 @@ func CreateLogistics(c *fiber.Ctx) error {
 	}
 
 	// ✅ ตรวจสอบ `email` ถ้าเป็น `""` ให้ใช้ NULL
-	email := sql.NullString{}
-	if strings.TrimSpace(req.Email) != "" {
-		email = sql.NullString{String: strings.TrimSpace(req.Email), Valid: true}
-	}
+	//email := sql.NullString{}
+	///if strings.TrimSpace(req.Email) != "" {
+	//	email = sql.NullString{String: strings.TrimSpace(req.Email), Valid: true}
+	//}
 
 	// ✅ แปลง `*string` เป็น `sql.NullString`
 	lineID := sql.NullString{}
@@ -122,12 +122,12 @@ func CreateLogistics(c *fiber.Ctx) error {
 
 	// ✅ สร้างข้อมูล Logistics
 	logistics := models.Logistics{
-		LogisticsID:  logisticsID,
-		UserID:       req.UserID,
-		Username:     strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName),
-		CompanyName:  companyName,
-		Address:      fullAddress,
-		City:         req.City,
+		LogisticsID: logisticsID,
+		//UserID:       req.UserID,
+		//Username:     strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName),
+		CompanyName: companyName,
+		Address:     fullAddress,
+		//City:         req.City,
 		Province:     province,
 		Country:      req.Country,
 		PostCode:     req.PostCode,
@@ -136,7 +136,7 @@ func CreateLogistics(c *fiber.Ctx) error {
 		Facebook:     facebook,
 		LocationLink: locationLink,
 		CreatedOn:    time.Now(),
-		Email:        email.String,
+		//Email:        email.String,
 	}
 
 	// ✅ บันทึกลง Database

@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/big"
 	"os"
-	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,9 +14,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	"finalyearproject/Backend/models"
-	"finalyearproject/Backend/services/certification_event" // ✅ สำหรับ Certification Event
-	"finalyearproject/Backend/services/rawmilk"             // ✅ สำหรับ Raw Milk
+	certification "finalyearproject/Backend/services/certification_event" // ✅ สำหรับ Certification Event
+	"finalyearproject/Backend/services/rawmilk"                           // ✅ สำหรับ Raw Milk
+	"finalyearproject/Backend/services/userregistry"
 )
 
 // ✅ เพิ่ม struct นี้ก่อนฟังก์ชัน
@@ -36,7 +35,8 @@ type RawMilkData struct {
 type BlockchainService struct {
 	client                *ethclient.Client
 	auth                  *bind.TransactOpts
-	certificationContract *certification_event.CertificationEvent
+	userRegistryContract  *userregistry.Userregistry
+	certificationContract *certification.Certification
 	rawMilkContract       *rawmilk.Rawmilk // ✅ ใช้ struct ที่ถูกต้อง// ✅ ใช้ Smart Contract ของ Raw Milk
 }
 
@@ -84,7 +84,7 @@ func InitBlockchainService() error {
 	rawMilkContractAddr := common.HexToAddress(rawMilkContractAddress)
 
 	// ✅ โหลด Certification Smart Contract
-	certInstance, err := certification_event.NewCertificationEvent(certContractAddr, client)
+	certInstance, err := certification.NewCertification(certContractAddr, client)
 	if err != nil {
 		return fmt.Errorf("❌ Failed to load certification contract: %v", err)
 	}
@@ -95,9 +95,23 @@ func InitBlockchainService() error {
 		return fmt.Errorf("❌ Failed to load raw milk contract: %v", err)
 	}
 
+	userRegistryAddress := os.Getenv("USER_REGISTRY_CONTRACT_ADDRESS")
+	if userRegistryAddress == "" {
+		return fmt.Errorf("❌ USER_REGISTRY_CONTRACT_ADDRESS is not set")
+	}
+
+	userRegistryAddr := common.HexToAddress(userRegistryAddress)
+
+	// ✅ โหลด UserRegistry Smart Contract
+	userRegistryInstance, err := userregistry.NewUserregistry(userRegistryAddr, client)
+	if err != nil {
+		return fmt.Errorf("❌ Failed to load user registry contract: %v", err)
+	}
+
 	BlockchainServiceInstance = &BlockchainService{
 		client:                client,
 		auth:                  auth,
+		userRegistryContract:  userRegistryInstance,
 		certificationContract: certInstance,
 		rawMilkContract:       rawMilkInstance,
 	}
@@ -106,15 +120,31 @@ func InitBlockchainService() error {
 	return nil
 }
 
-// RegisterFarmOnBlockchain - ลงทะเบียนฟาร์มบน Blockchain
-func (b *BlockchainService) RegisterFarmOnBlockchain(farmWallet string) (string, error) {
-	fmt.Println("📌 DEBUG - Registering Farm on Blockchain:", farmWallet)
+func (b *BlockchainService) RegisterUserOnBlockchain(userWallet string, role uint8) (string, error) {
+	fmt.Println("📌 Registering User on Blockchain:", userWallet, "Role:", role)
 
-	farmAddress := common.HexToAddress(farmWallet)
+	userAddress := common.HexToAddress(userWallet)
 
-	tx, err := b.rawMilkContract.RegisterFarm(b.auth, farmAddress)
+	// ✅ เช็คก่อนว่า User ลงทะเบียนไปแล้วหรือยัง
+	isRegistered, err := b.CheckUserOnBlockchain(userWallet)
 	if err != nil {
-		log.Println("❌ Failed to register farm on blockchain:", err)
+		return "", fmt.Errorf("❌ Failed to check user registration: %v", err)
+	}
+	if isRegistered {
+		fmt.Println("✅ User is already registered on blockchain:", userWallet)
+		return "", fmt.Errorf("❌ User is already registered")
+	}
+
+	// ✅ ใช้ `userAddress` แทน `b.auth` ใน `From`
+	opts := &bind.TransactOpts{
+		From:   userAddress, // ✅ ให้ User เป็นคนส่ง Transaction เอง
+		Signer: b.auth.Signer,
+	}
+
+	// ✅ ลงทะเบียน User ใน Smart Contract `UserRegistry`
+	tx, err := b.userRegistryContract.RegisterUser(opts, role)
+	if err != nil {
+		log.Println("❌ Failed to register user on blockchain:", err)
 		return "", err
 	}
 
@@ -129,48 +159,158 @@ func (b *BlockchainService) RegisterFarmOnBlockchain(farmWallet string) (string,
 		return "", errors.New("Transaction failed")
 	}
 
-	fmt.Println("✅ Farm registered on Blockchain:", tx.Hash().Hex())
+	fmt.Println("✅ User registered on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
 }
 
-// StoreCertificationOnBlockchain - ฟังก์ชันบันทึกใบเซอร์ลง Blockchain
-func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, entityID, certCID string, issuedDate, expiryDate *big.Int) (string, error) {
-	tx, err := b.certificationContract.StoreCertificationEvent(b.auth, eventID, entityType, entityID, certCID, issuedDate, expiryDate)
+func (b *BlockchainService) CheckUserOnBlockchain(userWallet string) (bool, error) {
+	fmt.Println("📌 Checking if user exists on blockchain:", userWallet)
+
+	callOpts := &bind.CallOpts{Pending: false, Context: context.Background()}
+	userAddress := common.HexToAddress(userWallet)
+
+	isRegistered, err := b.userRegistryContract.IsUserRegistered(callOpts, userAddress)
 	if err != nil {
-		log.Println("❌ Failed to store certification event on blockchain:", err)
+		fmt.Println("❌ Failed to check user on blockchain:", err)
+		return false, err
+	}
+
+	return isRegistered, nil
+}
+
+func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, entityID, certCID string, issuedDate, expiryDate *big.Int) (string, error) {
+	fmt.Println("📌 Checking existing certifications before storing new one...")
+
+	// ✅ เช็คว่าผู้ใช้ลงทะเบียนในระบบแล้ว
+	callOpts := &bind.CallOpts{Pending: false, Context: context.Background()}
+	isRegistered, err := b.userRegistryContract.IsUserRegistered(callOpts, b.auth.From)
+	if err != nil {
+		fmt.Println("❌ Failed to check user registration:", err)
 		return "", err
+	}
+	if !isRegistered {
+		return "", errors.New("❌ User is not registered in the system")
+	}
+
+	// ✅ ดึงใบเซอร์ทั้งหมดของ entityID
+	existingCerts, err := b.GetAllCertificationsForEntity(entityID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch existing certifications:", err)
+		return "", err
+	}
+
+	// ✅ ตรวจสอบว่ามีใบเซอร์ที่ Active อยู่หรือไม่
+	for _, cert := range existingCerts {
+		if cert.IsActive {
+			fmt.Println("📌 Found active certification, deactivating before storing new one:", cert.EventID)
+			_, err := b.DeactivateCertificationOnBlockchain(cert.EventID)
+			if err != nil {
+				fmt.Println("❌ Failed to deactivate existing certification:", err)
+				return "", err
+			}
+		}
+	}
+
+	fmt.Println("📌 Storing new certification on Blockchain...")
+
+	opts := &bind.TransactOpts{
+		From:     b.auth.From,
+		Signer:   b.auth.Signer,
+		Value:    big.NewInt(0),
+		GasLimit: 800000,
+	}
+
+	// ✅ ส่งธุรกรรมไปยัง Smart Contract
+	tx, err := b.certificationContract.StoreCertificationEvent(opts, eventID, entityType, entityID, certCID, issuedDate, expiryDate)
+	if err != nil {
+		fmt.Println("❌ Failed to store certification event on blockchain:", err)
+		return "", err
+	}
+
+	// ✅ รอให้ธุรกรรมถูก Mine
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		fmt.Println("❌ Transaction not mined:", err)
+		return "", err
+	}
+	if receipt.Status == types.ReceiptStatusFailed {
+		fmt.Println("❌ Transaction failed!")
+		return "", errors.New("transaction failed")
 	}
 
 	fmt.Println("✅ Certification Event stored on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
 }
 
-// GetCertificationFromBlockchain - ดึงข้อมูลใบเซอร์จาก Blockchain
-func (b *BlockchainService) GetCertificationFromBlockchain(eventID string) (*models.Certification, error) {
-	// ✅ เรียกใช้งาน Smart Contract เพื่อนำข้อมูลมา
-	eventID, entityType, entityID, certCID, issuedDate, expiryDate, createdOn, err :=
-		b.certificationContract.GetCertificationEvent(&bind.CallOpts{}, eventID)
+// DeactivateCertificationOnBlockchain - ปิดใช้งานใบเซอร์บน Blockchain
+func (b *BlockchainService) DeactivateCertificationOnBlockchain(eventID string) (string, error) {
+	tx, err := b.certificationContract.DeactivateCertificationEvent(b.auth, eventID)
 	if err != nil {
-		log.Println("❌ [Blockchain] Failed to fetch certification:", err)
+		log.Println("❌ Failed to deactivate certification event on blockchain:", err)
+		return "", err
+	}
+
+	// ✅ รอให้ธุรกรรมถูก Mine
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		log.Println("❌ Transaction not mined:", err)
+		return "", err
+	}
+	if receipt.Status == types.ReceiptStatusFailed {
+		log.Println("❌ Transaction failed!")
+		return "", errors.New("transaction failed")
+	}
+
+	fmt.Println("✅ Certification Event deactivated on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
+}
+
+func (b *BlockchainService) GetAllCertificationsForEntity(entityID string) ([]certification.CertificationEventCertEvent, error) {
+	callOpts := &bind.CallOpts{
+		Pending: false,
+		Context: context.Background(),
+	}
+
+	certs, err := b.certificationContract.GetActiveCertificationsForEntity(callOpts, entityID)
+	if err != nil {
+		log.Println("❌ Failed to fetch certifications from blockchain:", err)
 		return nil, err
 	}
 
-	// ✅ แปลงค่า timestamp เป็น `time.Time`
-	issuedDateTime := time.Unix(issuedDate.Int64(), 0)
-	expiryDateTime := time.Unix(expiryDate.Int64(), 0)
-	createdOnTime := time.Unix(createdOn.Int64(), 0)
+	// ✅ กรองใบเซอร์ที่ `isActive == true` เท่านั้น
+	var activeCerts []certification.CertificationEventCertEvent
+	for _, cert := range certs {
+		if cert.IsActive {
+			activeCerts = append(activeCerts, cert)
+		}
+	}
 
-	// ✅ คืนค่าเป็น Struct ที่ใช้ในระบบ
-	return &models.Certification{
-		CertificationID:  eventID,
-		EntityType:       entityType,
-		EntityID:         entityID,
-		CertificationCID: certCID,
-		IssuedDate:       issuedDateTime,
-		EffectiveDate:    expiryDateTime,
-		BlockchainTxHash: "", // ไม่มีค่าจาก Smart Contract
-		CreatedOn:        createdOnTime,
-	}, nil
+	fmt.Println("✅ Retrieved active certifications from blockchain:", activeCerts)
+	return activeCerts, nil
+}
+
+func (b *BlockchainService) CheckUserCertification(certCID string) (bool, error) {
+	fmt.Println("📌 Checking if Certification CID is unique:", certCID)
+
+	callOpts := &bind.CallOpts{Pending: false, Context: context.Background()}
+
+	// ✅ ดึงข้อมูล "ทุกใบเซอร์" ที่เคยบันทึกไว้ใน Blockchain
+	allCerts, err := b.certificationContract.GetAllCertifications(callOpts)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch all certifications:", err)
+		return false, err
+	}
+
+	// ✅ ตรวจสอบว่า CID นี้เคยถูกใช้มาก่อนหรือไม่
+	for _, cert := range allCerts {
+		if cert.CertificationCID == certCID {
+			fmt.Println("❌ Certification CID already exists on blockchain:", cert.EventID)
+			return false, nil
+		}
+	}
+
+	fmt.Println("✅ Certification CID is unique, can be stored")
+	return true, nil
 }
 
 // StoreRawMilkOnBlockchain - บันทึกข้อมูลน้ำนมดิบลง Blockchain
