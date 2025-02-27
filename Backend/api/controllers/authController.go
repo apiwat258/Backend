@@ -109,16 +109,34 @@ func UpdateUserRole(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
 	}
 
+	fmt.Println("📌 [UpdateUserRole] Updating role for:", req.Email, "New Role:", req.Role)
+
+	// ✅ ตรวจสอบว่า Role ที่ส่งมาเป็นค่าที่ถูกต้องหรือไม่
+	validRoles := map[string]bool{
+		"farmer":    true,
+		"factory":   true,
+		"logistics": true,
+		"retailer":  true,
+		"user":      true,
+	}
+
+	if !validRoles[req.Role] {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid role"})
+	}
+
+	// ✅ ค้นหาผู้ใช้จากฐานข้อมูล
 	var user models.User
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
 
+	// ✅ อัปเดต Role ของผู้ใช้ (ไม่เช็ค entityID)
 	user.Role = req.Role
 	if err := database.DB.Save(&user).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user role"})
 	}
 
+	fmt.Println("✅ [UpdateUserRole] User role updated successfully")
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User role updated successfully"})
 }
 

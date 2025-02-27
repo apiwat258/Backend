@@ -58,6 +58,7 @@ func SetupRoutes(app *fiber.App) {
 	certification.Post("/create", controllers.CreateCertification)
 	certification.Get("/:entityID", controllers.GetCertificationByEntity)
 	certification.Delete("/:entityID", controllers.DeleteCertification) // ✅ ใหม่: เส้นทางลบใบเซอร์
+	certification.Get("/check/:certCID", controllers.CheckCertificationCID)
 
 	// ✅ QR Code Routes (ใหม่)
 	qr := api.Group("/qr")
