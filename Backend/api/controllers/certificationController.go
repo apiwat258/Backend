@@ -1,14 +1,19 @@
 package controllers
 
 import (
+	"finalyearproject/Backend/database"
+	"finalyearproject/Backend/models"
 	"finalyearproject/Backend/services"
 	certification "finalyearproject/Backend/services/certification_event"
 	"fmt"
 	"math/big"
+	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // ✅ สร้างอินสแตนซ์ของ IPFSService (ที่หายไป)
@@ -290,7 +295,6 @@ func DeleteCertification(c *fiber.Ctx) error {
 		"blockchain_tx": txHash,
 	})
 }
-
 
 func CheckCertificationCID(c *fiber.Ctx) error {
 	certCID := c.Params("certCID")

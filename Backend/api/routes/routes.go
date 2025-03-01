@@ -28,7 +28,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// ✅ Farmer Routes
 	farmer := api.Group("/farmers")
-	farmer.Post("/", controllers.CreateFarmer)
+	farmer.Post("/create", middleware.AuthMiddleware(), controllers.CreateFarmer)
 	farmer.Get("/me", middleware.AuthMiddleware(), controllers.GetFarmerByUser) // ✅ ใช้ Middleware
 	farmer.Get("/:id", controllers.GetFarmerByID)                               // ✅ เพิ่ม API สำหรับดึงข้อมูล Farmer ตาม ID
 	farmer.Put("/update", middleware.AuthMiddleware(), controllers.UpdateFarmer)
