@@ -115,11 +115,6 @@ func CreateRetailer(c *fiber.Ctx) error {
 		facebook = sql.NullString{String: strings.TrimSpace(*req.Facebook), Valid: true}
 	}
 
-	locationLink := sql.NullString{}
-	if req.LocationLink != nil && strings.TrimSpace(*req.LocationLink) != "" {
-		locationLink = sql.NullString{String: strings.TrimSpace(*req.LocationLink), Valid: true}
-	}
-
 	// ✅ สร้างข้อมูล Retailer
 	retailer := models.Retailer{
 		RetailerID: retailerID,
@@ -128,14 +123,13 @@ func CreateRetailer(c *fiber.Ctx) error {
 		CompanyName: companyName,
 		Address:     fullAddress,
 		//City:         req.City,
-		Province:     province,
-		Country:      req.Country,
-		PostCode:     req.PostCode,
-		Telephone:    fullPhone,
-		LineID:       lineID,
-		Facebook:     facebook,
-		LocationLink: locationLink,
-		CreatedOn:    time.Now(),
+		Province:  province,
+		Country:   req.Country,
+		PostCode:  req.PostCode,
+		Telephone: fullPhone,
+		LineID:    lineID,
+		Facebook:  facebook,
+		CreatedOn: time.Now(),
 		//Email:        email.String,
 	}
 

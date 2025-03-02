@@ -44,8 +44,8 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email or password"})
 	}
 
-	// ✅ สร้าง JWT Token
-	token, err := middleware.GenerateToken(user.UserID, user.Email, user.Role)
+	// ✅ สร้าง JWT Token โดยเพิ่ม EntityID เข้าไปด้วย
+	token, err := middleware.GenerateToken(user.UserID, user.Email, user.Role, user.EntityID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
@@ -63,18 +63,19 @@ func Login(c *fiber.Ctx) error {
 	})
 
 	// ✅ Debug ตรวจสอบว่าคุกกี้ถูกเซ็ตหรือไม่
-	fmt.Println("✅ [Login] Token set in cookie for user:", user.UserID)
+	fmt.Println("✅ [Login] Token set in cookie for user:", user.UserID, "EntityID:", user.EntityID)
 
-	// ✅ ส่ง Role กลับไปให้ Frontend
-	response := LoginResponse{
-		Message: "Login successful",
-		Role:    user.Role,
+	// ✅ ส่ง Role และ EntityID กลับไปให้ Frontend
+	response := fiber.Map{
+		"message":  "Login successful",
+		"role":     user.Role,
+		"entityID": user.EntityID, // ✅ เพิ่ม EntityID กลับไปด้วย
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-// ✅ ดึง Role จาก JWT Token ใน Cookie
+// ✅ ดึง Role และ EntityID จาก JWT Token ใน Cookie
 func GetUserRole(c *fiber.Ctx) error {
 	// ✅ ใช้ Fiber API ดึง Token โดยตรง
 	tokenString := c.Cookies("auth_token")
@@ -94,8 +95,12 @@ func GetUserRole(c *fiber.Ctx) error {
 		})
 	}
 
-	fmt.Println("✅ [GetUserRole] Authenticated User Role:", claims.Role)
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"role": claims.Role})
+	fmt.Println("✅ [GetUserRole] Authenticated User Role:", claims.Role, "EntityID:", claims.EntityID)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"role":     claims.Role,
+		"entityID": claims.EntityID, // ✅ เพิ่ม EntityID กลับไปด้วย
+	})
 }
 
 func UpdateUserRole(c *fiber.Ctx) error {

@@ -17,7 +17,7 @@ type Retailer struct {
 	Telephone     string         `gorm:"column:telephone"`
 	LineID        sql.NullString `gorm:"column:lineid"`
 	Facebook      sql.NullString `gorm:"column:facebook"`
-	LocationLink  sql.NullString `gorm:"column:location_link"`
+	LocationLink  string         `gorm:"column:location_link"`
 	CreatedOn     time.Time      `gorm:"column:createdon;autoCreateTime"`
 	WalletAddress string         `gorm:"column:wallet_address;not null"`
 }

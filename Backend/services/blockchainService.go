@@ -2,11 +2,14 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -38,6 +41,15 @@ type BlockchainService struct {
 	userRegistryContract  *userregistry.Userregistry
 	certificationContract *certification.Certification
 	rawMilkContract       *rawmilk.Rawmilk // ✅ ใช้ struct ที่ถูกต้อง// ✅ ใช้ Smart Contract ของ Raw Milk
+}
+
+func getChainID() *big.Int {
+	chainIDStr := os.Getenv("GANACHE_CHAIN_ID")
+	chainID, err := strconv.ParseInt(chainIDStr, 10, 64)
+	if err != nil {
+		chainID = 1337 // ✅ ค่า Default ถ้าไม่มีการกำหนดค่าใน .env
+	}
+	return big.NewInt(chainID)
 }
 
 // BlockchainServiceInstance - Global Instance
@@ -120,14 +132,43 @@ func InitBlockchainService() error {
 	return nil
 }
 
+func (b *BlockchainService) getPrivateKeyForAddress(userWallet string) (string, error) {
+	// ✅ กำหนด path ที่ถูกต้อง
+	filePath := "services/private_keys.json"
+
+	// Debug: เช็คว่าไฟล์อยู่ตรงไหน
+	absPath, _ := os.Getwd()
+	fmt.Println("📌 Looking for private_keys.json at:", absPath+"/"+filePath)
+
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		fmt.Println("❌ Failed to load private keys file from:", absPath+"/"+filePath)
+		return "", errors.New("Failed to load private keys file")
+	}
+	fmt.Println("✅ Loaded private_keys.json successfully")
+
+	var privateKeys map[string]string
+	err = json.Unmarshal(data, &privateKeys)
+	if err != nil {
+		return "", errors.New("Failed to parse private keys")
+	}
+
+	if key, exists := privateKeys[userWallet]; exists {
+		return key, nil
+	}
+	return "", errors.New("Private key not found for address")
+}
+
 func (b *BlockchainService) RegisterUserOnBlockchain(userWallet string, role uint8) (string, error) {
 	fmt.Println("📌 Registering User on Blockchain:", userWallet, "Role:", role)
 
 	userAddress := common.HexToAddress(userWallet)
 
 	// ✅ เช็คก่อนว่า User ลงทะเบียนไปแล้วหรือยัง
+	fmt.Println("📌 Checking if user exists on blockchain:", userWallet)
 	isRegistered, err := b.CheckUserOnBlockchain(userWallet)
 	if err != nil {
+		fmt.Println("❌ Error checking user registration:", err)
 		return "", fmt.Errorf("❌ Failed to check user registration: %v", err)
 	}
 	if isRegistered {
@@ -135,27 +176,51 @@ func (b *BlockchainService) RegisterUserOnBlockchain(userWallet string, role uin
 		return "", fmt.Errorf("❌ User is already registered")
 	}
 
-	// ✅ ใช้ `userAddress` แทน `b.auth` ใน `From`
-	opts := &bind.TransactOpts{
-		From:   userAddress, // ✅ ให้ User เป็นคนส่ง Transaction เอง
-		Signer: b.auth.Signer,
+	// ✅ ดึง Private Key ของ Wallet ที่สุ่มมาให้ User
+	fmt.Println("📌 Fetching Private Key for:", userWallet)
+	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
+	if err != nil {
+		fmt.Println("❌ Failed to get private key:", err)
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
 	}
+	fmt.Println("✅ Private Key Found:", privateKeyHex[:10]+"...") // โชว์แค่ 10 ตัวแรก
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		fmt.Println("❌ Failed to parse private key:", err)
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+	fmt.Println("✅ Private Key Parsed Successfully")
+
+	// ✅ สร้าง TransactOpts ใหม่ โดยใช้ Private Key ของ User
+	fmt.Println("📌 Creating Transaction Auth")
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		fmt.Println("❌ Failed to create transactor:", err)
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = userAddress
+	fmt.Println("✅ Transactor Created - From:", auth.From.Hex())
 
 	// ✅ ลงทะเบียน User ใน Smart Contract `UserRegistry`
-	tx, err := b.userRegistryContract.RegisterUser(opts, role)
+	fmt.Println("📌 Sending Transaction to Register User...")
+	tx, err := b.userRegistryContract.RegisterUser(auth, role)
 	if err != nil {
-		log.Println("❌ Failed to register user on blockchain:", err)
+		fmt.Println("❌ Failed to register user on blockchain:", err)
 		return "", err
 	}
+	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
 
+	// ✅ รอให้ Transaction ถูกบันทึก
+	fmt.Println("📌 Waiting for Transaction to be Mined...")
 	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
 	if err != nil {
-		log.Println("❌ Transaction not mined:", err)
+		fmt.Println("❌ Transaction not mined:", err)
 		return "", err
 	}
 
 	if receipt.Status == types.ReceiptStatusFailed {
-		log.Println("❌ Transaction failed!")
+		fmt.Println("❌ Transaction failed!")
 		return "", errors.New("Transaction failed")
 	}
 
@@ -178,29 +243,33 @@ func (b *BlockchainService) CheckUserOnBlockchain(userWallet string) (bool, erro
 	return isRegistered, nil
 }
 
-func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, entityID, certCID string, issuedDate, expiryDate *big.Int) (string, error) {
+func (b *BlockchainService) StoreCertificationOnBlockchain(walletAddress, eventID, entityType, entityID, certCID string, issuedDate, expiryDate *big.Int) (string, error) {
 	fmt.Println("📌 Checking existing certifications before storing new one...")
 
 	// ✅ เช็คว่าผู้ใช้ลงทะเบียนในระบบแล้ว
 	callOpts := &bind.CallOpts{Pending: false, Context: context.Background()}
-	isRegistered, err := b.userRegistryContract.IsUserRegistered(callOpts, b.auth.From)
+	isRegistered, err := b.userRegistryContract.IsUserRegistered(callOpts, common.HexToAddress(walletAddress))
 	if err != nil {
 		fmt.Println("❌ Failed to check user registration:", err)
 		return "", err
 	}
 	if !isRegistered {
-		return "", errors.New("❌ User is not registered in the system")
+		fmt.Println("❌ User is not registered in the system")
+		return "", errors.New("User is not registered in the system")
 	}
 
 	// ✅ ดึงใบเซอร์ทั้งหมดของ entityID
+	fmt.Println("📌 Fetching all certifications for entity:", entityID)
 	existingCerts, err := b.GetAllCertificationsForEntity(entityID)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch existing certifications:", err)
 		return "", err
 	}
+	fmt.Println("✅ Retrieved certifications:", len(existingCerts))
 
 	// ✅ ตรวจสอบว่ามีใบเซอร์ที่ Active อยู่หรือไม่
 	for _, cert := range existingCerts {
+		fmt.Println("📌 Checking certification:", cert.EventID)
 		if cert.IsActive {
 			fmt.Println("📌 Found active certification, deactivating before storing new one:", cert.EventID)
 			_, err := b.DeactivateCertificationOnBlockchain(cert.EventID)
@@ -211,17 +280,45 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 		}
 	}
 
+	fmt.Println("📌 Fetching Private Key for:", walletAddress)
+
+	// ✅ ดึง Private Key ของ User จากไฟล์ JSON
+	privateKeyHex, err := b.getPrivateKeyForAddress(walletAddress)
+	if err != nil {
+		fmt.Println("❌ Failed to get private key:", err)
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+	fmt.Println("✅ Private Key Found:", privateKeyHex[:10]+"...")
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		fmt.Println("❌ Failed to parse private key:", err)
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+	fmt.Println("✅ Private Key Parsed Successfully")
+
+	// ✅ สร้าง `auth` ใหม่โดยใช้ Private Key ของ User
+	fmt.Println("📌 Creating Transaction Auth for:", walletAddress)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		fmt.Println("❌ Failed to create transactor:", err)
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(walletAddress) // ✅ ใช้ Wallet Address ของ User
+	fmt.Println("✅ Transactor Created - From:", auth.From.Hex())
+
 	fmt.Println("📌 Storing new certification on Blockchain...")
 
-	opts := &bind.TransactOpts{
-		From:     b.auth.From,
-		Signer:   b.auth.Signer,
-		Value:    big.NewInt(0),
-		GasLimit: 800000,
-	}
-
 	// ✅ ส่งธุรกรรมไปยัง Smart Contract
-	tx, err := b.certificationContract.StoreCertificationEvent(opts, eventID, entityType, entityID, certCID, issuedDate, expiryDate)
+	tx, err := b.certificationContract.StoreCertificationEvent(
+		auth,
+		eventID,
+		entityType,
+		entityID,
+		certCID,
+		issuedDate,
+		expiryDate,
+	)
 	if err != nil {
 		fmt.Println("❌ Failed to store certification event on blockchain:", err)
 		return "", err
@@ -235,7 +332,7 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 	}
 	if receipt.Status == types.ReceiptStatusFailed {
 		fmt.Println("❌ Transaction failed!")
-		return "", errors.New("transaction failed")
+		return "", errors.New("Transaction failed")
 	}
 
 	fmt.Println("✅ Certification Event stored on Blockchain:", tx.Hash().Hex())
@@ -244,6 +341,32 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(eventID, entityType, 
 
 // DeactivateCertificationOnBlockchain - ปิดใช้งานใบเซอร์บน Blockchain
 func (b *BlockchainService) DeactivateCertificationOnBlockchain(eventID string) (string, error) {
+	fmt.Println("📌 Checking if certification event exists before deactivating:", eventID)
+
+	// ✅ ดึงข้อมูลใบเซอร์ทั้งหมดก่อน
+	entityID := "" // 🔹 อาจต้องส่ง entityID มาด้วยในพารามิเตอร์
+	existingCerts, err := b.GetAllCertificationsForEntity(entityID)
+	if err != nil {
+		log.Println("❌ Failed to fetch existing certifications:", err)
+		return "", err
+	}
+
+	// ✅ เช็คว่า `eventID` นี้มีอยู่และยัง Active หรือไม่
+	var certExists bool
+	for _, cert := range existingCerts {
+		if cert.EventID == eventID && cert.IsActive {
+			certExists = true
+			break
+		}
+	}
+	if !certExists {
+		log.Println("❌ Certification event not found or already inactive:", eventID)
+		return "", errors.New("certification event not found or already inactive")
+	}
+
+	fmt.Println("📌 Certification event found, proceeding with deactivation...")
+
+	// ✅ ส่งธุรกรรมไปยัง Blockchain
 	tx, err := b.certificationContract.DeactivateCertificationEvent(b.auth, eventID)
 	if err != nil {
 		log.Println("❌ Failed to deactivate certification event on blockchain:", err)
@@ -271,13 +394,22 @@ func (b *BlockchainService) GetAllCertificationsForEntity(entityID string) ([]ce
 		Context: context.Background(),
 	}
 
+	fmt.Println("📌 Fetching active certifications for entity:", entityID)
+
+	// ✅ เรียก Smart Contract
 	certs, err := b.certificationContract.GetActiveCertificationsForEntity(callOpts, entityID)
 	if err != nil {
 		log.Println("❌ Failed to fetch certifications from blockchain:", err)
 		return nil, err
 	}
 
-	// ✅ กรองใบเซอร์ที่ `isActive == true` เท่านั้น
+	// ✅ ถ้าไม่มีใบเซอร์เลย -> คืนค่าเป็น [] แทน nil เพื่อป้องกัน Panic
+	if len(certs) == 0 {
+		fmt.Println("📌 No certifications found for entity:", entityID)
+		return []certification.CertificationEventCertEvent{}, nil
+	}
+
+	// ✅ กรองเฉพาะใบเซอร์ที่ยัง `isActive == true`
 	var activeCerts []certification.CertificationEventCertEvent
 	for _, cert := range certs {
 		if cert.IsActive {
@@ -285,7 +417,7 @@ func (b *BlockchainService) GetAllCertificationsForEntity(entityID string) ([]ce
 		}
 	}
 
-	fmt.Println("✅ Retrieved active certifications from blockchain:", activeCerts)
+	fmt.Println("✅ Retrieved active certifications from blockchain:", len(activeCerts))
 	return activeCerts, nil
 }
 

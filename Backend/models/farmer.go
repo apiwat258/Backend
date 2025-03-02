@@ -7,7 +7,6 @@ import (
 
 type Farmer struct {
 	FarmerID      string         `gorm:"primaryKey;column:farmerid"`
-	EntityID      string         `gorm:"column:entityid;not null;unique"`
 	CompanyName   string         `gorm:"column:companyname"`
 	Address       string         `gorm:"column:address"`
 	District      string         `gorm:"column:district"`
@@ -19,7 +18,7 @@ type Farmer struct {
 	Email         string         `gorm:"column:email;unique;not null"` // ✅ เพิ่ม Email ของฟาร์ม
 	LineID        sql.NullString `gorm:"column:lineid"`
 	Facebook      sql.NullString `gorm:"column:facebook"`
-	LocationLink  sql.NullString `gorm:"column:location_link"`
+	LocationLink  string         `gorm:"column:location_link"`
 	CreatedOn     time.Time      `gorm:"column:createdon;autoCreateTime"`
 	WalletAddress string         `gorm:"column:wallet_address;not null"`
 }

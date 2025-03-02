@@ -11,21 +11,22 @@ import (
 
 // JWTClaims struct
 type JWTClaims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID   string `json:"user_id"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+	EntityID string `json:"entity_id"`
 	jwt.RegisteredClaims
 }
 
 // GenerateToken creates a new JWT token
-func GenerateToken(userID, email, role string) (string, error) {
-
+func GenerateToken(userID, email, role, entityID string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour) // ✅ อายุ 1 วัน
 
 	claims := &JWTClaims{
-		UserID: userID,
-		Email:  email,
-		Role:   role,
+		UserID:   userID,
+		Email:    email,
+		Role:     role,
+		EntityID: entityID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -71,7 +72,7 @@ func ValidateToken(tokenString string) (*JWTClaims, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 	// ✅ Debug ค่า UserID ที่ Extract ได้
-	fmt.Println("🔍 [ValidateToken] Extracted - User ID:", claims.UserID, "Email:", claims.Email, "Role:", claims.Role)
+	fmt.Println("🔍 [ValidateToken] Extracted - User ID:", claims.UserID, "Email:", claims.Email, "Role:", claims.Role, "EntityID:", claims.EntityID)
 	return claims, nil
 }
 
@@ -109,6 +110,7 @@ func AuthMiddleware() fiber.Handler {
 		c.Locals("userID", claims.UserID)
 		c.Locals("email", claims.Email)
 		c.Locals("role", claims.Role)
+		c.Locals("entityID", claims.EntityID)
 
 		return c.Next()
 	}

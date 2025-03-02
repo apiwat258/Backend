@@ -29,8 +29,7 @@ func SetupRoutes(app *fiber.App) {
 	// ✅ Farmer Routes
 	farmer := api.Group("/farmers")
 	farmer.Post("/create", middleware.AuthMiddleware(), controllers.CreateFarmer)
-	farmer.Get("/me", middleware.AuthMiddleware(), controllers.GetFarmerByUser) // ✅ ใช้ Middleware
-	farmer.Get("/:id", controllers.GetFarmerByID)                               // ✅ เพิ่ม API สำหรับดึงข้อมูล Farmer ตาม ID
+	farmer.Get("/me", middleware.AuthMiddleware(), controllers.GetFarmByUser)
 	farmer.Put("/update", middleware.AuthMiddleware(), controllers.UpdateFarmer)
 
 	// ✅ Raw Milk Routes (เกษตรกรใช้เพิ่มข้อมูลน้ำนมดิบ)
@@ -55,8 +54,7 @@ func SetupRoutes(app *fiber.App) {
 	// ✅ Certification Routes (เพิ่มเส้นทางสำหรับลบใบเซอร์)
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
-	certification.Post("/create", controllers.CreateCertification)
-	certification.Get("/:entityID", controllers.GetCertificationByEntity)
+	certification.Get("/me", middleware.AuthMiddleware(), controllers.GetCertificationByUser)
 	certification.Delete("/:entityID", controllers.DeleteCertification) // ✅ ใหม่: เส้นทางลบใบเซอร์
 	certification.Get("/check/:certCID", controllers.CheckCertificationCID)
 
