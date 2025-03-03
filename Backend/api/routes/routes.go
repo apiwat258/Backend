@@ -21,6 +21,7 @@ func SetupRoutes(app *fiber.App) {
 	auth.Get("/get-role", controllers.GetUserRole) // ✅ เพิ่ม API ดึง Role ของผู้ใช้
 	auth.Get("/user-info", middleware.AuthMiddleware(), controllers.GetUserInfo)
 	auth.Put("/update-user", middleware.AuthMiddleware(), controllers.UpdateUserInfo)
+	api.Post("/refresh-token", controllers.RefreshTokenHandler)
 
 	// ✅ Protected Routes (ใช้ Middleware JWT)
 	protected := api.Group("/protected", middleware.AuthMiddleware())
@@ -55,8 +56,9 @@ func SetupRoutes(app *fiber.App) {
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
 	certification.Get("/me", middleware.AuthMiddleware(), controllers.GetCertificationByUser)
-	certification.Delete("/:entityID", controllers.DeleteCertification) // ✅ ใหม่: เส้นทางลบใบเซอร์
+	certification.Delete("/", middleware.AuthMiddleware(), controllers.DeleteCertification) // ✅ API ต้องการ Auth
 	certification.Get("/check/:certCID", controllers.CheckCertificationCID)
+	certification.Post("/store", middleware.AuthMiddleware(), controllers.StoreCertification)
 
 	// ✅ QR Code Routes (ใหม่)
 	qr := api.Group("/qr")

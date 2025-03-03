@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"finalyearproject/Backend/database"
-	"finalyearproject/Backend/models"
 	"finalyearproject/Backend/services"
 	certification "finalyearproject/Backend/services/certification_event"
 	"fmt"
@@ -120,26 +118,13 @@ func contains(slice []string, item string) bool {
 }
 
 func GetCertificationByUser(c *fiber.Ctx) error {
-	// ✅ ดึง `userID` จาก JWT Token ที่ AuthMiddleware กำหนดไว้
-	userID, ok := c.Locals("userID").(string)
-	if !ok || userID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	// ✅ ดึง `entityID` จาก JWT Token ที่ AuthMiddleware กำหนดไว้
+	entityID, ok := c.Locals("entityID").(string)
+	if !ok || entityID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - entityID missing"})
 	}
 
-	fmt.Println("🔍 [GetCertificationByUser] Fetching certification for userID:", userID)
-
-	// ✅ ค้นหา `entityID` ของผู้ใช้ที่ล็อกอินอยู่
-	var user models.User
-	if err := database.DB.Where("userid = ?", userID).First(&user).Error; err != nil {
-		fmt.Println("❌ [GetCertificationByUser] User ID not found:", userID)
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
-	}
-	if user.EntityID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User has no associated entity"})
-	}
-
-	entityID := user.EntityID
-	fmt.Println("✅ [GetCertificationByUser] Found entityID:", entityID)
+	fmt.Println("🔍 [GetCertificationByUser] Fetching certification for entityID:", entityID)
 
 	// ✅ ดึงข้อมูลใบเซอร์ทั้งหมดของ entityID จาก Blockchain
 	certifications, err := services.BlockchainServiceInstance.GetAllCertificationsForEntity(entityID)
@@ -171,21 +156,28 @@ func GetCertificationByUser(c *fiber.Ctx) error {
 	})
 }
 
+// DeleteCertification - ปิดใช้งานใบเซอร์จาก Blockchain
 func DeleteCertification(c *fiber.Ctx) error {
-	entityID := c.Params("entityID")
-	eventID := c.Query("eventID") // ✅ รับ eventID จาก Query Parameter
-
-	if entityID == "" || eventID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing entityID or eventID"})
+	// ✅ ดึง `walletAddress` และ `entityID` จาก JWT Token
+	walletAddress, ok := c.Locals("walletAddress").(string)
+	if !ok || walletAddress == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - walletAddress missing"})
 	}
 
-	fmt.Println("📌 [DeleteCertification] Deleting certification for entityID:", entityID, "eventID:", eventID)
-
-	// ✅ ตรวจสอบว่า `entityID` มีอยู่จริงในฐานข้อมูลหรือไม่
-	var farmer models.Farmer
-	if err := database.DB.Select("farmerid").Where("entityid = ?", entityID).First(&farmer).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Entity ID not found in database"})
+	entityID, ok := c.Locals("entityID").(string)
+	if !ok || entityID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - entityID missing"})
 	}
+
+	fmt.Println("📌 [DeleteCertification] Deleting certification for Wallet:", walletAddress, "EntityID:", entityID)
+
+	// ✅ รับ eventID จาก Query Parameter
+	eventID := c.Query("eventID")
+	if eventID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing eventID"})
+	}
+
+	fmt.Println("📌 [DeleteCertification] Using entityID:", entityID, "and eventID:", eventID)
 
 	// ✅ ดึงข้อมูลใบเซอร์ทั้งหมดของ `entityID` จาก Blockchain
 	certifications, err := services.BlockchainServiceInstance.GetAllCertificationsForEntity(entityID)
@@ -194,26 +186,28 @@ func DeleteCertification(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch certifications"})
 	}
 
-	// ✅ ตรวจสอบว่า `eventID` มีอยู่จริงใน Blockchain หรือไม่
-	certMap := make(map[string]bool)
+	fmt.Println("📌 Retrieved", len(certifications), "certifications from blockchain for entity:", entityID)
+
+	// ✅ ตรวจสอบว่า `eventID` มีอยู่จริงหรือไม่
+	var certExists bool
 	for _, cert := range certifications {
-		if cert.IsActive {
-			certMap[cert.EventID] = true
+		fmt.Println("🔍 Checking eventID:", cert.EventID, "→ Active:", cert.IsActive) // ✅ Debug
+		if cert.EventID == eventID && cert.IsActive {
+			certExists = true
+			break
 		}
 	}
-	if !certMap[eventID] {
+
+	if !certExists {
+		fmt.Println("❌ Certification event not found or already inactive:", eventID)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Certification event not found or already inactive"})
 	}
 
-	// ✅ ปิดใช้งานใบเซอร์ที่ถูกเลือก
-	txHash, err := services.BlockchainServiceInstance.DeactivateCertificationOnBlockchain(eventID)
+	// ✅ ปิดใช้งานใบเซอร์ใน Blockchain โดยใช้ `walletAddress`
+	txHash, err := services.BlockchainServiceInstance.DeactivateCertificationOnBlockchain(walletAddress, eventID)
 	if err != nil {
 		fmt.Println("❌ [DeleteCertification] Failed to deactivate certification:", eventID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to deactivate certification"})
-	}
-
-	if txHash == "" {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Blockchain transaction failed"})
 	}
 
 	fmt.Println("✅ Certification Event deactivated on Blockchain:", txHash)
@@ -221,6 +215,7 @@ func DeleteCertification(c *fiber.Ctx) error {
 		"message":       "Certification deactivated successfully",
 		"event_id":      eventID,
 		"entity_id":     entityID,
+		"wallet":        walletAddress,
 		"blockchain_tx": txHash,
 	})
 }
@@ -247,83 +242,79 @@ func CheckCertificationCID(c *fiber.Ctx) error {
 	})
 }
 
-func UpdateCertification(c *fiber.Ctx) error {
-	userID, ok := c.Locals("userID").(string) // ✅ ดึง UserID จาก Middleware
-	if !ok || userID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+// StoreCertification - บันทึกใบรับรองลง Blockchain
+func StoreCertification(c *fiber.Ctx) error {
+	// ✅ ดึง `walletAddress` และ `entityID` จาก JWT Token
+	walletAddress, ok := c.Locals("walletAddress").(string)
+	if !ok || walletAddress == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - walletAddress missing"})
 	}
 
-	fmt.Println("🔍 [UpdateCertification] Updating certification for userID:", userID)
-
-	// ✅ ตรวจสอบว่า User มีฟาร์มหรือไม่
-	var user models.User
-	if err := database.DB.Where("userid = ?", userID).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
-	}
-	if user.EntityID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User does not have a registered farm"})
+	entityID, ok := c.Locals("entityID").(string)
+	if !ok || entityID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - entityID missing"})
 	}
 
-	// ✅ ดึงฟาร์มจาก EntityID ของ User
-	var farmer models.Farmer
-	if err := database.DB.Where("farmerid = ?", user.EntityID).First(&farmer).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Farm not found"})
+	role, ok := c.Locals("role").(string)
+	if !ok || role == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - role missing"})
 	}
 
-	// ✅ รับค่า `cert_cid` ใหม่จาก FormData
-	newCertCID := strings.TrimSpace(c.FormValue("cert_cid"))
-	if newCertCID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Certification CID is required"})
+	// ✅ แปลง Role เป็น EntityType
+	entityType := map[string]string{
+		"farmer":    "Farmer",
+		"factory":   "Factory",
+		"logistics": "Logistics",
+		"retailer":  "Retailer",
+	}[role]
+
+	if entityType == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid role type"})
 	}
 
-	// ✅ ดึงใบเซอร์เก่าของฟาร์มจาก Blockchain
-	oldCerts, err := services.BlockchainServiceInstance.GetAllCertificationsForEntity(user.EntityID)
-	if err != nil {
-		fmt.Println("❌ Failed to fetch existing certifications:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch existing certifications"})
+	// ✅ รับค่า `certCID` จาก Body
+	var request struct {
+		CertCID string `json:"certCID"`
+	}
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
 	}
 
-	// ✅ เช็คว่าใบเซอร์ใหม่ซ้ำกับของเก่าหรือไม่
-	for _, cert := range oldCerts {
-		if cert.CertificationCID == newCertCID {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "New certification CID is the same as the existing one"})
-		}
+	if request.CertCID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing certCID"})
 	}
 
-	// ✅ สร้าง `eventID` ใหม่
-	eventID := fmt.Sprintf("EVENT-%s-%s", user.EntityID, uuid.New().String())
+	// ✅ สร้าง `eventID`
+	eventID := fmt.Sprintf("EVENT-%s-%s", entityID, uuid.New().String())
 
-	// ✅ วันที่ออกใบเซอร์ และวันหมดอายุ (1 ปี)
-	issuedDate := time.Now()
-	expiryDate := issuedDate.AddDate(1, 0, 0)
+	// ✅ กำหนด `issuedDate` และ `expiryDate`
+	issuedDate := big.NewInt(time.Now().Unix())
+	expiryDate := big.NewInt(time.Now().AddDate(1, 0, 0).Unix()) // หมดอายุในอีก 1 ปี
 
-	// ✅ แปลงวันที่เป็น *big.Int
-	issuedDateBigInt := big.NewInt(issuedDate.Unix())
-	expiryDateBigInt := big.NewInt(expiryDate.Unix())
+	fmt.Println("📌 [StoreCertification] Storing Certification on Blockchain...")
+	fmt.Println("   - Wallet Address:", walletAddress)
+	fmt.Println("   - Entity Type:", entityType)
+	fmt.Println("   - Entity ID:", entityID)
+	fmt.Println("   - Cert CID:", request.CertCID)
+	fmt.Println("   - Issued Date:", issuedDate)
+	fmt.Println("   - Expiry Date:", expiryDate)
 
-	// ✅ บันทึกใบเซอร์ใหม่ลง Blockchain (โดยไม่ปิดใบเก่า)
-	certTxHash, err := services.BlockchainServiceInstance.StoreCertificationOnBlockchain(
-		farmer.WalletAddress, // ✅ ใช้ Wallet Address ของฟาร์ม
-		eventID,
-		"farmer",
-		user.EntityID,
-		newCertCID,
-		issuedDateBigInt,
-		expiryDateBigInt,
+	// ✅ ส่งธุรกรรมไปยัง Blockchain
+	txHash, err := services.BlockchainServiceInstance.StoreCertificationOnBlockchain(
+		walletAddress, eventID, entityType, entityID, request.CertCID, issuedDate, expiryDate,
 	)
-
 	if err != nil {
-		fmt.Println("❌ Failed to store new certification on blockchain:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to store new certification on blockchain"})
+		fmt.Println("❌ [StoreCertification] Failed to store certification:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to store certification"})
 	}
 
-	fmt.Println("✅ Certification updated on Blockchain. Transaction Hash:", certTxHash)
+	fmt.Println("✅ [StoreCertification] Certification stored successfully. TX Hash:", txHash)
 
-	// ✅ ส่งข้อมูลกลับให้ Frontend
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":       "Certification uploaded successfully",
+	return c.JSON(fiber.Map{
+		"message":       "Certification stored successfully",
 		"event_id":      eventID,
-		"cert_cid":      newCertCID,
-		"blockchain_tx": certTxHash,
+		"entity_id":     entityID,
+		"wallet":        walletAddress,
+		"blockchain_tx": txHash,
 	})
 }

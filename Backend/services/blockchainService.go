@@ -272,7 +272,9 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(walletAddress, eventI
 		fmt.Println("📌 Checking certification:", cert.EventID)
 		if cert.IsActive {
 			fmt.Println("📌 Found active certification, deactivating before storing new one:", cert.EventID)
-			_, err := b.DeactivateCertificationOnBlockchain(cert.EventID)
+
+			// ✅ ต้องส่ง walletAddress ไปด้วย
+			_, err := b.DeactivateCertificationOnBlockchain(walletAddress, cert.EventID)
 			if err != nil {
 				fmt.Println("❌ Failed to deactivate existing certification:", err)
 				return "", err
@@ -340,51 +342,66 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(walletAddress, eventI
 }
 
 // DeactivateCertificationOnBlockchain - ปิดใช้งานใบเซอร์บน Blockchain
-func (b *BlockchainService) DeactivateCertificationOnBlockchain(eventID string) (string, error) {
-	fmt.Println("📌 Checking if certification event exists before deactivating:", eventID)
+func (b *BlockchainService) DeactivateCertificationOnBlockchain(walletAddress, eventID string) (string, error) {
+	fmt.Println("📌 [Blockchain] Deactivating certification for Wallet:", walletAddress, "EventID:", eventID)
 
-	// ✅ ดึงข้อมูลใบเซอร์ทั้งหมดก่อน
-	entityID := "" // 🔹 อาจต้องส่ง entityID มาด้วยในพารามิเตอร์
-	existingCerts, err := b.GetAllCertificationsForEntity(entityID)
+	// ✅ ตรวจสอบว่า `walletAddress` ลงทะเบียนใน Blockchain แล้ว
+	callOpts := &bind.CallOpts{Pending: false, Context: context.Background()}
+	isRegistered, err := b.userRegistryContract.IsUserRegistered(callOpts, common.HexToAddress(walletAddress))
 	if err != nil {
-		log.Println("❌ Failed to fetch existing certifications:", err)
+		fmt.Println("❌ Failed to check user registration:", err)
 		return "", err
 	}
-
-	// ✅ เช็คว่า `eventID` นี้มีอยู่และยัง Active หรือไม่
-	var certExists bool
-	for _, cert := range existingCerts {
-		if cert.EventID == eventID && cert.IsActive {
-			certExists = true
-			break
-		}
-	}
-	if !certExists {
-		log.Println("❌ Certification event not found or already inactive:", eventID)
-		return "", errors.New("certification event not found or already inactive")
+	if !isRegistered {
+		fmt.Println("❌ User is not registered in the system")
+		return "", errors.New("User is not registered in the system")
 	}
 
-	fmt.Println("📌 Certification event found, proceeding with deactivation...")
+	// ✅ ดึง Private Key ของ User จากไฟล์ JSON
+	fmt.Println("📌 Fetching Private Key for:", walletAddress)
+	privateKeyHex, err := b.getPrivateKeyForAddress(walletAddress)
+	if err != nil {
+		fmt.Println("❌ Failed to get private key:", err)
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+	fmt.Println("✅ Private Key Found:", privateKeyHex[:10]+"...")
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		fmt.Println("❌ Failed to parse private key:", err)
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+	fmt.Println("✅ Private Key Parsed Successfully")
+
+	// ✅ สร้าง `auth` ใหม่โดยใช้ Private Key ของ User
+	fmt.Println("📌 Creating Transaction Auth for:", walletAddress)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		fmt.Println("❌ Failed to create transactor:", err)
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(walletAddress) // ✅ ใช้ Wallet Address ของ User
+	fmt.Println("✅ Transactor Created - From:", auth.From.Hex())
 
 	// ✅ ส่งธุรกรรมไปยัง Blockchain
-	tx, err := b.certificationContract.DeactivateCertificationEvent(b.auth, eventID)
+	tx, err := b.certificationContract.DeactivateCertificationEvent(auth, eventID)
 	if err != nil {
-		log.Println("❌ Failed to deactivate certification event on blockchain:", err)
+		log.Println("❌ [Blockchain] Failed to deactivate certification event on blockchain:", err)
 		return "", err
 	}
 
 	// ✅ รอให้ธุรกรรมถูก Mine
 	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
 	if err != nil {
-		log.Println("❌ Transaction not mined:", err)
+		log.Println("❌ [Blockchain] Transaction not mined:", err)
 		return "", err
 	}
 	if receipt.Status == types.ReceiptStatusFailed {
-		log.Println("❌ Transaction failed!")
+		log.Println("❌ [Blockchain] Transaction failed!")
 		return "", errors.New("transaction failed")
 	}
 
-	fmt.Println("✅ Certification Event deactivated on Blockchain:", tx.Hash().Hex())
+	fmt.Println("✅ [Blockchain] Certification Event deactivated on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
 }
 

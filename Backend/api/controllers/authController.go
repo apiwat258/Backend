@@ -24,6 +24,59 @@ type LoginResponse struct {
 	Role    string `json:"role"`
 }
 
+// RefreshTokenHandler - API สำหรับอัปเดต Token ใหม่
+func RefreshTokenHandler(c *fiber.Ctx) error {
+	// ✅ ดึง Token จาก Cookie หรือ Header
+	tokenString := c.Cookies("auth_token")
+	if tokenString == "" {
+		tokenString = c.Get("Authorization")
+		if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
+			tokenString = tokenString[7:]
+		}
+	}
+
+	if tokenString == "" {
+		fmt.Println("❌ [RefreshToken] No token found")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Authorization token required"})
+	}
+
+	// ✅ ตรวจสอบความถูกต้องของ Token
+	claims, err := middleware.ValidateToken(tokenString)
+	if err != nil {
+		fmt.Println("❌ [RefreshToken] Invalid token:", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// ✅ ค้นหาผู้ใช้จาก Database
+	var user models.User
+	result := database.DB.Where("user_id = ?", claims.UserID).First(&user)
+	if result.Error != nil {
+		fmt.Println("❌ [RefreshToken] User not found:", claims.UserID)
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	// ✅ สร้าง Token ใหม่ที่มี Entity ID ล่าสุด
+	//newToken, err := middleware.GenerateToken(user.UserID, user.Email, user.Role, user.EntityID)
+	if err != nil {
+		fmt.Println("❌ [RefreshToken] Failed to generate token:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
+	}
+
+	// ✅ อัปเดต Cookie
+	c.Cookie(&fiber.Cookie{
+		Name: "auth_token",
+		//Value:    newToken,
+		Path:     "/",
+		HTTPOnly: true,
+	})
+
+	// ✅ ส่ง Token ใหม่กลับไปให้ User
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Token refreshed successfully",
+		//"token":   newToken,
+	})
+}
+
 // Login handles user authentication
 func Login(c *fiber.Ctx) error {
 	var req LoginRequest
@@ -44,8 +97,39 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email or password"})
 	}
 
-	// ✅ สร้าง JWT Token โดยเพิ่ม EntityID เข้าไปด้วย
-	token, err := middleware.GenerateToken(user.UserID, user.Email, user.Role, user.EntityID)
+	// ✅ ดึง `walletAddress` ตาม Role ของ User
+	var walletAddress string
+	switch user.Role {
+	case "farmer":
+		var farmer models.Farmer
+		if err := database.DB.Where("farmerid = ?", user.EntityID).First(&farmer).Error; err == nil {
+			walletAddress = farmer.WalletAddress
+		}
+	case "factory":
+		var factory models.Factory
+		if err := database.DB.Where("factoryid = ?", user.EntityID).First(&factory).Error; err == nil {
+			walletAddress = factory.WalletAddress
+		}
+	case "logistics":
+		var logistics models.Logistics
+		if err := database.DB.Where("logisticsid = ?", user.EntityID).First(&logistics).Error; err == nil {
+			walletAddress = logistics.WalletAddress
+		}
+	case "retailer":
+		var retailer models.Retailer
+		if err := database.DB.Where("retailerid = ?", user.EntityID).First(&retailer).Error; err == nil {
+			walletAddress = retailer.WalletAddress
+		}
+	}
+
+	// ✅ Debug: ตรวจสอบค่า `walletAddress`
+	fmt.Println("🔍 [Login] Extracted WalletAddress:", walletAddress, "for Role:", user.Role, "EntityID:", user.EntityID)
+
+	// ✅ Debug: ตรวจสอบค่า `walletAddress`
+	fmt.Println("🔍 [Login] Extracted WalletAddress:", walletAddress, "for Role:", user.Role, "EntityID:", user.EntityID)
+
+	// ✅ สร้าง JWT Token โดยเพิ่ม `walletAddress`
+	token, err := middleware.GenerateToken(user.UserID, user.Email, user.Role, user.EntityID, walletAddress)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
@@ -63,13 +147,14 @@ func Login(c *fiber.Ctx) error {
 	})
 
 	// ✅ Debug ตรวจสอบว่าคุกกี้ถูกเซ็ตหรือไม่
-	fmt.Println("✅ [Login] Token set in cookie for user:", user.UserID, "EntityID:", user.EntityID)
+	fmt.Println("✅ [Login] Token set in cookie for user:", user.UserID, "EntityID:", user.EntityID, "Wallet:", walletAddress)
 
-	// ✅ ส่ง Role และ EntityID กลับไปให้ Frontend
+	// ✅ ส่ง Role, EntityID และ WalletAddress กลับไปให้ Frontend
 	response := fiber.Map{
-		"message":  "Login successful",
-		"role":     user.Role,
-		"entityID": user.EntityID, // ✅ เพิ่ม EntityID กลับไปด้วย
+		"message":       "Login successful",
+		"role":          user.Role,
+		"entityID":      user.EntityID,
+		"walletAddress": walletAddress,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
