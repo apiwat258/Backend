@@ -244,7 +244,7 @@ func (b *BlockchainService) CheckUserOnBlockchain(userWallet string) (bool, erro
 }
 
 func (b *BlockchainService) StoreCertificationOnBlockchain(walletAddress, eventID, entityType, entityID, certCID string, issuedDate, expiryDate *big.Int) (string, error) {
-	fmt.Println("📌 Checking existing certifications before storing new one...")
+	fmt.Println("📌 Checking user registration before storing new certification...")
 
 	// ✅ เช็คว่าผู้ใช้ลงทะเบียนในระบบแล้ว
 	callOpts := &bind.CallOpts{Pending: false, Context: context.Background()}
@@ -256,30 +256,6 @@ func (b *BlockchainService) StoreCertificationOnBlockchain(walletAddress, eventI
 	if !isRegistered {
 		fmt.Println("❌ User is not registered in the system")
 		return "", errors.New("User is not registered in the system")
-	}
-
-	// ✅ ดึงใบเซอร์ทั้งหมดของ entityID
-	fmt.Println("📌 Fetching all certifications for entity:", entityID)
-	existingCerts, err := b.GetAllCertificationsForEntity(entityID)
-	if err != nil {
-		fmt.Println("❌ Failed to fetch existing certifications:", err)
-		return "", err
-	}
-	fmt.Println("✅ Retrieved certifications:", len(existingCerts))
-
-	// ✅ ตรวจสอบว่ามีใบเซอร์ที่ Active อยู่หรือไม่
-	for _, cert := range existingCerts {
-		fmt.Println("📌 Checking certification:", cert.EventID)
-		if cert.IsActive {
-			fmt.Println("📌 Found active certification, deactivating before storing new one:", cert.EventID)
-
-			// ✅ ต้องส่ง walletAddress ไปด้วย
-			_, err := b.DeactivateCertificationOnBlockchain(walletAddress, cert.EventID)
-			if err != nil {
-				fmt.Println("❌ Failed to deactivate existing certification:", err)
-				return "", err
-			}
-		}
 	}
 
 	fmt.Println("📌 Fetching Private Key for:", walletAddress)
