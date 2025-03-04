@@ -42,15 +42,20 @@ func SetupRoutes(app *fiber.App) {
 
 	// ✅ Factory Routes
 	factory := api.Group("/factories")
-	factory.Post("/", controllers.CreateFactory)
+	factory.Post("/", middleware.AuthMiddleware(), controllers.CreateFactory)
+	factory.Get("/", middleware.AuthMiddleware(), controllers.GetFactoryByUser)
+	factory.Put("/", middleware.AuthMiddleware(), controllers.UpdateFactory)
 
 	// ✅ Logistics Routes
 	logistics := api.Group("/logistics")
-	logistics.Post("/", controllers.CreateLogistics)
+	logistics.Post("/", middleware.AuthMiddleware(), controllers.CreateLogistics)
+	logistics.Get("/", middleware.AuthMiddleware(), controllers.GetLogisticsByUser)
+	logistics.Put("/", middleware.AuthMiddleware(), controllers.UpdateLogistics)
 
-	// ✅ Retailer Routes
 	retailer := api.Group("/retailers")
-	retailer.Post("/", controllers.CreateRetailer)
+	retailer.Post("/", middleware.AuthMiddleware(), controllers.CreateRetailer)
+	retailer.Get("/", middleware.AuthMiddleware(), controllers.GetRetailerByUser)
+	retailer.Put("/", middleware.AuthMiddleware(), controllers.UpdateRetailer)
 
 	// ✅ Certification Routes (เพิ่มเส้นทางสำหรับลบใบเซอร์)
 	certification := api.Group("/certifications")

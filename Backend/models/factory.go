@@ -15,6 +15,7 @@ type Factory struct {
 	Country       string         `gorm:"column:country;default:Thailand"`
 	PostCode      string         `gorm:"column:postcode"`
 	Telephone     string         `gorm:"column:telephone"`
+	Email         string         `gorm:"column:email;unique;not null"`
 	LineID        sql.NullString `gorm:"column:lineid"`
 	Facebook      sql.NullString `gorm:"column:facebook"`
 	LocationLink  sql.NullString `gorm:"column:location_link"`
