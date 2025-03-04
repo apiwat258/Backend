@@ -20,26 +20,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// ✅ โครงสร้างข้อมูลที่รับจาก JSON Request
-type FarmerRequest struct {
-	UserID       string  `json:"userid"`
-	CompanyName  string  `json:"company_name"`
-	FirstName    string  `json:"firstname"`
-	LastName     string  `json:"lastname"`
-	Email        string  `json:"email"`
-	Address      string  `json:"address"`
-	AreaCode     string  `json:"areacode"`
-	Phone        string  `json:"phone"`
-	PostCode     string  `json:"postcode"`
-	District     string  `json:"district"`
-	SubDistrict  string  `json:"subdistrict"`
-	Province     string  `json:"province"`
-	Country      string  `json:"country"`
-	LineID       *string `json:"lineid"`
-	Facebook     *string `json:"facebook"`
-	LocationLink *string `json:"location_link"`
-}
-
 // ✅ ใช้ Account จริงจาก Ganache แทนการสุ่ม
 func getGanacheAccount() string {
 	client, err := rpc.Dial("http://127.0.0.1:7545")

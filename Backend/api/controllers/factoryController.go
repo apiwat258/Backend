@@ -4,150 +4,151 @@ import (
 	"database/sql"
 	"finalyearproject/Backend/database"
 	"finalyearproject/Backend/models"
+	"finalyearproject/Backend/services"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
+	"github.com/google/uuid"
 )
 
-// ✅ API สำหรับลงทะเบียนโรงงาน (Factory)
 func CreateFactory(c *fiber.Ctx) error {
-	type FactoryRequest struct {
-		UserID       string  `json:"userid"`
-		CompanyName  string  `json:"company_name"`
-		FirstName    string  `json:"firstname"`
-		LastName     string  `json:"lastname"`
-		Email        string  `json:"email"`
-		Address      string  `json:"address"`
-		Address2     *string `json:"address2"`
-		AreaCode     *string `json:"areacode"`
-		Phone        string  `json:"phone"`
-		PostCode     string  `json:"post"`
-		City         string  `json:"city"`
-		Province     string  `json:"province"`
-		Country      string  `json:"country"`
-		LineID       *string `json:"lineid"`
-		Facebook     *string `json:"facebook"`
-		LocationLink *string `json:"location_link"`
+	userID, ok := c.Locals("userID").(string) // ✅ ดึง UserID จาก Middleware
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	var req FactoryRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
-	}
+	fmt.Println("🔍 [CreateFactory] Creating factory for userID:", userID)
 
-	// ✅ ตรวจสอบว่า User ID มีอยู่ในฐานข้อมูล `users` หรือไม่
+	// ✅ รับค่าจาก `FormData`
+	companyName := strings.TrimSpace(c.FormValue("company_name"))
+	email := strings.TrimSpace(c.FormValue("email"))
+	address := strings.TrimSpace(c.FormValue("address"))
+	district := strings.TrimSpace(c.FormValue("district"))
+	subdistrict := strings.TrimSpace(c.FormValue("subdistrict"))
+	province := strings.TrimSpace(c.FormValue("province"))
+	country := strings.TrimSpace(c.FormValue("country"))
+	postCode := strings.TrimSpace(c.FormValue("postcode"))
+	phone := strings.TrimSpace(c.FormValue("phone"))
+	areaCode := strings.TrimSpace(c.FormValue("areaCode"))
+	location := strings.TrimSpace(c.FormValue("location_link"))
+	certCID := strings.TrimSpace(c.FormValue("cert_cid"))
+
+	// ✅ รวมเบอร์โทร
+	fullPhone := fmt.Sprintf("%s %s", areaCode, phone)
+
+	// ✅ ตรวจสอบ Role ของ User
 	var user models.User
-	if err := database.DB.Where("userid = ?", req.UserID).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User ID not found in users table"})
+	if err := database.DB.Where("userid = ?", userID).First(&user).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+	if user.Role == "factory" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User already has a factory role"})
 	}
 
-	// ✅ ตรวจสอบว่าผู้ใช้เคยลงทะเบียนเป็น Factory แล้วหรือไม่
+	// ✅ ตรวจสอบ Email ซ้ำ
 	var existingFactory models.Factory
-	err := database.DB.Where("userid = ?", req.UserID).First(&existingFactory).Error
-
-	if err == nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User is already registered as a factory owner"})
-	} else if err != nil && err != gorm.ErrRecordNotFound {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error"})
+	if err := database.DB.Where("email = ?", email).First(&existingFactory).Error; err == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Factory email is already in use"})
 	}
 
-	// ✅ Log ที่ชัดเจนขึ้น
-	fmt.Println("UserID", req.UserID, "is not registered as a factory yet. Proceeding with registration.")
-
-	// ✅ อัปเดต Role ของ User เป็น "factory"
-	if err := database.DB.Model(&models.User{}).Where("userid = ?", req.UserID).Update("role", "factory").Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user role"})
+	// ✅ ถ้ามีใบเซอร์ → ตรวจสอบว่าซ้ำใน Blockchain หรือไม่
+	if certCID != "" {
+		cidUnique, err := services.BlockchainServiceInstance.CheckUserCertification(certCID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to check certification CID"})
+		}
+		if !cidUnique {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Certification CID already exists in Blockchain"})
+		}
 	}
 
-	// ✅ สร้าง FactoryID ใหม่ (DFYYNNNNN)
+	// ✅ สร้าง `factoryID`
 	var sequence int64
-	if err := database.DB.Raw("SELECT nextval('dairyfactory_id_seq')").Scan(&sequence).Error; err != nil {
+	if err := database.DB.Raw("SELECT nextval('factory_id_seq')").Scan(&sequence).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate factory ID"})
 	}
-	yearPrefix := time.Now().Format("06")                      // ใช้เลขสองหลักของปี เช่น 24 สำหรับ 2024
-	factoryID := fmt.Sprintf("DF%s%05d", yearPrefix, sequence) // ได้เป็น DFYYNNNNN
+	yearPrefix := time.Now().Format("06")
+	factoryID := fmt.Sprintf("FA%s%05d", yearPrefix, sequence)
 
-	// ✅ รวม `address2` กับ `address`
-	fullAddress := strings.TrimSpace(req.Address)
-	if req.Address2 != nil && strings.TrimSpace(*req.Address2) != "" {
-		fullAddress = fullAddress + ", " + strings.TrimSpace(*req.Address2)
+	// ✅ ดึง Wallet จาก Ganache
+	walletAddress := getGanacheAccount()
+
+	// ✅ ลงทะเบียน User บน Blockchain (ถ้ายังไม่ได้ลงทะเบียน)
+	txHash, err := services.BlockchainServiceInstance.RegisterUserOnBlockchain(walletAddress, 2) // 2 = Factory Role
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to register user on blockchain"})
 	}
+	fmt.Println("✅ User registered on Blockchain. Transaction Hash:", txHash)
 
-	// ✅ รวม `area code` กับ `phone`
-	fullPhone := strings.TrimSpace(req.Phone)
-	if req.AreaCode != nil && strings.TrimSpace(*req.AreaCode) != "" {
-		areaCode := strings.TrimSpace(*req.AreaCode)
-		if !strings.HasPrefix(areaCode, "+") {
-			areaCode = "+" + areaCode
+	// ✅ ถ้ามีใบเซอร์ → บันทึกลง Blockchain
+	if certCID != "" {
+		// ✅ สร้าง `eventID`
+		eventID := fmt.Sprintf("EVENT-%s-%s", factoryID, uuid.New().String())
+
+		// ✅ วันที่ออกใบรับรอง และวันหมดอายุ (1 ปี)
+		issuedDate := time.Now()
+		expiryDate := issuedDate.AddDate(1, 0, 0)
+
+		// ✅ แปลงวันที่เป็น *big.Int
+		issuedDateBigInt := big.NewInt(issuedDate.Unix())
+		expiryDateBigInt := big.NewInt(expiryDate.Unix())
+
+		// ✅ บันทึกใบเซอร์ลง Blockchain
+		certTxHash, err := services.BlockchainServiceInstance.StoreCertificationOnBlockchain(
+			walletAddress, // ✅ เพิ่ม Wallet Address
+			eventID,
+			"factory",
+			factoryID,
+			certCID,
+			issuedDateBigInt,
+			expiryDateBigInt,
+		)
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to store certification on blockchain"})
 		}
-		fullPhone = areaCode + " " + fullPhone
-	}
-
-	// ✅ ตรวจสอบ `companyname` ถ้าว่างให้ใช้ "N/A"
-	companyName := strings.TrimSpace(req.CompanyName)
-	if companyName == "" {
-		companyName = "N/A"
-	}
-
-	// ✅ ถ้า `province` ว่างให้ใช้ `city`
-	province := strings.TrimSpace(req.Province)
-	if province == "" {
-		province = req.City
-	}
-
-	// ✅ ตรวจสอบ `email` ถ้าเป็น `""` ให้ใช้ NULL
-	//email := sql.NullString{}
-	if strings.TrimSpace(req.Email) != "" {
-		//email = sql.NullString{String: strings.TrimSpace(req.Email), Valid: true}
-	}
-
-	// ✅ แปลง `*string` เป็น `sql.NullString`
-	lineID := sql.NullString{}
-	if req.LineID != nil && strings.TrimSpace(*req.LineID) != "" {
-		lineID = sql.NullString{String: strings.TrimSpace(*req.LineID), Valid: true}
-	}
-
-	facebook := sql.NullString{}
-	if req.Facebook != nil && strings.TrimSpace(*req.Facebook) != "" {
-		facebook = sql.NullString{String: strings.TrimSpace(*req.Facebook), Valid: true}
-	}
-
-	locationLink := sql.NullString{}
-	if req.LocationLink != nil && strings.TrimSpace(*req.LocationLink) != "" {
-		locationLink = sql.NullString{String: strings.TrimSpace(*req.LocationLink), Valid: true}
-	}
-
-	if req.UserID == "" {
-		fmt.Println("❌ Error: UserID is empty")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "UserID is required"})
-	}
-
-	// ✅ สร้างข้อมูล Factory
-	factory := models.Factory{
-		FactoryID: factoryID,
-		//UserID:       req.UserID,
-		//Username:     strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName),
-		CompanyName: companyName,
-		Address:     fullAddress,
-		//City:         req.City,
-		Province:     province,
-		Country:      req.Country,
-		PostCode:     req.PostCode,
-		Telephone:    fullPhone,
-		LineID:       lineID,
-		Facebook:     facebook,
-		LocationLink: locationLink,
-		CreatedOn:    time.Now(),
-		//Email:        email.String,
+		fmt.Println("✅ Certification stored on Blockchain. Transaction Hash:", certTxHash)
 	}
 
 	// ✅ บันทึกลง Database
+	factory := models.Factory{
+		FactoryID:     factoryID,
+		CompanyName:   companyName,
+		Address:       address,
+		District:      district,
+		SubDistrict:   subdistrict,
+		Province:      province,
+		Country:       country,
+		PostCode:      postCode,
+		Telephone:     fullPhone,
+		WalletAddress: walletAddress,
+		LocationLink:  sql.NullString{String: location, Valid: location != ""},
+		CreatedOn:     time.Now(),
+	}
+
 	if err := database.DB.Create(&factory).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save factory data"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Factory registered successfully", "factory_id": factory.FactoryID})
+	// ✅ อัปเดต `entityID` และ Role ใน `users`
+	updateData := map[string]interface{}{
+		"entityid": factoryID,
+		"role":     "factory",
+	}
+	if err := database.DB.Model(&models.User{}).Where("userid = ?", userID).Updates(updateData).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user role"})
+	}
+
+	// ✅ ส่งข้อมูลกลับให้ Frontend
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":       "Factory registered successfully",
+		"factory_id":    factoryID,
+		"factory_email": email,
+		"walletAddress": walletAddress,
+		"location_link": location,
+		"cert_cid":      certCID, // ✅ ส่ง CID ของใบเซอร์กลับไป (ถ้ามี)
+	})
 }

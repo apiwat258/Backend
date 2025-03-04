@@ -10,9 +10,9 @@ contract RawMilkSupplyChain {
         bytes32 id;
         address farmWallet;
         uint256 temperature;
-        uint256 pH;       // ✅ ค่าจะต้อง x100 (6.5 → 650)
+        uint256 pH;
         uint256 fat;
-        uint256 protein;  // ✅ ค่าจะต้อง x100 (3.5 → 350)
+        uint256 protein; 
         string ipfsCid;
         MilkStatus status;
         uint256 timestamp;

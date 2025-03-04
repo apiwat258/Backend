@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"finalyearproject/Backend/database"
 	"finalyearproject/Backend/middleware"
 	"finalyearproject/Backend/models"
 	"finalyearproject/Backend/utils"
 	"fmt"
+	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -300,24 +303,31 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
-// Logout API: ลบคุกกี้
+// ✅ ฟังก์ชัน Logout
 func Logout(c *fiber.Ctx) error {
+	// ✅ ลบคุกกี้ `auth_token`
 	c.Cookie(&fiber.Cookie{
 		Name:     "auth_token",
 		Value:    "",
-		Expires:  time.Now().Add(-time.Hour), // หมดอายุทันที
+		Expires:  time.Now().Add(-1 * time.Hour), // ✅ ตั้งให้หมดอายุไปแล้ว 1 ชั่วโมง
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: "None",
 		Path:     "/",
+		Domain:   "",
 	})
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout successful"})
+	// ✅ Debug ตรวจสอบว่าคุกกี้ถูกลบหรือไม่
+	fmt.Println("✅ [Logout] User logged out successfully.")
+
+	// ✅ ส่ง Response กลับไปยัง Frontend
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Logout successful",
+	})
 }
 
-// GetUserInfo handles fetching user information (email and password) from the user table.
 func GetUserInfo(c *fiber.Ctx) error {
-	// ดึง userID จาก context ที่ถูกตั้งโดย JWT middleware
+	// ดึง userID จาก JWT middleware
 	userID, ok := c.Locals("userID").(string)
 	if !ok || userID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
@@ -328,42 +338,106 @@ func GetUserInfo(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
 
-	// ส่งกลับ email และ password (hashed) ของผู้ใช้
+	// ✅ แยก firstName และ lastName จาก username
+	nameParts := strings.SplitN(user.Username, " ", 2)
+	firstName := nameParts[0]
+	lastName := ""
+	if len(nameParts) > 1 {
+		lastName = nameParts[1]
+	}
+
+	// ✅ แปลงรูปภาพจาก Binary เป็น Base64
+	var profileImageBase64 string
+	if len(user.ProfileImage) > 0 {
+		profileImageBase64 = "data:image/png;base64," + base64.StdEncoding.EncodeToString(user.ProfileImage)
+	} else {
+		profileImageBase64 = "" // ถ้าไม่มีรูป
+	}
+
+	// ✅ ส่งข้อมูล JSON กลับไป
 	return c.JSON(fiber.Map{
-		"email":    user.Email,
-		"password": user.Password,
+		"email":        user.Email,
+		"firstName":    firstName,          // ✅ แยกจาก username
+		"lastName":     lastName,           // ✅ แยกจาก username
+		"telephone":    user.Telephone,     // ✅ ดึงเบอร์โทรจาก User
+		"profileImage": profileImageBase64, // ✅ ส่งรูปเป็น Base64
 	})
 }
 
-// UpdateUserInfo handles updating user's email and password.
 func UpdateUserInfo(c *fiber.Ctx) error {
-	// ดึง userID จาก context
+	// ✅ ดึง userID จาก context
 	userID, ok := c.Locals("userID").(string)
 	if !ok || userID == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	type UpdateRequest struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+	// ✅ ใช้ `c.FormValue()` เพื่ออ่านค่า
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+	telephone := c.FormValue("telephone")
+	firstName := c.FormValue("firstName")
+	lastName := c.FormValue("lastName")
+
+	// ✅ รวม firstName + lastName เป็น username
+	username := firstName
+	if lastName != "" {
+		username += " " + lastName
 	}
 
-	var req UpdateRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Cannot parse JSON"})
+	// ✅ ตรวจสอบไฟล์ที่อัปโหลด
+	var profileImage []byte
+	file, err := c.FormFile("profileImage")
+	if err == nil {
+		fileContent, err := file.Open()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Cannot read file"})
+		}
+		defer fileContent.Close()
+
+		profileImage, err = ioutil.ReadAll(fileContent)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Cannot read file content"})
+		}
 	}
 
-	// hash รหัสผ่านใหม่
-	hashedPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to hash password"})
+	// ✅ ดึงข้อมูลเก่าจาก DB
+	var user models.User
+	if err := database.DB.Where("userid = ?", userID).First(&user).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
 
-	// อัปเดต email และ password ของผู้ใช้ในตาราง user
-	if err := database.DB.Model(&models.User{}).Where("userid = ?", userID).Updates(models.User{
-		Email:    req.Email,
-		Password: hashedPassword,
-	}).Error; err != nil {
+	// ✅ อัปเดตรหัสผ่านเฉพาะถ้ามีการเปลี่ยน
+	var hashedPassword string
+	if password != "" && password != user.Password {
+		hashedPass, err := utils.HashPassword(password)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to hash password"})
+		}
+		hashedPassword = hashedPass
+	} else {
+		hashedPassword = user.Password // ไม่เปลี่ยนรหัสผ่าน
+	}
+
+	// ✅ อัปเดตเฉพาะฟิลด์ที่ถูกส่งมา
+	updateData := map[string]interface{}{}
+	if email != "" {
+		updateData["email"] = email
+	}
+	if password != "" {
+		updateData["password"] = hashedPassword
+	}
+	if telephone != "" {
+		updateData["telephone"] = telephone
+	}
+	if firstName != "" || lastName != "" {
+		updateData["username"] = username
+	}
+	if len(profileImage) > 0 {
+		updateData["profile_image"] = profileImage
+	}
+
+	// ✅ อัปเดตข้อมูล
+	if err := database.DB.Model(&models.User{}).Where("userid = ?", userID).Updates(updateData).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user info"})
 	}
 
