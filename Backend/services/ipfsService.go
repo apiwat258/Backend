@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,8 @@ import (
 
 	shell "github.com/ipfs/go-ipfs-api"
 )
+
+var IPFSServiceInstance = &IPFSService{}
 
 // IPFSService ใช้สำหรับอัปโหลดและดึงไฟล์จาก IPFS
 type IPFSService struct {
@@ -127,5 +130,42 @@ func (s *IPFSService) UploadBase64File(base64Str string) (string, error) {
 	}
 
 	fmt.Println("✅ File uploaded to IPFS with CID:", cid)
+	return cid, nil
+}
+
+// ✅ ฟังก์ชันอัปโหลดข้อมูลนมดิบ + Shipping Address ขึ้น IPFS
+func (s *IPFSService) UploadMilkDataToIPFS(rawMilkData map[string]interface{}, shippingAddress map[string]interface{}) (string, error) {
+	fmt.Println("📌 Uploading Milk Data to IPFS...")
+
+	// ✅ สร้าง JSON ที่รวม Raw Milk Data และ Shipping Address
+	data := map[string]interface{}{
+		"rawMilkData":     rawMilkData,
+		"shippingAddress": shippingAddress,
+	}
+
+	// ✅ แปลง JSON เป็น bytes
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("❌ Failed to encode JSON:", err)
+		return "", fmt.Errorf("Failed to encode JSON: %v", err)
+	}
+
+	// ✅ แปลงเป็น Buffer
+	buf := bytes.NewReader(jsonData)
+
+	// ✅ ตรวจสอบว่า IPFS Daemon ทำงานอยู่หรือไม่
+	if !s.shell.IsUp() {
+		fmt.Println("❌ IPFS Daemon is not running!")
+		return "", fmt.Errorf("IPFS node is not available")
+	}
+
+	// ✅ อัปโหลด JSON ไปยัง IPFS
+	cid, err := s.shell.Add(buf)
+	if err != nil {
+		fmt.Println("❌ Failed to upload Milk Data to IPFS:", err)
+		return "", fmt.Errorf("Failed to upload to IPFS: %v", err)
+	}
+
+	fmt.Println("✅ Milk Data uploaded to IPFS with CID:", cid)
 	return cid, nil
 }

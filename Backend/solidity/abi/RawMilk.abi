@@ -1,0 +1,347 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_userRegistry",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tankId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum RawMilk.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "qualityReportCID",
+        "type": "string"
+      }
+    ],
+    "name": "MilkQualityVerified",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tankId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "farmer",
+        "type": "address"
+      }
+    ],
+    "name": "MilkTankCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tankId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "MilkTankUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "milkTanks",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tankId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "farmer",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "personInCharge",
+        "type": "string"
+      },
+      {
+        "internalType": "enum RawMilk.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "qualityReportCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "qrCodeCID",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "tankIds",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "userRegistry",
+    "outputs": [
+      {
+        "internalType": "contract UserRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_quantity",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_temperature",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_pH",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_fat",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_protein",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_bacteria",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_contaminants",
+        "type": "bool"
+      }
+    ],
+    "name": "validateMilkData",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "valid",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_tankId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_personInCharge",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_qrCodeCID",
+        "type": "string"
+      }
+    ],
+    "name": "createMilkTank",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_tankId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_qrCodeCID",
+        "type": "string"
+      }
+    ],
+    "name": "updateMilkTank",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_tankId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "_approved",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "_qualityReportCID",
+        "type": "string"
+      }
+    ],
+    "name": "verifyMilkQuality",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_tankId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getMilkTank",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "enum RawMilk.MilkStatus",
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "getAllMilkTanks",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_farmer",
+        "type": "address"
+      }
+    ],
+    "name": "getMilkTanksByFarmer",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  }
+]

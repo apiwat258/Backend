@@ -1,111 +1,149 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-contract RawMilkSupplyChain {
-    address public owner;
+import "./UserRegistry.sol";  
 
+contract RawMilk {
     enum MilkStatus { Pending, Approved, Rejected }
 
-    struct RawMilk {
-        bytes32 id;
-        address farmWallet;
-        uint256 temperature;
-        uint256 pH;
-        uint256 fat;
-        uint256 protein; 
-        string ipfsCid;
+    struct MilkTank {
+        bytes32 tankId;
+        address farmer;
+        string personInCharge;
         MilkStatus status;
-        uint256 timestamp;
+        string qualityReportCID; // ✅ รวม bacteriaInfo, contaminantInfo, abnormalType
+        string qrCodeCID;
     }
 
-    mapping(bytes32 => RawMilk) public rawMilkRecords;
-    mapping(address => bool) public farms;
+    UserRegistry public userRegistry;
+    mapping(bytes32 => MilkTank) public milkTanks; 
+    bytes32[] public tankIds; 
 
-    event RawMilkAdded(bytes32 indexed rawMilkID, address indexed farmWallet, MilkStatus status, string ipfsCid);
-    event RawMilkStatusUpdated(bytes32 indexed rawMilkID, MilkStatus newStatus);
+    event MilkTankCreated(bytes32 indexed tankId, address indexed farmer);
+    event MilkTankUpdated(bytes32 indexed tankId);
+    event MilkQualityVerified(bytes32 indexed tankId, MilkStatus status, string qualityReportCID);
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only contract owner can call this");
+    modifier onlyFarmer() {
+        require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Farmer, "Access denied: Only farmers allowed");
         _;
     }
 
-    modifier onlyFarm() {
-        require(farms[msg.sender], "Only registered farms can add raw milk");
+    modifier onlyFactory() {
+        require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Factory, "Access denied: Only factories allowed");
         _;
     }
 
-    constructor() {
-        owner = msg.sender;
+    constructor(address _userRegistry) {
+        userRegistry = UserRegistry(_userRegistry);
     }
 
-    event FarmRegistered(address indexed farmWallet);
+    // ✅ ฟังก์ชันตรวจสอบค่าก่อนบันทึก (ไม่เก็บบนบล็อกเชน)
+    function validateMilkData(
+        uint256 _quantity,
+        uint256 _temperature,
+        uint256 _pH,
+        uint256 _fat,
+        uint256 _protein,
+        bool _bacteria,
+        bool _contaminants
+    ) public pure returns (bool valid, string memory message) {
+        if (_temperature < 200 || _temperature > 600) return (false, "Error: Temperature out of range! (2.0C - 6.0C)");
+        if (_pH < 650 || _pH > 680) return (false, "Error: pH out of range! (6.5 - 6.8)");
+        if (_fat < 300 || _fat > 400) return (false, "Error: Fat percentage out of range! (3.0% - 4.0%)");
+        if (_protein < 300 || _protein > 350) return (false, "Error: Protein percentage out of range! (3.0% - 3.5%)");
 
-function registerFarm(address _farmWallet) external onlyOwner {
-    farms[_farmWallet] = true;
-    emit FarmRegistered(_farmWallet);  // ✅ เพิ่ม Event
-}
+        return (true, "Validated successfully.");
+    }
 
+    // ✅ ฟังก์ชันสร้างแท็งก์ (เฉพาะค่าที่ต้องเก็บบนบล็อกเชน)
+    function createMilkTank(
+        bytes32 _tankId,
+        string memory _personInCharge,
+        string memory _qrCodeCID
+    ) public onlyFarmer {
+        require(milkTanks[_tankId].farmer == address(0), "Error: Tank ID already exists");
 
-function addRawMilk(
-    bytes32 _rawMilkID, // 🆕 ให้เกษตรกรส่งค่า ID มาเอง
-    uint256 _temperature,
-    uint256 _pH,
-    uint256 _fat,
-    uint256 _protein,
-    string memory _ipfsCid
-) external onlyFarm {
-    require(_temperature >= 200 && _temperature <= 600, "Temperature out of range!");
-    require(_pH >= 650 && _pH <= 680, "pH out of range!");
-    require(_fat >= 300 && _fat <= 400, "Fat percentage out of range!");
-    require(_protein >= 300 && _protein <= 350, "Protein percentage out of range!");
+        milkTanks[_tankId] = MilkTank({
+            tankId: _tankId,
+            farmer: msg.sender,
+            personInCharge: _personInCharge,
+            status: MilkStatus.Pending,
+            qualityReportCID: "",
+            qrCodeCID: _qrCodeCID
+        });
 
-    require(rawMilkRecords[_rawMilkID].farmWallet == address(0), "Milk ID already exists!"); // 🛑 ห้ามใช้ ID ซ้ำ
+        tankIds.push(_tankId);
+        emit MilkTankCreated(_tankId, msg.sender);
+    }
 
-    rawMilkRecords[_rawMilkID] = RawMilk({
-        id: _rawMilkID,
-        farmWallet: msg.sender,
-        temperature: _temperature,
-        pH: _pH,
-        fat: _fat,
-        protein: _protein,
-        ipfsCid: _ipfsCid,
-        status: MilkStatus.Pending,
-        timestamp: block.timestamp
-    });
+    // ✅ ฟังก์ชันอัปเดต QR Code หรือ Quality Report CID (ห้ามแก้ข้อมูลอื่น)
+    function updateMilkTank(
+        bytes32 _tankId,
+        string memory _qrCodeCID
+    ) public onlyFarmer {
+        require(milkTanks[_tankId].farmer == msg.sender, "Error: Unauthorized");
+        require(milkTanks[_tankId].status == MilkStatus.Pending, "Error: Cannot update approved/rejected milk");
 
-    emit RawMilkAdded(_rawMilkID, msg.sender, MilkStatus.Pending, _ipfsCid);
-}
+        milkTanks[_tankId].qrCodeCID = _qrCodeCID;
 
-    function getRawMilk(bytes32 _rawMilkID) external view returns (
-        address farmWallet,
-        uint256 temperature,
-        uint256 pH,
-        uint256 fat,
-        uint256 protein,
-        string memory ipfsCid,
-        MilkStatus status,
-        uint256 timestamp
+        emit MilkTankUpdated(_tankId);
+    }
+
+    // ✅ ฟังก์ชันตรวจสอบคุณภาพนม (โรงงานเป็นผู้อนุมัติ)
+    function verifyMilkQuality(bytes32 _tankId, bool _approved, string memory _qualityReportCID) public onlyFactory {
+        require(milkTanks[_tankId].farmer != address(0), "Error: Tank ID does not exist");
+        require(milkTanks[_tankId].status == MilkStatus.Pending, "Error: Milk already verified");
+
+        milkTanks[_tankId].status = _approved ? MilkStatus.Approved : MilkStatus.Rejected;
+        milkTanks[_tankId].qualityReportCID = _qualityReportCID;
+
+        emit MilkQualityVerified(_tankId, milkTanks[_tankId].status, _qualityReportCID);
+    }
+
+    // ✅ ฟังก์ชันดึงข้อมูลแท็งก์นมดิบ
+    function getMilkTank(bytes32 _tankId) public view returns (
+        bytes32,
+        address,
+        string memory,
+        MilkStatus,
+        string memory,
+        string memory
     ) {
-        RawMilk memory milk = rawMilkRecords[_rawMilkID];
-        require(milk.farmWallet != address(0), "Milk record not found");
+        MilkTank memory tank = milkTanks[_tankId];
+        require(tank.farmer != address(0), "Error: Tank ID does not exist");
 
         return (
-            milk.farmWallet,
-            milk.temperature,
-            milk.pH,
-            milk.fat,
-            milk.protein,
-            milk.ipfsCid,
-            milk.status,
-            milk.timestamp
+            tank.tankId,
+            tank.farmer,
+            tank.personInCharge,
+            tank.status,
+            tank.qualityReportCID,
+            tank.qrCodeCID
         );
     }
 
-    function updateRawMilkStatus(bytes32 _rawMilkID, MilkStatus _newStatus) external onlyOwner {
-        require(rawMilkRecords[_rawMilkID].farmWallet != address(0), "Milk record not found");
+    // ✅ ฟังก์ชันดึงรายการแท็งก์ทั้งหมด
+    function getAllMilkTanks() public view returns (bytes32[] memory) {
+        return tankIds;
+    }
 
-        rawMilkRecords[_rawMilkID].status = _newStatus;
+    // ✅ ฟังก์ชันดึงรายการแท็งก์ตามฟาร์ม
+    function getMilkTanksByFarmer(address _farmer) public view returns (bytes32[] memory) {
+        uint count = 0;
+        for (uint i = 0; i < tankIds.length; i++) {
+            if (milkTanks[tankIds[i]].farmer == _farmer) {
+                count++;
+            }
+        }
 
-        emit RawMilkStatusUpdated(_rawMilkID, _newStatus);
+        bytes32[] memory farmerTanks = new bytes32[](count);
+        uint index = 0;
+        for (uint i = 0; i < tankIds.length; i++) {
+            if (milkTanks[tankIds[i]].farmer == _farmer) {
+                farmerTanks[index] = tankIds[i];
+                index++;
+            }
+        }
+        return farmerTanks;
     }
 }
