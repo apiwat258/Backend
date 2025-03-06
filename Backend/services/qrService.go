@@ -25,6 +25,12 @@ func NewQRCodeService(ipfsService *IPFSService) *QRCodeService {
 func (qrs *QRCodeService) GenerateQRCode(tankID string) (string, error) {
 	fmt.Println("📌 Generating QR Code for Tank ID:", tankID)
 
+	// ✅ ตรวจสอบว่า IPFSService ถูกกำหนดค่าหรือไม่
+	if qrs.IPFSService == nil {
+		fmt.Println("❌ IPFS Service is not initialized")
+		return "", fmt.Errorf("IPFS Service is not initialized")
+	}
+
 	// ✅ สร้าง QR Code เป็น PNG
 	qrCode, err := qrcode.Encode(tankID, qrcode.Medium, 256)
 	if err != nil {
@@ -39,7 +45,7 @@ func (qrs *QRCodeService) GenerateQRCode(tankID string) (string, error) {
 		fmt.Println("❌ Failed to save QR Code to file:", err)
 		return "", fmt.Errorf("Failed to save QR Code to file: %v", err)
 	}
-	defer os.Remove(tempFilePath) // ✅ ลบไฟล์หลังใช้งานเสร็จ
+	defer os.Remove(tempFilePath)
 
 	// ✅ เปิดไฟล์ที่บันทึกไว้
 	file, err := os.Open(tempFilePath)
@@ -49,7 +55,7 @@ func (qrs *QRCodeService) GenerateQRCode(tankID string) (string, error) {
 	}
 	defer file.Close()
 
-	// ✅ อัปโหลดไปยัง IPFS
+	// ✅ ใช้ IPFSServiceInstance ที่ถูกต้อง
 	qrCodeCID, err := qrs.IPFSService.UploadFile(file)
 	if err != nil {
 		fmt.Println("❌ Failed to upload QR Code to IPFS:", err)

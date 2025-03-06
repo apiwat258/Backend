@@ -31,7 +31,7 @@ var (
 
 // RawmilkMetaData contains all meta data concerning the Rawmilk contract.
 var RawmilkMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"}],\"name\":\"MilkQualityVerified\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"}],\"name\":\"MilkTankCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"}],\"name\":\"MilkTankUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"milkTanks\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"tankIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_quantity\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_temperature\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_pH\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_fat\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_protein\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"_bacteria\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"_contaminants\",\"type\":\"bool\"}],\"name\":\"validateMilkData\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"valid\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"updateMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_approved\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"}],\"name\":\"verifyMilkQuality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTank\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"getAllMilkTanks\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_farmer\",\"type\":\"address\"}],\"name\":\"getMilkTanksByFarmer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"}],\"name\":\"DebugLog\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"}],\"name\":\"MilkQualityVerified\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"}],\"name\":\"MilkTankCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"}],\"name\":\"MilkTankUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"milkTanks\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"tankIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"updateMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_approved\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"}],\"name\":\"verifyMilkQuality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTank\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_farmer\",\"type\":\"address\"}],\"name\":\"getMilkTanksByFarmer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
 }
 
 // RawmilkABI is the input ABI used to generate the binding from.
@@ -180,12 +180,49 @@ func (_Rawmilk *RawmilkTransactorRaw) Transact(opts *bind.TransactOpts, method s
 	return _Rawmilk.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetAllMilkTanks is a free data retrieval call binding the contract method 0xae2cc61e.
+// GetMilkTank is a free data retrieval call binding the contract method 0x5a03541f.
 //
-// Solidity: function getAllMilkTanks() view returns(bytes32[])
-func (_Rawmilk *RawmilkCaller) GetAllMilkTanks(opts *bind.CallOpts) ([][32]byte, error) {
+// Solidity: function getMilkTank(bytes32 _tankId) view returns(bytes32, address, bytes32, string, uint8, string, string)
+func (_Rawmilk *RawmilkCaller) GetMilkTank(opts *bind.CallOpts, _tankId [32]byte) ([32]byte, common.Address, [32]byte, string, uint8, string, string, error) {
 	var out []interface{}
-	err := _Rawmilk.contract.Call(opts, &out, "getAllMilkTanks")
+	err := _Rawmilk.contract.Call(opts, &out, "getMilkTank", _tankId)
+
+	if err != nil {
+		return *new([32]byte), *new(common.Address), *new([32]byte), *new(string), *new(uint8), *new(string), *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+	out1 := *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
+	out2 := *abi.ConvertType(out[2], new([32]byte)).(*[32]byte)
+	out3 := *abi.ConvertType(out[3], new(string)).(*string)
+	out4 := *abi.ConvertType(out[4], new(uint8)).(*uint8)
+	out5 := *abi.ConvertType(out[5], new(string)).(*string)
+	out6 := *abi.ConvertType(out[6], new(string)).(*string)
+
+	return out0, out1, out2, out3, out4, out5, out6, err
+
+}
+
+// GetMilkTank is a free data retrieval call binding the contract method 0x5a03541f.
+//
+// Solidity: function getMilkTank(bytes32 _tankId) view returns(bytes32, address, bytes32, string, uint8, string, string)
+func (_Rawmilk *RawmilkSession) GetMilkTank(_tankId [32]byte) ([32]byte, common.Address, [32]byte, string, uint8, string, string, error) {
+	return _Rawmilk.Contract.GetMilkTank(&_Rawmilk.CallOpts, _tankId)
+}
+
+// GetMilkTank is a free data retrieval call binding the contract method 0x5a03541f.
+//
+// Solidity: function getMilkTank(bytes32 _tankId) view returns(bytes32, address, bytes32, string, uint8, string, string)
+func (_Rawmilk *RawmilkCallerSession) GetMilkTank(_tankId [32]byte) ([32]byte, common.Address, [32]byte, string, uint8, string, string, error) {
+	return _Rawmilk.Contract.GetMilkTank(&_Rawmilk.CallOpts, _tankId)
+}
+
+// GetMilkTanksByFactory is a free data retrieval call binding the contract method 0x49b088ac.
+//
+// Solidity: function getMilkTanksByFactory(bytes32 _factoryId) view returns(bytes32[])
+func (_Rawmilk *RawmilkCaller) GetMilkTanksByFactory(opts *bind.CallOpts, _factoryId [32]byte) ([][32]byte, error) {
+	var out []interface{}
+	err := _Rawmilk.contract.Call(opts, &out, "getMilkTanksByFactory", _factoryId)
 
 	if err != nil {
 		return *new([][32]byte), err
@@ -197,54 +234,18 @@ func (_Rawmilk *RawmilkCaller) GetAllMilkTanks(opts *bind.CallOpts) ([][32]byte,
 
 }
 
-// GetAllMilkTanks is a free data retrieval call binding the contract method 0xae2cc61e.
+// GetMilkTanksByFactory is a free data retrieval call binding the contract method 0x49b088ac.
 //
-// Solidity: function getAllMilkTanks() view returns(bytes32[])
-func (_Rawmilk *RawmilkSession) GetAllMilkTanks() ([][32]byte, error) {
-	return _Rawmilk.Contract.GetAllMilkTanks(&_Rawmilk.CallOpts)
+// Solidity: function getMilkTanksByFactory(bytes32 _factoryId) view returns(bytes32[])
+func (_Rawmilk *RawmilkSession) GetMilkTanksByFactory(_factoryId [32]byte) ([][32]byte, error) {
+	return _Rawmilk.Contract.GetMilkTanksByFactory(&_Rawmilk.CallOpts, _factoryId)
 }
 
-// GetAllMilkTanks is a free data retrieval call binding the contract method 0xae2cc61e.
+// GetMilkTanksByFactory is a free data retrieval call binding the contract method 0x49b088ac.
 //
-// Solidity: function getAllMilkTanks() view returns(bytes32[])
-func (_Rawmilk *RawmilkCallerSession) GetAllMilkTanks() ([][32]byte, error) {
-	return _Rawmilk.Contract.GetAllMilkTanks(&_Rawmilk.CallOpts)
-}
-
-// GetMilkTank is a free data retrieval call binding the contract method 0x5a03541f.
-//
-// Solidity: function getMilkTank(bytes32 _tankId) view returns(bytes32, address, string, uint8, string, string)
-func (_Rawmilk *RawmilkCaller) GetMilkTank(opts *bind.CallOpts, _tankId [32]byte) ([32]byte, common.Address, string, uint8, string, string, error) {
-	var out []interface{}
-	err := _Rawmilk.contract.Call(opts, &out, "getMilkTank", _tankId)
-
-	if err != nil {
-		return *new([32]byte), *new(common.Address), *new(string), *new(uint8), *new(string), *new(string), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
-	out1 := *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
-	out2 := *abi.ConvertType(out[2], new(string)).(*string)
-	out3 := *abi.ConvertType(out[3], new(uint8)).(*uint8)
-	out4 := *abi.ConvertType(out[4], new(string)).(*string)
-	out5 := *abi.ConvertType(out[5], new(string)).(*string)
-
-	return out0, out1, out2, out3, out4, out5, err
-
-}
-
-// GetMilkTank is a free data retrieval call binding the contract method 0x5a03541f.
-//
-// Solidity: function getMilkTank(bytes32 _tankId) view returns(bytes32, address, string, uint8, string, string)
-func (_Rawmilk *RawmilkSession) GetMilkTank(_tankId [32]byte) ([32]byte, common.Address, string, uint8, string, string, error) {
-	return _Rawmilk.Contract.GetMilkTank(&_Rawmilk.CallOpts, _tankId)
-}
-
-// GetMilkTank is a free data retrieval call binding the contract method 0x5a03541f.
-//
-// Solidity: function getMilkTank(bytes32 _tankId) view returns(bytes32, address, string, uint8, string, string)
-func (_Rawmilk *RawmilkCallerSession) GetMilkTank(_tankId [32]byte) ([32]byte, common.Address, string, uint8, string, string, error) {
-	return _Rawmilk.Contract.GetMilkTank(&_Rawmilk.CallOpts, _tankId)
+// Solidity: function getMilkTanksByFactory(bytes32 _factoryId) view returns(bytes32[])
+func (_Rawmilk *RawmilkCallerSession) GetMilkTanksByFactory(_factoryId [32]byte) ([][32]byte, error) {
+	return _Rawmilk.Contract.GetMilkTanksByFactory(&_Rawmilk.CallOpts, _factoryId)
 }
 
 // GetMilkTanksByFarmer is a free data retrieval call binding the contract method 0x70d61bba.
@@ -280,10 +281,11 @@ func (_Rawmilk *RawmilkCallerSession) GetMilkTanksByFarmer(_farmer common.Addres
 
 // MilkTanks is a free data retrieval call binding the contract method 0xa34a7fb9.
 //
-// Solidity: function milkTanks(bytes32 ) view returns(bytes32 tankId, address farmer, string personInCharge, uint8 status, string qualityReportCID, string qrCodeCID)
+// Solidity: function milkTanks(bytes32 ) view returns(bytes32 tankId, address farmer, bytes32 factoryId, string personInCharge, uint8 status, string qualityReportCID, string qrCodeCID)
 func (_Rawmilk *RawmilkCaller) MilkTanks(opts *bind.CallOpts, arg0 [32]byte) (struct {
 	TankId           [32]byte
 	Farmer           common.Address
+	FactoryId        [32]byte
 	PersonInCharge   string
 	Status           uint8
 	QualityReportCID string
@@ -295,6 +297,7 @@ func (_Rawmilk *RawmilkCaller) MilkTanks(opts *bind.CallOpts, arg0 [32]byte) (st
 	outstruct := new(struct {
 		TankId           [32]byte
 		Farmer           common.Address
+		FactoryId        [32]byte
 		PersonInCharge   string
 		Status           uint8
 		QualityReportCID string
@@ -306,10 +309,11 @@ func (_Rawmilk *RawmilkCaller) MilkTanks(opts *bind.CallOpts, arg0 [32]byte) (st
 
 	outstruct.TankId = *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 	outstruct.Farmer = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
-	outstruct.PersonInCharge = *abi.ConvertType(out[2], new(string)).(*string)
-	outstruct.Status = *abi.ConvertType(out[3], new(uint8)).(*uint8)
-	outstruct.QualityReportCID = *abi.ConvertType(out[4], new(string)).(*string)
-	outstruct.QrCodeCID = *abi.ConvertType(out[5], new(string)).(*string)
+	outstruct.FactoryId = *abi.ConvertType(out[2], new([32]byte)).(*[32]byte)
+	outstruct.PersonInCharge = *abi.ConvertType(out[3], new(string)).(*string)
+	outstruct.Status = *abi.ConvertType(out[4], new(uint8)).(*uint8)
+	outstruct.QualityReportCID = *abi.ConvertType(out[5], new(string)).(*string)
+	outstruct.QrCodeCID = *abi.ConvertType(out[6], new(string)).(*string)
 
 	return *outstruct, err
 
@@ -317,10 +321,11 @@ func (_Rawmilk *RawmilkCaller) MilkTanks(opts *bind.CallOpts, arg0 [32]byte) (st
 
 // MilkTanks is a free data retrieval call binding the contract method 0xa34a7fb9.
 //
-// Solidity: function milkTanks(bytes32 ) view returns(bytes32 tankId, address farmer, string personInCharge, uint8 status, string qualityReportCID, string qrCodeCID)
+// Solidity: function milkTanks(bytes32 ) view returns(bytes32 tankId, address farmer, bytes32 factoryId, string personInCharge, uint8 status, string qualityReportCID, string qrCodeCID)
 func (_Rawmilk *RawmilkSession) MilkTanks(arg0 [32]byte) (struct {
 	TankId           [32]byte
 	Farmer           common.Address
+	FactoryId        [32]byte
 	PersonInCharge   string
 	Status           uint8
 	QualityReportCID string
@@ -331,10 +336,11 @@ func (_Rawmilk *RawmilkSession) MilkTanks(arg0 [32]byte) (struct {
 
 // MilkTanks is a free data retrieval call binding the contract method 0xa34a7fb9.
 //
-// Solidity: function milkTanks(bytes32 ) view returns(bytes32 tankId, address farmer, string personInCharge, uint8 status, string qualityReportCID, string qrCodeCID)
+// Solidity: function milkTanks(bytes32 ) view returns(bytes32 tankId, address farmer, bytes32 factoryId, string personInCharge, uint8 status, string qualityReportCID, string qrCodeCID)
 func (_Rawmilk *RawmilkCallerSession) MilkTanks(arg0 [32]byte) (struct {
 	TankId           [32]byte
 	Farmer           common.Address
+	FactoryId        [32]byte
 	PersonInCharge   string
 	Status           uint8
 	QualityReportCID string
@@ -405,70 +411,25 @@ func (_Rawmilk *RawmilkCallerSession) UserRegistry() (common.Address, error) {
 	return _Rawmilk.Contract.UserRegistry(&_Rawmilk.CallOpts)
 }
 
-// ValidateMilkData is a free data retrieval call binding the contract method 0x356f30c6.
+// CreateMilkTank is a paid mutator transaction binding the contract method 0x5862213c.
 //
-// Solidity: function validateMilkData(uint256 _quantity, uint256 _temperature, uint256 _pH, uint256 _fat, uint256 _protein, bool _bacteria, bool _contaminants) pure returns(bool valid, string message)
-func (_Rawmilk *RawmilkCaller) ValidateMilkData(opts *bind.CallOpts, _quantity *big.Int, _temperature *big.Int, _pH *big.Int, _fat *big.Int, _protein *big.Int, _bacteria bool, _contaminants bool) (struct {
-	Valid   bool
-	Message string
-}, error) {
-	var out []interface{}
-	err := _Rawmilk.contract.Call(opts, &out, "validateMilkData", _quantity, _temperature, _pH, _fat, _protein, _bacteria, _contaminants)
-
-	outstruct := new(struct {
-		Valid   bool
-		Message string
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.Valid = *abi.ConvertType(out[0], new(bool)).(*bool)
-	outstruct.Message = *abi.ConvertType(out[1], new(string)).(*string)
-
-	return *outstruct, err
-
+// Solidity: function createMilkTank(bytes32 _tankId, bytes32 _factoryId, string _personInCharge, string _qualityReportCID, string _qrCodeCID) returns()
+func (_Rawmilk *RawmilkTransactor) CreateMilkTank(opts *bind.TransactOpts, _tankId [32]byte, _factoryId [32]byte, _personInCharge string, _qualityReportCID string, _qrCodeCID string) (*types.Transaction, error) {
+	return _Rawmilk.contract.Transact(opts, "createMilkTank", _tankId, _factoryId, _personInCharge, _qualityReportCID, _qrCodeCID)
 }
 
-// ValidateMilkData is a free data retrieval call binding the contract method 0x356f30c6.
+// CreateMilkTank is a paid mutator transaction binding the contract method 0x5862213c.
 //
-// Solidity: function validateMilkData(uint256 _quantity, uint256 _temperature, uint256 _pH, uint256 _fat, uint256 _protein, bool _bacteria, bool _contaminants) pure returns(bool valid, string message)
-func (_Rawmilk *RawmilkSession) ValidateMilkData(_quantity *big.Int, _temperature *big.Int, _pH *big.Int, _fat *big.Int, _protein *big.Int, _bacteria bool, _contaminants bool) (struct {
-	Valid   bool
-	Message string
-}, error) {
-	return _Rawmilk.Contract.ValidateMilkData(&_Rawmilk.CallOpts, _quantity, _temperature, _pH, _fat, _protein, _bacteria, _contaminants)
+// Solidity: function createMilkTank(bytes32 _tankId, bytes32 _factoryId, string _personInCharge, string _qualityReportCID, string _qrCodeCID) returns()
+func (_Rawmilk *RawmilkSession) CreateMilkTank(_tankId [32]byte, _factoryId [32]byte, _personInCharge string, _qualityReportCID string, _qrCodeCID string) (*types.Transaction, error) {
+	return _Rawmilk.Contract.CreateMilkTank(&_Rawmilk.TransactOpts, _tankId, _factoryId, _personInCharge, _qualityReportCID, _qrCodeCID)
 }
 
-// ValidateMilkData is a free data retrieval call binding the contract method 0x356f30c6.
+// CreateMilkTank is a paid mutator transaction binding the contract method 0x5862213c.
 //
-// Solidity: function validateMilkData(uint256 _quantity, uint256 _temperature, uint256 _pH, uint256 _fat, uint256 _protein, bool _bacteria, bool _contaminants) pure returns(bool valid, string message)
-func (_Rawmilk *RawmilkCallerSession) ValidateMilkData(_quantity *big.Int, _temperature *big.Int, _pH *big.Int, _fat *big.Int, _protein *big.Int, _bacteria bool, _contaminants bool) (struct {
-	Valid   bool
-	Message string
-}, error) {
-	return _Rawmilk.Contract.ValidateMilkData(&_Rawmilk.CallOpts, _quantity, _temperature, _pH, _fat, _protein, _bacteria, _contaminants)
-}
-
-// CreateMilkTank is a paid mutator transaction binding the contract method 0x916b4775.
-//
-// Solidity: function createMilkTank(bytes32 _tankId, string _personInCharge, string _qrCodeCID) returns()
-func (_Rawmilk *RawmilkTransactor) CreateMilkTank(opts *bind.TransactOpts, _tankId [32]byte, _personInCharge string, _qrCodeCID string) (*types.Transaction, error) {
-	return _Rawmilk.contract.Transact(opts, "createMilkTank", _tankId, _personInCharge, _qrCodeCID)
-}
-
-// CreateMilkTank is a paid mutator transaction binding the contract method 0x916b4775.
-//
-// Solidity: function createMilkTank(bytes32 _tankId, string _personInCharge, string _qrCodeCID) returns()
-func (_Rawmilk *RawmilkSession) CreateMilkTank(_tankId [32]byte, _personInCharge string, _qrCodeCID string) (*types.Transaction, error) {
-	return _Rawmilk.Contract.CreateMilkTank(&_Rawmilk.TransactOpts, _tankId, _personInCharge, _qrCodeCID)
-}
-
-// CreateMilkTank is a paid mutator transaction binding the contract method 0x916b4775.
-//
-// Solidity: function createMilkTank(bytes32 _tankId, string _personInCharge, string _qrCodeCID) returns()
-func (_Rawmilk *RawmilkTransactorSession) CreateMilkTank(_tankId [32]byte, _personInCharge string, _qrCodeCID string) (*types.Transaction, error) {
-	return _Rawmilk.Contract.CreateMilkTank(&_Rawmilk.TransactOpts, _tankId, _personInCharge, _qrCodeCID)
+// Solidity: function createMilkTank(bytes32 _tankId, bytes32 _factoryId, string _personInCharge, string _qualityReportCID, string _qrCodeCID) returns()
+func (_Rawmilk *RawmilkTransactorSession) CreateMilkTank(_tankId [32]byte, _factoryId [32]byte, _personInCharge string, _qualityReportCID string, _qrCodeCID string) (*types.Transaction, error) {
+	return _Rawmilk.Contract.CreateMilkTank(&_Rawmilk.TransactOpts, _tankId, _factoryId, _personInCharge, _qualityReportCID, _qrCodeCID)
 }
 
 // UpdateMilkTank is a paid mutator transaction binding the contract method 0xef5d4f37.
@@ -511,6 +472,143 @@ func (_Rawmilk *RawmilkSession) VerifyMilkQuality(_tankId [32]byte, _approved bo
 // Solidity: function verifyMilkQuality(bytes32 _tankId, bool _approved, string _qualityReportCID) returns()
 func (_Rawmilk *RawmilkTransactorSession) VerifyMilkQuality(_tankId [32]byte, _approved bool, _qualityReportCID string) (*types.Transaction, error) {
 	return _Rawmilk.Contract.VerifyMilkQuality(&_Rawmilk.TransactOpts, _tankId, _approved, _qualityReportCID)
+}
+
+// RawmilkDebugLogIterator is returned from FilterDebugLog and is used to iterate over the raw logs and unpacked data for DebugLog events raised by the Rawmilk contract.
+type RawmilkDebugLogIterator struct {
+	Event *RawmilkDebugLog // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *RawmilkDebugLogIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(RawmilkDebugLog)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(RawmilkDebugLog)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *RawmilkDebugLogIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *RawmilkDebugLogIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// RawmilkDebugLog represents a DebugLog event raised by the Rawmilk contract.
+type RawmilkDebugLog struct {
+	Message   string
+	Sender    common.Address
+	TankId    [32]byte
+	FactoryId [32]byte
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterDebugLog is a free log retrieval operation binding the contract event 0x86f4cac90217ee94700ecefa745858b174e706d4f9d2d6243e768f2e9de8516c.
+//
+// Solidity: event DebugLog(string message, address sender, bytes32 tankId, bytes32 factoryId)
+func (_Rawmilk *RawmilkFilterer) FilterDebugLog(opts *bind.FilterOpts) (*RawmilkDebugLogIterator, error) {
+
+	logs, sub, err := _Rawmilk.contract.FilterLogs(opts, "DebugLog")
+	if err != nil {
+		return nil, err
+	}
+	return &RawmilkDebugLogIterator{contract: _Rawmilk.contract, event: "DebugLog", logs: logs, sub: sub}, nil
+}
+
+// WatchDebugLog is a free log subscription operation binding the contract event 0x86f4cac90217ee94700ecefa745858b174e706d4f9d2d6243e768f2e9de8516c.
+//
+// Solidity: event DebugLog(string message, address sender, bytes32 tankId, bytes32 factoryId)
+func (_Rawmilk *RawmilkFilterer) WatchDebugLog(opts *bind.WatchOpts, sink chan<- *RawmilkDebugLog) (event.Subscription, error) {
+
+	logs, sub, err := _Rawmilk.contract.WatchLogs(opts, "DebugLog")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(RawmilkDebugLog)
+				if err := _Rawmilk.contract.UnpackLog(event, "DebugLog", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDebugLog is a log parse operation binding the contract event 0x86f4cac90217ee94700ecefa745858b174e706d4f9d2d6243e768f2e9de8516c.
+//
+// Solidity: event DebugLog(string message, address sender, bytes32 tankId, bytes32 factoryId)
+func (_Rawmilk *RawmilkFilterer) ParseDebugLog(log types.Log) (*RawmilkDebugLog, error) {
+	event := new(RawmilkDebugLog)
+	if err := _Rawmilk.contract.UnpackLog(event, "DebugLog", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // RawmilkMilkQualityVerifiedIterator is returned from FilterMilkQualityVerified and is used to iterate over the raw logs and unpacked data for MilkQualityVerified events raised by the Rawmilk contract.
@@ -728,15 +826,18 @@ func (it *RawmilkMilkTankCreatedIterator) Close() error {
 
 // RawmilkMilkTankCreated represents a MilkTankCreated event raised by the Rawmilk contract.
 type RawmilkMilkTankCreated struct {
-	TankId [32]byte
-	Farmer common.Address
-	Raw    types.Log // Blockchain specific contextual infos
+	TankId           [32]byte
+	Farmer           common.Address
+	FactoryId        [32]byte
+	PersonInCharge   string
+	QualityReportCID string
+	Raw              types.Log // Blockchain specific contextual infos
 }
 
-// FilterMilkTankCreated is a free log retrieval operation binding the contract event 0x37b0128d4b624d18911b44dd0342b16405d37240c96673cf8d9b578307c45599.
+// FilterMilkTankCreated is a free log retrieval operation binding the contract event 0xd2469f8cb85b3922ec520797c7b98587ad997a61cc87c42bf297fddbb478d82c.
 //
-// Solidity: event MilkTankCreated(bytes32 indexed tankId, address indexed farmer)
-func (_Rawmilk *RawmilkFilterer) FilterMilkTankCreated(opts *bind.FilterOpts, tankId [][32]byte, farmer []common.Address) (*RawmilkMilkTankCreatedIterator, error) {
+// Solidity: event MilkTankCreated(bytes32 indexed tankId, address indexed farmer, bytes32 indexed factoryId, string personInCharge, string qualityReportCID)
+func (_Rawmilk *RawmilkFilterer) FilterMilkTankCreated(opts *bind.FilterOpts, tankId [][32]byte, farmer []common.Address, factoryId [][32]byte) (*RawmilkMilkTankCreatedIterator, error) {
 
 	var tankIdRule []interface{}
 	for _, tankIdItem := range tankId {
@@ -746,18 +847,22 @@ func (_Rawmilk *RawmilkFilterer) FilterMilkTankCreated(opts *bind.FilterOpts, ta
 	for _, farmerItem := range farmer {
 		farmerRule = append(farmerRule, farmerItem)
 	}
+	var factoryIdRule []interface{}
+	for _, factoryIdItem := range factoryId {
+		factoryIdRule = append(factoryIdRule, factoryIdItem)
+	}
 
-	logs, sub, err := _Rawmilk.contract.FilterLogs(opts, "MilkTankCreated", tankIdRule, farmerRule)
+	logs, sub, err := _Rawmilk.contract.FilterLogs(opts, "MilkTankCreated", tankIdRule, farmerRule, factoryIdRule)
 	if err != nil {
 		return nil, err
 	}
 	return &RawmilkMilkTankCreatedIterator{contract: _Rawmilk.contract, event: "MilkTankCreated", logs: logs, sub: sub}, nil
 }
 
-// WatchMilkTankCreated is a free log subscription operation binding the contract event 0x37b0128d4b624d18911b44dd0342b16405d37240c96673cf8d9b578307c45599.
+// WatchMilkTankCreated is a free log subscription operation binding the contract event 0xd2469f8cb85b3922ec520797c7b98587ad997a61cc87c42bf297fddbb478d82c.
 //
-// Solidity: event MilkTankCreated(bytes32 indexed tankId, address indexed farmer)
-func (_Rawmilk *RawmilkFilterer) WatchMilkTankCreated(opts *bind.WatchOpts, sink chan<- *RawmilkMilkTankCreated, tankId [][32]byte, farmer []common.Address) (event.Subscription, error) {
+// Solidity: event MilkTankCreated(bytes32 indexed tankId, address indexed farmer, bytes32 indexed factoryId, string personInCharge, string qualityReportCID)
+func (_Rawmilk *RawmilkFilterer) WatchMilkTankCreated(opts *bind.WatchOpts, sink chan<- *RawmilkMilkTankCreated, tankId [][32]byte, farmer []common.Address, factoryId [][32]byte) (event.Subscription, error) {
 
 	var tankIdRule []interface{}
 	for _, tankIdItem := range tankId {
@@ -767,8 +872,12 @@ func (_Rawmilk *RawmilkFilterer) WatchMilkTankCreated(opts *bind.WatchOpts, sink
 	for _, farmerItem := range farmer {
 		farmerRule = append(farmerRule, farmerItem)
 	}
+	var factoryIdRule []interface{}
+	for _, factoryIdItem := range factoryId {
+		factoryIdRule = append(factoryIdRule, factoryIdItem)
+	}
 
-	logs, sub, err := _Rawmilk.contract.WatchLogs(opts, "MilkTankCreated", tankIdRule, farmerRule)
+	logs, sub, err := _Rawmilk.contract.WatchLogs(opts, "MilkTankCreated", tankIdRule, farmerRule, factoryIdRule)
 	if err != nil {
 		return nil, err
 	}
@@ -800,9 +909,9 @@ func (_Rawmilk *RawmilkFilterer) WatchMilkTankCreated(opts *bind.WatchOpts, sink
 	}), nil
 }
 
-// ParseMilkTankCreated is a log parse operation binding the contract event 0x37b0128d4b624d18911b44dd0342b16405d37240c96673cf8d9b578307c45599.
+// ParseMilkTankCreated is a log parse operation binding the contract event 0xd2469f8cb85b3922ec520797c7b98587ad997a61cc87c42bf297fddbb478d82c.
 //
-// Solidity: event MilkTankCreated(bytes32 indexed tankId, address indexed farmer)
+// Solidity: event MilkTankCreated(bytes32 indexed tankId, address indexed farmer, bytes32 indexed factoryId, string personInCharge, string qualityReportCID)
 func (_Rawmilk *RawmilkFilterer) ParseMilkTankCreated(log types.Log) (*RawmilkMilkTankCreated, error) {
 	event := new(RawmilkMilkTankCreated)
 	if err := _Rawmilk.contract.UnpackLog(event, "MilkTankCreated", log); err != nil {

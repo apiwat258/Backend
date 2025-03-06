@@ -9,9 +9,10 @@ contract RawMilk {
     struct MilkTank {
         bytes32 tankId;
         address farmer;
+        bytes32 factoryId; // ✅ เปลี่ยนเป็น bytes32 เพื่อรองรับ FactoryID เป็น String
         string personInCharge;
         MilkStatus status;
-        string qualityReportCID; // ✅ รวม bacteriaInfo, contaminantInfo, abnormalType
+        string qualityReportCID;
         string qrCodeCID;
     }
 
@@ -19,14 +20,24 @@ contract RawMilk {
     mapping(bytes32 => MilkTank) public milkTanks; 
     bytes32[] public tankIds; 
 
-    event MilkTankCreated(bytes32 indexed tankId, address indexed farmer);
+    event MilkTankCreated(
+        bytes32 indexed tankId, 
+        address indexed farmer, 
+        bytes32 indexed factoryId, // ✅ เปลี่ยน factoryId เป็น bytes32
+        string personInCharge, 
+        string qualityReportCID
+    );
+
     event MilkTankUpdated(bytes32 indexed tankId);
     event MilkQualityVerified(bytes32 indexed tankId, MilkStatus status, string qualityReportCID);
 
-    modifier onlyFarmer() {
-        require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Farmer, "Access denied: Only farmers allowed");
-        _;
-    }
+    event DebugLog(string message, address sender, bytes32 tankId, bytes32 factoryId);
+
+modifier onlyFarmer() {
+    emit DebugLog("Checking User Role", msg.sender, 0x0, 0x0);
+    require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Farmer, "Access denied: Only farmers allowed");
+    _;
+}
 
     modifier onlyFactory() {
         require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Factory, "Access denied: Only factories allowed");
@@ -37,46 +48,33 @@ contract RawMilk {
         userRegistry = UserRegistry(_userRegistry);
     }
 
-    // ✅ ฟังก์ชันตรวจสอบค่าก่อนบันทึก (ไม่เก็บบนบล็อกเชน)
-    function validateMilkData(
-        uint256 _quantity,
-        uint256 _temperature,
-        uint256 _pH,
-        uint256 _fat,
-        uint256 _protein,
-        bool _bacteria,
-        bool _contaminants
-    ) public pure returns (bool valid, string memory message) {
-        if (_temperature < 200 || _temperature > 600) return (false, "Error: Temperature out of range! (2.0C - 6.0C)");
-        if (_pH < 650 || _pH > 680) return (false, "Error: pH out of range! (6.5 - 6.8)");
-        if (_fat < 300 || _fat > 400) return (false, "Error: Fat percentage out of range! (3.0% - 4.0%)");
-        if (_protein < 300 || _protein > 350) return (false, "Error: Protein percentage out of range! (3.0% - 3.5%)");
-
-        return (true, "Validated successfully.");
-    }
-
-    // ✅ ฟังก์ชันสร้างแท็งก์ (เฉพาะค่าที่ต้องเก็บบนบล็อกเชน)
     function createMilkTank(
-        bytes32 _tankId,
-        string memory _personInCharge,
-        string memory _qrCodeCID
-    ) public onlyFarmer {
-        require(milkTanks[_tankId].farmer == address(0), "Error: Tank ID already exists");
+    bytes32 _tankId,
+    bytes32 _factoryId, // ✅ เก็บเป็น bytes32 ตามเดิม
+    string memory _personInCharge,
+    string memory _qualityReportCID,
+    string memory _qrCodeCID
+) public onlyFarmer {
+    emit DebugLog("Creating Milk Tank", msg.sender, _tankId, _factoryId);
 
-        milkTanks[_tankId] = MilkTank({
-            tankId: _tankId,
-            farmer: msg.sender,
-            personInCharge: _personInCharge,
-            status: MilkStatus.Pending,
-            qualityReportCID: "",
-            qrCodeCID: _qrCodeCID
-        });
+    require(milkTanks[_tankId].farmer == address(0), "Error: Tank ID already exists");
 
-        tankIds.push(_tankId);
-        emit MilkTankCreated(_tankId, msg.sender);
-    }
+    milkTanks[_tankId] = MilkTank({
+        tankId: _tankId,
+        farmer: msg.sender,
+        factoryId: _factoryId, // ✅ ใช้ Factory ID เป็น `bytes32`
+        personInCharge: _personInCharge,
+        status: MilkStatus.Pending,
+        qualityReportCID: _qualityReportCID,
+        qrCodeCID: _qrCodeCID
+    });
 
-    // ✅ ฟังก์ชันอัปเดต QR Code หรือ Quality Report CID (ห้ามแก้ข้อมูลอื่น)
+    tankIds.push(_tankId);
+    emit MilkTankCreated(_tankId, msg.sender, _factoryId, _personInCharge, _qualityReportCID);
+}
+
+
+    // ✅ ฟังก์ชันอัปเดต QR Code หรือ Quality Report CID
     function updateMilkTank(
         bytes32 _tankId,
         string memory _qrCodeCID
@@ -89,8 +87,12 @@ contract RawMilk {
         emit MilkTankUpdated(_tankId);
     }
 
-    // ✅ ฟังก์ชันตรวจสอบคุณภาพนม (โรงงานเป็นผู้อนุมัติ)
-    function verifyMilkQuality(bytes32 _tankId, bool _approved, string memory _qualityReportCID) public onlyFactory {
+    // ✅ ฟังก์ชันตรวจสอบคุณภาพนม
+    function verifyMilkQuality(
+        bytes32 _tankId, 
+        bool _approved, 
+        string memory _qualityReportCID
+    ) public onlyFactory {
         require(milkTanks[_tankId].farmer != address(0), "Error: Tank ID does not exist");
         require(milkTanks[_tankId].status == MilkStatus.Pending, "Error: Milk already verified");
 
@@ -104,6 +106,7 @@ contract RawMilk {
     function getMilkTank(bytes32 _tankId) public view returns (
         bytes32,
         address,
+        bytes32,
         string memory,
         MilkStatus,
         string memory,
@@ -115,16 +118,12 @@ contract RawMilk {
         return (
             tank.tankId,
             tank.farmer,
+            tank.factoryId, // ✅ คืนค่า FactoryID (bytes32)
             tank.personInCharge,
             tank.status,
             tank.qualityReportCID,
             tank.qrCodeCID
         );
-    }
-
-    // ✅ ฟังก์ชันดึงรายการแท็งก์ทั้งหมด
-    function getAllMilkTanks() public view returns (bytes32[] memory) {
-        return tankIds;
     }
 
     // ✅ ฟังก์ชันดึงรายการแท็งก์ตามฟาร์ม
@@ -145,5 +144,25 @@ contract RawMilk {
             }
         }
         return farmerTanks;
+    }
+
+    // ✅ ฟังก์ชันดึงรายการแท็งก์ตามโรงงาน (ใช้ `bytes32` แทน `address`)
+    function getMilkTanksByFactory(bytes32 _factoryId) public view returns (bytes32[] memory) {
+        uint count = 0;
+        for (uint i = 0; i < tankIds.length; i++) {
+            if (milkTanks[tankIds[i]].factoryId == _factoryId) {
+                count++;
+            }
+        }
+
+        bytes32[] memory factoryTanks = new bytes32[](count);
+        uint index = 0;
+        for (uint i = 0; i < tankIds.length; i++) {
+            if (milkTanks[tankIds[i]].factoryId == _factoryId) {
+                factoryTanks[index] = tankIds[i];
+                index++;
+            }
+        }
+        return factoryTanks;
     }
 }

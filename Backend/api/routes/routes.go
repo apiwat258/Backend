@@ -3,13 +3,12 @@ package routes
 import (
 	"finalyearproject/Backend/api/controllers"
 	"finalyearproject/Backend/middleware"
-	"finalyearproject/Backend/services"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 // SetupRoutes sets up API routes
-func SetupRoutes(app *fiber.App) {
+func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController) {
 	api := app.Group("/api/v1") // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
 
 	// ✅ Authentication Routes
@@ -54,16 +53,11 @@ func SetupRoutes(app *fiber.App) {
 	certification.Get("/check/:certCID", controllers.CheckCertificationCID)
 	certification.Post("/store", middleware.AuthMiddleware(), controllers.StoreCertification)
 
-	// ✅ **สร้างอินสแตนซ์ของ RawMilkController**
-	rmc := &controllers.RawMilkController{
-		BlockchainService: services.BlockchainServiceInstance,
-		QRCodeService:     services.QRCodeServiceInstance,
-		IPFSService:       services.IPFSServiceInstance,
-		MilkTankCounter:   make(map[string]int),
-	}
-
 	// ✅ Milk Tank Routes (แก้ให้เรียกผ่าน `rmc.CreateMilkTank`)
 	milk := api.Group("/farm/milk", middleware.AuthMiddleware())
-	milk.Post("/create", rmc.CreateMilkTank) // ✅ ฟาร์มสร้างแท็งก์นมดิบใหม่
+	milk.Post("/create", rmc.CreateMilkTank)                // ✅ ฟาร์มสร้างแท็งก์นมดิบใหม่
+	milk.Get("/list", rmc.GetFarmRawMilkTanks)              // ✅ ฟาร์มดึงรายการแท็งก์นมดิบของตัวเอง
+	milk.Get("/details/:tankId", rmc.GetRawMilkTankDetails) // ✅ ดึงรายละเอียดแท็งก์นมดิบตาม Tank ID
+	milk.Get("/qrcode/:tankId", rmc.GetQRCodeByTankID)      // ✅ ดึง QR Code ของแท็งก์นมดิบ
 
 }

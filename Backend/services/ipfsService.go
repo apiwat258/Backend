@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	shell "github.com/ipfs/go-ipfs-api"
@@ -14,15 +15,46 @@ import (
 
 var IPFSServiceInstance = &IPFSService{}
 
-// IPFSService ใช้สำหรับอัปโหลดและดึงไฟล์จาก IPFS
+// ✅ IPFSService ใช้สำหรับอัปโหลดและดึงไฟล์จาก IPFS
 type IPFSService struct {
-	shell *shell.Shell
+	shell *shell.Shell // ✅ คงเป็นตัวพิมพ์เล็ก
 }
 
-// NewIPFSService คืนค่าอินสแตนซ์ของ IPFSService
+// ✅ ฟังก์ชันสร้างอินสแตนซ์ของ IPFSService
 func NewIPFSService() *IPFSService {
+	ipfsURL := os.Getenv("IPFS_API_URL")
+	if ipfsURL == "" {
+		ipfsURL = "http://localhost:5001" // ✅ ใช้ค่า default ถ้าไม่มี .env
+	}
+
 	return &IPFSService{
-		shell: shell.NewShell("localhost:5001"), // ✅ เชื่อมต่อ IPFS Daemon
+		shell: shell.NewShell(ipfsURL),
+	}
+}
+
+func InitIPFSService() {
+	ipfsURL := os.Getenv("IPFS_API_URL")
+	if ipfsURL == "" {
+		ipfsURL = "http://localhost:5001"
+	}
+
+	shellInstance := shell.NewShell(ipfsURL)
+	if shellInstance == nil {
+		fmt.Println("❌ Failed to initialize IPFS Shell")
+		return
+	}
+
+	IPFSServiceInstance = &IPFSService{
+		shell: shellInstance,
+	}
+
+	// ✅ ตรวจสอบการเชื่อมต่อ IPFS
+	_, _, err := IPFSServiceInstance.shell.Version()
+	if err != nil {
+		fmt.Println("❌ Failed to connect to IPFS:", err)
+		IPFSServiceInstance = nil // ✅ ป้องกันการใช้ instance ที่เชื่อมต่อไม่ได้
+	} else {
+		fmt.Println("✅ Connected to IPFS at:", ipfsURL)
 	}
 }
 
@@ -55,21 +87,21 @@ func (s *IPFSService) UploadFile(file io.Reader) (string, error) {
 	return cid, nil
 }
 
-// GetFile ดึงไฟล์จาก IPFS และคืนค่าเป็น JSON String
-func (s *IPFSService) GetFile(cid string) (string, error) {
+// ✅ ฟังก์ชันดึงข้อมูล JSON จาก IPFS
+func (s *IPFSService) GetFromIPFS(cid string) ([]byte, error) {
 	fmt.Println("📌 Retrieving file from IPFS... CID:", cid)
 
 	// ✅ ตรวจสอบว่า IPFS Daemon ทำงานอยู่หรือไม่
 	if !s.shell.IsUp() {
 		fmt.Println("❌ IPFS Daemon is not running!")
-		return "", fmt.Errorf("IPFS node is not available")
+		return nil, fmt.Errorf("IPFS node is not available")
 	}
 
 	// ✅ ดึงไฟล์จาก IPFS
 	reader, err := s.shell.Cat(cid)
 	if err != nil {
 		fmt.Println("❌ Failed to retrieve file from IPFS:", err)
-		return "", fmt.Errorf("failed to retrieve file from IPFS")
+		return nil, fmt.Errorf("failed to retrieve file from IPFS")
 	}
 	defer reader.Close()
 
@@ -77,11 +109,69 @@ func (s *IPFSService) GetFile(cid string) (string, error) {
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		fmt.Println("❌ Error reading file content:", err)
-		return "", fmt.Errorf("failed to read file content")
+		return nil, fmt.Errorf("failed to read file content")
 	}
 
 	fmt.Println("✅ File retrieved from IPFS successfully")
-	return string(data), nil
+	return data, nil // ✅ คืนค่าเป็น `[]byte`
+}
+
+// ✅ ฟังก์ชันดึงข้อมูล JSON และแปลงเป็น Map
+func (s *IPFSService) GetJSONFromIPFS(cid string) (map[string]interface{}, error) {
+	data, err := s.GetFromIPFS(cid)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData map[string]interface{}
+	err = json.Unmarshal(data, &jsonData)
+	if err != nil {
+		fmt.Println("❌ Error parsing JSON:", err)
+		return nil, fmt.Errorf("invalid JSON format from IPFS")
+	}
+
+	return jsonData, nil
+}
+
+// ✅ ฟังก์ชันดึงไฟล์จาก IPFS
+func (s *IPFSService) GetFileFromIPFS(cid string) ([]byte, error) {
+	fmt.Println("📌 Retrieving file from IPFS... CID:", cid)
+
+	// ✅ ตรวจสอบว่า IPFS Daemon ทำงานอยู่หรือไม่
+	if !s.shell.IsUp() {
+		fmt.Println("❌ IPFS Daemon is not running!")
+		return nil, fmt.Errorf("IPFS node is not available")
+	}
+
+	// ✅ ดึงไฟล์จาก IPFS
+	reader, err := s.shell.Cat(cid)
+	if err != nil {
+		fmt.Println("❌ Failed to retrieve file from IPFS:", err)
+		return nil, fmt.Errorf("failed to retrieve file from IPFS")
+	}
+	defer reader.Close()
+
+	// ✅ อ่านข้อมูลจาก reader
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		fmt.Println("❌ Error reading file content:", err)
+		return nil, fmt.Errorf("failed to read file content")
+	}
+
+	fmt.Println("✅ File retrieved from IPFS successfully")
+	return data, nil
+}
+
+// ✅ ฟังก์ชันดึงรูปภาพจาก IPFS และแปลงเป็น Base64
+func (s *IPFSService) GetImageBase64FromIPFS(cid string) (string, error) {
+	data, err := s.GetFileFromIPFS(cid)
+	if err != nil {
+		return "", err
+	}
+
+	// ✅ แปลงไฟล์เป็น Base64
+	base64Data := base64.StdEncoding.EncodeToString(data)
+	return base64Data, nil
 }
 
 // ✅ ฟังก์ชันอัปโหลดไฟล์จาก Base64 ไปยัง IPFS

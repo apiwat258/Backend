@@ -426,23 +426,34 @@ func (b *BlockchainService) CheckUserCertification(certCID string) (bool, error)
 }
 
 // //////////////////////////////////////////////////////////// RawMilk /////////////////////////////////////////////////////////
+// ✅ อัปเดต Struct `RawMilkData` ให้รองรับ `qualityReportCID`
 type RawMilkData struct {
 	TankId           string `json:"tankId"`
 	FarmWallet       string `json:"farmWallet"`
+	FactoryId        string `json:"factoryId"`
 	PersonInCharge   string `json:"personInCharge"`
-	QualityReportCID string `json:"qualityReportCid"` //
+	QualityReportCID string `json:"qualityReportCid"` // ✅ เพิ่ม
 	QrCodeCID        string `json:"qrCodeCid"`
 	Status           uint8  `json:"status"`
 }
 
+// ✅ ฟังก์ชันสร้างแท้งค์นมบนบล็อกเชน (แก้ `factoryId` เป็น `bytes32`)
 func (b *BlockchainService) CreateMilkTank(
 	userWallet string,
 	tankId string,
-	personInCharge string, // ✅ เพิ่มพารามิเตอร์นี้
-	qrCodeCID string, // ✅ คงไว้
+	factoryId string, // ✅ รับ FactoryID แบบ string (UUID หรือ Custom ID)
+	personInCharge string,
+	qualityReportCID string,
+	qrCodeCID string,
 ) (string, error) {
 
 	fmt.Println("📌 Creating Milk Tank on Blockchain for:", userWallet)
+
+	// ✅ ตรวจสอบค่าก่อนส่งธุรกรรม
+	err := validateMilkTankData(userWallet, tankId, factoryId, personInCharge, qualityReportCID, qrCodeCID)
+	if err != nil {
+		return "", err
+	}
 
 	// ✅ ดึง Private Key ของ Wallet ของเกษตรกร
 	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
@@ -461,15 +472,28 @@ func (b *BlockchainService) CreateMilkTank(
 		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
 	}
 	auth.From = common.HexToAddress(userWallet)
+	auth.GasLimit = uint64(3000000)         // ✅ เพิ่ม Gas Limit
+	auth.GasPrice = big.NewInt(20000000000) // ✅ กำหนด Gas Price
 
-	// ✅ แปลง tankId เป็น bytes32
+	// ✅ แปลง `tankId` เป็น `bytes32`
 	tankIdBytes := common.BytesToHash([]byte(tankId))
+
+	// ✅ แปลง `factoryId` เป็น `bytes32`
+	factoryIdBytes := common.BytesToHash([]byte(factoryId))
+
+	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	fmt.Println("📌 Debug - Sending to Blockchain:")
+	fmt.Println("   - Tank ID (Bytes32):", tankIdBytes)
+	fmt.Println("   - Factory ID (Bytes32):", factoryIdBytes)
+	fmt.Println("   - Person In Charge:", personInCharge)
 
 	// ✅ ส่งธุรกรรมไปที่ Smart Contract
 	tx, err := b.rawMilkContract.CreateMilkTank(
 		auth,
-		tankIdBytes,
-		personInCharge, // ✅ ส่ง personInCharge ไปที่ Smart Contract
+		tankIdBytes,    // ✅ ใช้ [32]byte
+		factoryIdBytes, // ✅ ใช้ [32]byte
+		personInCharge,
+		qualityReportCID,
 		qrCodeCID,
 	)
 	if err != nil {
@@ -492,230 +516,109 @@ func (b *BlockchainService) CreateMilkTank(
 	return tx.Hash().Hex(), nil
 }
 
-func (b *BlockchainService) ValidateMilkData(
-	quantity uint64, temperature uint64, pH uint64, fat uint64, protein uint64, bacteria bool, contaminants bool,
-) (bool, string) {
-
-	// ✅ ตรวจสอบค่าตามกฎที่กำหนด
-	if temperature < 200 || temperature > 600 {
-		return false, "Error: Temperature out of range! (2.0C - 6.0C)"
+// ✅ ฟังก์ชันตรวจสอบค่าก่อนสร้างธุรกรรม (แก้ `factoryId` ให้เป็น `bytes32`)
+func validateMilkTankData(userWallet, tankId, factoryId, personInCharge, qualityReportCID, qrCodeCID string) error {
+	if userWallet == "" {
+		return errors.New("❌ userWallet is required")
 	}
-	if pH < 650 || pH > 680 {
-		return false, "Error: pH out of range! (6.5 - 6.8)"
+	if !common.IsHexAddress(userWallet) {
+		return errors.New("❌ userWallet is not a valid Ethereum address")
 	}
-	if fat < 300 || fat > 400 {
-		return false, "Error: Fat percentage out of range! (3.0% - 4.0%)"
+	if tankId == "" {
+		return errors.New("❌ tankId is required")
 	}
-	if protein < 300 || protein > 350 {
-		return false, "Error: Protein percentage out of range! (3.0% - 3.5%)"
+	if factoryId == "" {
+		return errors.New("❌ factoryId is required")
 	}
-
-	// ✅ ถ้าผ่านเงื่อนไขทั้งหมด
-	return true, "Validated successfully."
+	if personInCharge == "" {
+		return errors.New("❌ personInCharge is required")
+	}
+	if qualityReportCID == "" {
+		return errors.New("❌ qualityReportCID is required")
+	}
+	if qrCodeCID == "" {
+		return errors.New("❌ qrCodeCID is required")
+	}
+	return nil
 }
 
-func (b *BlockchainService) GetAllRawMilkTanks() ([]map[string]string, error) {
-	fmt.Println("📌 Fetching all milk tanks from Blockchain...")
-
-	// ✅ เรียก Smart Contract เพื่อดึง tankIds ทั้งหมด
-	tankIds, err := b.rawMilkContract.GetAllMilkTanks(&bind.CallOpts{})
-	if err != nil {
-		fmt.Println("❌ Failed to fetch milk tanks:", err)
-		return nil, fmt.Errorf("❌ Failed to fetch milk tanks: %v", err)
-	}
-
-	var milkTanks []map[string]string
-
-	// ✅ วนลูปดึงข้อมูลแท็งก์แต่ละอัน
-	for _, id := range tankIds {
-		tankId := common.BytesToHash(id[:]).Hex()
-
-		// ✅ ดึงข้อมูลแท็งก์จาก Smart Contract ตาม tankId
-		tankIdSC, _, personInCharge, status, _, qrCodeCID, err :=
-			b.rawMilkContract.GetMilkTank(&bind.CallOpts{}, id)
-		if err != nil {
-			fmt.Printf("❌ Failed to fetch details for tank %s: %v\n", tankId, err)
-			continue
-		}
-
-		// ✅ เพิ่มเข้าไปในรายการ
-		milkTanks = append(milkTanks, map[string]string{
-			"tankId":         common.BytesToHash(tankIdSC[:]).Hex(),
-			"personInCharge": personInCharge,
-			"status":         fmt.Sprintf("%d", status), // แปลง enum เป็น string
-			"qrCodeCID":      qrCodeCID,
-		})
-	}
-
-	fmt.Println("✅ Retrieved Milk Tanks:", milkTanks)
-	return milkTanks, nil
-}
-
-func (b *BlockchainService) GetRawMilkTankDetails(tankId string) (*RawMilkData, error) {
-	fmt.Println("📌 Fetching milk tank details for:", tankId)
-
-	// ✅ แปลง tankId เป็น bytes32
-	tankIdBytes := common.HexToHash(tankId)
-
-	// ✅ ดึงข้อมูลแท็งก์จาก Smart Contract (ต้องรับค่า 6 ตัว)
-	tankIdSC, farmWallet, personInCharge, status, qualityReportCID, qrCodeCID, err :=
-		b.rawMilkContract.GetMilkTank(&bind.CallOpts{}, tankIdBytes)
-	if err != nil {
-		fmt.Println("❌ Failed to fetch milk tank details:", err)
-		return nil, fmt.Errorf("❌ Failed to fetch milk tank details: %v", err)
-	}
-
-	// ✅ แปลงค่า tankIdSC เป็น string
-	tankIdStr := common.BytesToHash(tankIdSC[:]).Hex()
-
-	// ✅ แปลงข้อมูลจาก Smart Contract เป็นโครงสร้างที่ใช้ใน Go
-	rawMilk := &RawMilkData{
-		TankId:           tankIdStr,
-		FarmWallet:       farmWallet.Hex(),
-		PersonInCharge:   personInCharge,
-		QualityReportCID: qualityReportCID,
-		QrCodeCID:        qrCodeCID,
-		Status:           uint8(status),
-	}
-
-	fmt.Println("✅ Milk Tank Details Retrieved:", rawMilk)
-	return rawMilk, nil
-}
-
-func (b *BlockchainService) GetMilkTanksByFarmer(farmerAddress string) ([]map[string]string, error) {
+func (b *BlockchainService) GetMilkTanksByFarmer(farmerAddress string) ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching milk tanks for farmer:", farmerAddress)
 
+	// ✅ แปลงที่อยู่ของฟาร์มจาก string เป็น Ethereum Address
 	farmer := common.HexToAddress(farmerAddress)
 
-	// ✅ เรียก Smart Contract เพื่อนำ Tank IDs ของฟาร์มมา
+	// ✅ ดึงรายการ Tank IDs จาก Smart Contract
 	tankIDs, err := b.rawMilkContract.GetMilkTanksByFarmer(&bind.CallOpts{}, farmer)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch milk tanks for farmer:", err)
 		return nil, err
 	}
 
-	var milkTanks []map[string]string
+	// ✅ เก็บข้อมูลนมดิบของฟาร์ม
+	var milkTanks []map[string]interface{}
 
-	// ✅ วนลูปดึงข้อมูลแท็งก์แต่ละอัน
+	// ✅ วนลูปดึงข้อมูลของแต่ละแท็งก์
 	for _, id := range tankIDs {
-		tankId := common.BytesToHash(id[:]).Hex()
+		// ✅ แปลง `bytes32` เป็น `string`
+		tankIdStr := string(id[:]) // ✅ แปลงกลับเป็น string
 
-		// ✅ ดึงข้อมูลแท็งก์จาก Smart Contract
-		tankIdSC, _, personInCharge, status, _, qrCodeCID, err :=
+		// ✅ ดึงรายละเอียดแท็งก์จาก Smart Contract
+		_, farmerAddr, factoryIdSC, personInCharge, status, qualityReportCID, qrCodeCID, err :=
 			b.rawMilkContract.GetMilkTank(&bind.CallOpts{}, id)
 		if err != nil {
-			fmt.Printf("❌ Failed to fetch details for tank %s: %v\n", tankId, err)
+			fmt.Printf("❌ Failed to fetch details for tank %s: %v\n", tankIdStr, err)
 			continue
 		}
 
+		// ✅ แปลงค่าที่ได้จาก Smart Contract
+		milkTank := map[string]interface{}{
+			"tankId":           tankIdStr, // ✅ ใช้ค่า string ที่แปลงมา
+			"farmerAddress":    farmerAddr.Hex(),
+			"factoryId":        string(factoryIdSC[:]), // ✅ แปลง `factoryId` ด้วย
+			"personInCharge":   personInCharge,
+			"status":           uint8(status), // ✅ Convert Enum เป็น Number
+			"qualityReportCID": qualityReportCID,
+			"qrCodeCID":        qrCodeCID,
+		}
+
 		// ✅ เพิ่มเข้าไปในรายการ
-		milkTanks = append(milkTanks, map[string]string{
-			"tankId":         common.BytesToHash(tankIdSC[:]).Hex(),
-			"personInCharge": personInCharge,
-			"status":         fmt.Sprintf("%d", status), // แปลง enum เป็น string
-			"qrCodeCID":      qrCodeCID,
-		})
+		milkTanks = append(milkTanks, milkTank)
 	}
 
 	fmt.Println("✅ Fetched milk tanks for farmer:", farmerAddress, milkTanks)
 	return milkTanks, nil
 }
 
-func (b *BlockchainService) VerifyMilkQuality(userWallet string, tankID string, approved bool, qualityReportCID string) (string, error) {
-	fmt.Println("📌 Verifying milk quality for Tank:", tankID, "Approved:", approved)
+func (b *BlockchainService) GetRawMilkTankDetails(tankId string) (*RawMilkData, error) {
+	fmt.Println("📌 Fetching milk tank details for:", tankId)
 
-	// ✅ ดึง Private Key ของ Factory (หรือ User ที่มีสิทธิ์)
-	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
+	// ✅ แปลง tankId เป็น bytes32 (ต้องใช้ Hash เพราะตอน Create ใช้ Hash)
+	tankIdBytes := common.BytesToHash([]byte(tankId))
+
+	// ✅ ดึงข้อมูลแท็งก์จาก Smart Contract
+	tankIdSC, farmWallet, factoryIdSC, personInCharge, status, qualityReportCID, qrCodeCID, err :=
+		b.rawMilkContract.GetMilkTank(&bind.CallOpts{}, tankIdBytes)
 	if err != nil {
-		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+		fmt.Println("❌ Failed to fetch milk tank details:", err)
+		return nil, fmt.Errorf("❌ Failed to fetch milk tank details: %v", err)
 	}
 
-	privateKey, err := crypto.HexToECDSA(privateKeyHex)
-	if err != nil {
-		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	// ✅ แปลงค่า tankIdSC และ factoryIdSC เป็น string
+	tankIdStr := string(tankIdSC[:])       // ✅ คืนค่า Tank ID เป็น String
+	factoryIdStr := string(factoryIdSC[:]) // ✅ คืนค่า Factory ID เป็น String
+
+	// ✅ แปลงข้อมูลจาก Smart Contract เป็นโครงสร้างที่ใช้ใน Go
+	rawMilk := &RawMilkData{
+		TankId:           tankIdStr,
+		FarmWallet:       farmWallet.Hex(),
+		FactoryId:        factoryIdStr,
+		PersonInCharge:   personInCharge,
+		QualityReportCID: qualityReportCID,
+		QrCodeCID:        qrCodeCID,
+		Status:           uint8(status), // ✅ แปลง Enum เป็น Number
 	}
 
-	// ✅ สร้าง Transaction Auth โดยใช้ Private Key
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
-	if err != nil {
-		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
-	}
-	auth.From = common.HexToAddress(userWallet)
-
-	// ✅ ใช้ common.BytesToHash() แทน common.HexToHash()
-	tankIDBytes := common.BytesToHash([]byte(tankID))
-
-	// ✅ ส่ง Transaction ไปยัง Smart Contract
-	tx, err := b.rawMilkContract.VerifyMilkQuality(auth, tankIDBytes, approved, qualityReportCID)
-	if err != nil {
-		fmt.Println("❌ Failed to verify milk quality:", err)
-		return "", err
-	}
-
-	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
-
-	// ✅ รอให้ Transaction ถูกบันทึก
-	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
-	if err != nil {
-		fmt.Println("❌ Transaction not mined:", err)
-		return "", err
-	}
-
-	if receipt.Status == types.ReceiptStatusFailed {
-		fmt.Println("❌ Transaction failed!")
-		return "", errors.New("Transaction failed")
-	}
-
-	fmt.Println("✅ Milk quality verified on Blockchain. TX Hash:", tx.Hash().Hex())
-	return tx.Hash().Hex(), nil
-}
-
-func (b *BlockchainService) UpdateMilkTankStatus(userWallet string, tankID string, approved bool) (string, error) {
-	fmt.Println("📌 Updating milk tank status for Tank:", tankID, "Approved:", approved)
-
-	// ✅ ดึง Private Key ของ Factory (หรือ User ที่มีสิทธิ์)
-	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
-	if err != nil {
-		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
-	}
-
-	privateKey, err := crypto.HexToECDSA(privateKeyHex)
-	if err != nil {
-		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
-	}
-
-	// ✅ สร้าง Transaction Auth โดยใช้ Private Key
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
-	if err != nil {
-		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
-	}
-	auth.From = common.HexToAddress(userWallet)
-
-	// ✅ ใช้ common.BytesToHash() แทน common.HexToHash()
-	tankIDBytes := common.BytesToHash([]byte(tankID))
-
-	// ✅ ใช้ VerifyMilkQuality แทน SetTankStatus
-	qualityReportCID := "" // ✅ ถ้าไม่มีการเปลี่ยน Quality Report ให้ใช้ค่าว่าง
-	tx, err := b.rawMilkContract.VerifyMilkQuality(auth, tankIDBytes, approved, qualityReportCID)
-	if err != nil {
-		fmt.Println("❌ Failed to update milk tank status:", err)
-		return "", err
-	}
-
-	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
-
-	// ✅ รอให้ Transaction ถูกบันทึก
-	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
-	if err != nil {
-		fmt.Println("❌ Transaction not mined:", err)
-		return "", err
-	}
-
-	if receipt.Status == types.ReceiptStatusFailed {
-		fmt.Println("❌ Transaction failed!")
-		return "", errors.New("Transaction failed")
-	}
-
-	fmt.Println("✅ Milk tank status updated on Blockchain. TX Hash:", tx.Hash().Hex())
-	return tx.Hash().Hex(), nil
+	fmt.Println("✅ Milk Tank Details Retrieved:", rawMilk)
+	return rawMilk, nil
 }

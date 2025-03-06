@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"finalyearproject/Backend/api/controllers"
 	"finalyearproject/Backend/api/routes"
 	"finalyearproject/Backend/database"
 	"finalyearproject/Backend/models"
@@ -12,27 +13,26 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/joho/godotenv" // ✅ เพิ่มการโหลดไฟล์ .env
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// ✅ โหลดไฟล์ `.env` ก่อน
+	// ✅ โหลดไฟล์ `.env`
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("❌ Error loading .env file")
 	}
 
-	// ✅ Debug ตรวจสอบว่า `BLOCKCHAIN_RPC_URL` โหลดถูกต้องหรือไม่
+	// ✅ Debug ตรวจสอบค่า Environment Variables
 	fmt.Println("📌 DEBUG - BLOCKCHAIN_RPC_URL:", os.Getenv("BLOCKCHAIN_RPC_URL"))
-
-	fmt.Println("JWT_SECRET:", os.Getenv("JWT_SECRET"))
+	fmt.Println("📌 DEBUG - JWT_SECRET:", os.Getenv("JWT_SECRET"))
 
 	// ✅ เริ่มต้น Fiber App
 	app := fiber.New()
 
-	// ✅ แก้ CORS Policy
+	// ✅ แก้ CORS Policy (ลบ `/` ท้าย `AllowOrigins`)
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://10.110.194.195:3000/", // ✅ ระบุ Origin ของ Frontend
+		AllowOrigins:     "http://10.110.194.195:3000", // ✅ ลบ `/` ท้าย URL
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Content-Type, Authorization",
 		AllowCredentials: true, // ✅ ต้องใส่ true เพื่อให้ Cookie ใช้งานได้
@@ -51,8 +51,29 @@ func main() {
 	}
 	fmt.Println("✅ Blockchain Service Started Successfully!")
 
-	// ✅ กำหนดเส้นทาง API ทั้งหมด
-	routes.SetupRoutes(app)
+	// ✅ เริ่มต้น IPFS Service
+	services.InitIPFSService()
+
+	// ✅ ตรวจสอบว่า IPFSServiceInstance ถูกกำหนดค่าก่อนใช้งาน
+	if services.IPFSServiceInstance == nil {
+		log.Fatal("❌ IPFS Service failed to initialize. Exiting...")
+	}
+
+	// ✅ กำหนดค่าให้ QRCodeServiceInstance ใช้ IPFSServiceInstance ที่ถูกต้อง
+	services.QRCodeServiceInstance = &services.QRCodeService{
+		IPFSService: services.IPFSServiceInstance,
+	}
+
+	// ✅ สร้าง RawMilkController และส่งค่าที่ถูกต้อง
+	rawMilkController := controllers.NewRawMilkController(
+		database.DB,
+		services.BlockchainServiceInstance,
+		services.IPFSServiceInstance, // ✅ ใช้ instance ที่ถูกต้อง
+		services.QRCodeServiceInstance,
+	)
+
+	// ✅ ส่ง `rawMilkController` ที่ถูกต้องเข้า `SetupRoutes`
+	routes.SetupRoutes(app, rawMilkController)
 
 	// ✅ ให้บริการไฟล์ Static (Frontend)
 	app.Static("/", "./frontend")

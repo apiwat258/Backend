@@ -14,6 +14,37 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "tankId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "factoryId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "DebugLog",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "bytes32",
         "name": "tankId",
@@ -49,6 +80,24 @@
         "internalType": "address",
         "name": "farmer",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "factoryId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "personInCharge",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "qualityReportCID",
+        "type": "string"
       }
     ],
     "name": "MilkTankCreated",
@@ -86,6 +135,11 @@
         "internalType": "address",
         "name": "farmer",
         "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "factoryId",
+        "type": "bytes32"
       },
       {
         "internalType": "string",
@@ -149,68 +203,23 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_quantity",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_temperature",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_pH",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_fat",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_protein",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "_bacteria",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "_contaminants",
-        "type": "bool"
-      }
-    ],
-    "name": "validateMilkData",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "valid",
-        "type": "bool"
-      },
-      {
-        "internalType": "string",
-        "name": "message",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
         "name": "_tankId",
         "type": "bytes32"
       },
       {
+        "internalType": "bytes32",
+        "name": "_factoryId",
+        "type": "bytes32"
+      },
+      {
         "internalType": "string",
         "name": "_personInCharge",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_qualityReportCID",
         "type": "string"
       },
       {
@@ -286,6 +295,11 @@
         "type": "address"
       },
       {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
         "internalType": "string",
         "name": "",
         "type": "string"
@@ -311,8 +325,14 @@
     "constant": true
   },
   {
-    "inputs": [],
-    "name": "getAllMilkTanks",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_farmer",
+        "type": "address"
+      }
+    ],
+    "name": "getMilkTanksByFarmer",
     "outputs": [
       {
         "internalType": "bytes32[]",
@@ -327,12 +347,12 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_farmer",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "_factoryId",
+        "type": "bytes32"
       }
     ],
-    "name": "getMilkTanksByFarmer",
+    "name": "getMilkTanksByFactory",
     "outputs": [
       {
         "internalType": "bytes32[]",
