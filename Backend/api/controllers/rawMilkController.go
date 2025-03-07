@@ -253,7 +253,7 @@ func (rmc *RawMilkController) GetFarmRawMilkTanks(c *fiber.Ctx) error {
 		// ✅ ถ้า searchQuery ว่าง → แสดงทั้งหมด, ถ้าไม่ว่าง → ค้นหาตาม Tank ID หรือ Person in Charge
 		if searchQuery == "" || strings.Contains(strings.ToLower(tankId), searchQuery) || strings.Contains(strings.ToLower(personInCharge), searchQuery) {
 			filteredMilkTanks = append(filteredMilkTanks, map[string]interface{}{
-				"tankId":         tankId,
+				"tankId":         strings.TrimRight(tankId, "\x00"),
 				"personInCharge": personInCharge,
 				"status":         tank["status"].(uint8), // แปลงค่า Enum เป็นเลข
 				"moreInfoLink":   fmt.Sprintf("/Farmer/FarmDetails?id=%s", tankId),
@@ -268,7 +268,7 @@ func (rmc *RawMilkController) GetFarmRawMilkTanks(c *fiber.Ctx) error {
 	})
 }
 
-// ✅ ฟังก์ชันดึงข้อมูลแท็งก์นมดิบตาม Tank ID
+// ///For all/////////
 func (rmc *RawMilkController) GetRawMilkTankDetails(c *fiber.Ctx) error {
 	tankId := c.Params("tankId") // ✅ รับ tankId จาก URL Parameter
 	fmt.Println("📌 Request received: Fetching milk tank details for:", tankId)
@@ -406,5 +406,57 @@ func (rmc *RawMilkController) GetQRCodeByTankID(c *fiber.Ctx) error {
 		"tankId":    tankId,
 		"qrCodeCID": rawMilkData.QrCodeCID,
 		"qrCodeImg": fmt.Sprintf("data:image/png;base64,%s", qrCodeBase64),
+	})
+}
+
+// //////For Factory////
+func (rmc *RawMilkController) GetFactoryRawMilkTanks(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Factory Raw Milk Tanks")
+
+	// ✅ ดึงข้อมูลจาก JWT Token
+	role := c.Locals("role").(string)
+
+	// ✅ ตรวจสอบสิทธิ์ (เฉพาะ Factory เท่านั้น)
+	if role != "factory" {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only factories can view raw milk tanks"})
+	}
+
+	// ✅ ดึง `entityID` จาก JWT Token ที่ AuthMiddleware กำหนดไว้
+	factoryID, ok := c.Locals("entityID").(string)
+	if !ok || factoryID == "" {
+		fmt.Println("❌ Factory ID is missing in Context")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - Factory ID is missing"})
+	}
+	fmt.Println("✅ Factory ID from Context:", factoryID)
+
+	// ✅ ดึงค่าที่พิมพ์ในช่องค้นหา (Search Query)
+	searchQuery := strings.ToLower(c.Query("search", ""))
+
+	// ✅ ดึงข้อมูลแท็งก์จาก Blockchain
+	milkTanks, err := rmc.BlockchainService.GetMilkTanksByFactory(factoryID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch raw milk tanks for factory:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch raw milk tanks"})
+	}
+
+	// ✅ กรองข้อมูลตาม Search Query
+	var filteredMilkTanks []map[string]interface{}
+	for _, tank := range milkTanks {
+		tankId := tank["tankId"].(string)
+		personInCharge := tank["personInCharge"].(string)
+
+		if searchQuery == "" || strings.Contains(strings.ToLower(tankId), searchQuery) || strings.Contains(strings.ToLower(personInCharge), searchQuery) {
+			filteredMilkTanks = append(filteredMilkTanks, map[string]interface{}{
+				"tankId":         strings.TrimRight(tankId, "\x00"),
+				"personInCharge": personInCharge,
+				"status":         tank["status"].(uint8),
+				"moreInfoLink":   fmt.Sprintf("/Factory/FactoryDetails?id=%s", tankId),
+			})
+		}
+	}
+
+	// ✅ ส่ง Response กลับไปที่ Frontend
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"displayedMilkTanks": filteredMilkTanks,
 	})
 }

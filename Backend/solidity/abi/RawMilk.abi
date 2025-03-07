@@ -52,6 +52,49 @@
       },
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "oldQualityReportCID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "newQualityReportCID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "oldPersonInCharge",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "newPersonInCharge",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum RawMilk.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "name": "MilkQualityUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tankId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
         "internalType": "enum RawMilk.MilkStatus",
         "name": "status",
         "type": "uint8"
@@ -115,6 +158,46 @@
     ],
     "name": "MilkTankUpdated",
     "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "milkHistory",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "personInCharge",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "qualityReportCID",
+        "type": "string"
+      },
+      {
+        "internalType": "enum RawMilk.MilkStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -241,24 +324,6 @@
         "type": "bytes32"
       },
       {
-        "internalType": "string",
-        "name": "_qrCodeCID",
-        "type": "string"
-      }
-    ],
-    "name": "updateMilkTank",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_tankId",
-        "type": "bytes32"
-      },
-      {
         "internalType": "bool",
         "name": "_approved",
         "type": "bool"
@@ -266,6 +331,11 @@
       {
         "internalType": "string",
         "name": "_qualityReportCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_personInCharge",
         "type": "string"
       }
     ],
@@ -318,6 +388,33 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "qualityReportCID",
+            "type": "string"
+          },
+          {
+            "internalType": "enum RawMilk.MilkStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct RawMilk.MilkHistory[]",
+        "name": "",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -338,6 +435,33 @@
         "internalType": "bytes32[]",
         "name": "",
         "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "qualityReportCID",
+            "type": "string"
+          },
+          {
+            "internalType": "enum RawMilk.MilkStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct RawMilk.MilkHistory[][]",
+        "name": "",
+        "type": "tuple[][]"
       }
     ],
     "stateMutability": "view",
@@ -358,6 +482,33 @@
         "internalType": "bytes32[]",
         "name": "",
         "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "qualityReportCID",
+            "type": "string"
+          },
+          {
+            "internalType": "enum RawMilk.MilkStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct RawMilk.MilkHistory[][]",
+        "name": "",
+        "type": "tuple[][]"
       }
     ],
     "stateMutability": "view",

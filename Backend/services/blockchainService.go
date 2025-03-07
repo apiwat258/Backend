@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -514,6 +515,7 @@ func (b *BlockchainService) CreateMilkTank(
 
 	fmt.Println("✅ Milk Tank Created on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
+
 }
 
 // ✅ ฟังก์ชันตรวจสอบค่าก่อนสร้างธุรกรรม (แก้ `factoryId` ให้เป็น `bytes32`)
@@ -561,9 +563,7 @@ func (b *BlockchainService) GetMilkTanksByFarmer(farmerAddress string) ([]map[st
 	// ✅ วนลูปดึงข้อมูลของแต่ละแท็งก์
 	for _, id := range tankIDs {
 		// ✅ แปลง `bytes32` เป็น `string`
-		tankIdStr := string(id[:]) // ✅ แปลงกลับเป็น string
-
-		// ✅ ดึงรายละเอียดแท็งก์จาก Smart Contract
+		tankIdStr := string(bytes.Trim(id[:], "\x00")) // ✅ ดึงรายละเอียดแท็งก์จาก Smart Contract
 		_, farmerAddr, factoryIdSC, personInCharge, status, qualityReportCID, qrCodeCID, err :=
 			b.rawMilkContract.GetMilkTank(&bind.CallOpts{}, id)
 		if err != nil {
@@ -621,4 +621,52 @@ func (b *BlockchainService) GetRawMilkTankDetails(tankId string) (*RawMilkData, 
 
 	fmt.Println("✅ Milk Tank Details Retrieved:", rawMilk)
 	return rawMilk, nil
+}
+
+func (b *BlockchainService) GetMilkTanksByFactory(factoryID string) ([]map[string]interface{}, error) {
+	fmt.Println("📌 Fetching milk tanks for factory:", factoryID)
+
+	factoryIDBytes32 := common.BytesToHash([]byte(factoryID))
+	fmt.Println("🔍 [Fixed] Converted FactoryID to Bytes32:", factoryIDBytes32)
+
+	// ✅ ดึงรายการ Tank IDs จาก Smart Contract
+	tankIDs, err := b.rawMilkContract.GetMilkTanksByFactory(&bind.CallOpts{}, factoryIDBytes32)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch milk tanks for factory:", err)
+		return nil, err
+	}
+
+	// ✅ เก็บข้อมูลนมดิบของโรงงาน
+	var milkTanks []map[string]interface{}
+
+	// ✅ วนลูปดึงข้อมูลของแต่ละแท็งก์
+	for _, id := range tankIDs {
+		// ✅ แปลง `bytes32` เป็น `string`
+		tankIdStr := string(bytes.Trim(id[:], "\x00"))
+
+		// ✅ ดึงรายละเอียดแท็งก์จาก Smart Contract
+		_, farmerAddr, factoryIdSC, personInCharge, status, qualityReportCID, qrCodeCID, err :=
+			b.rawMilkContract.GetMilkTank(&bind.CallOpts{}, id)
+		if err != nil {
+			fmt.Printf("❌ Failed to fetch details for tank %s: %v\n", tankIdStr, err)
+			continue
+		}
+
+		// ✅ แปลงค่าที่ได้จาก Smart Contract
+		milkTank := map[string]interface{}{
+			"tankId":           tankIdStr, // ✅ ใช้ค่า string ที่แปลงมา
+			"farmerAddress":    farmerAddr.Hex(),
+			"factoryId":        string(factoryIdSC[:]), // ✅ แปลง `factoryId` ด้วย
+			"personInCharge":   personInCharge,
+			"status":           uint8(status), // ✅ Convert Enum เป็น Number
+			"qualityReportCID": qualityReportCID,
+			"qrCodeCID":        qrCodeCID,
+		}
+
+		// ✅ เพิ่มเข้าไปในรายการ
+		milkTanks = append(milkTanks, milkTank)
+	}
+
+	fmt.Println("✅ Fetched milk tanks for factory:", factoryID, milkTanks)
+	return milkTanks, nil
 }

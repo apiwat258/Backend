@@ -60,4 +60,8 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController) {
 	milk.Get("/details/:tankId", rmc.GetRawMilkTankDetails) // ✅ ดึงรายละเอียดแท็งก์นมดิบตาม Tank ID
 	milk.Get("/qrcode/:tankId", rmc.GetQRCodeByTankID)      // ✅ ดึง QR Code ของแท็งก์นมดิบ
 
+	// ✅ Milk Tank Routes สำหรับโรงงาน
+	factoryMilk := api.Group("/factory/milk", middleware.AuthMiddleware())
+	factoryMilk.Get("/list", rmc.GetFactoryRawMilkTanks) // ✅ โรงงานดึงรายการแท็งก์นมดิบที่ได้รับ
+
 }
