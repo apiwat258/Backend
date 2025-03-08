@@ -295,8 +295,9 @@ func (rmc *RawMilkController) GetRawMilkTankDetails(c *fiber.Ctx) error {
 	if len(history) > 0 {
 		// ✅ ดึง CID ของ `Status = 0` จากประวัติ (ฟาร์ม)
 		for _, entry := range history {
-			if entry["status"].(uint8) == 0 {
-				farmCID = entry["qualityReportCID"].(string)
+			status, ok := entry["status"].(uint8)
+			if ok && status == 0 {
+				farmCID, _ = entry["qualityReportCID"].(string)
 				break
 			}
 		}
@@ -314,22 +315,24 @@ func (rmc *RawMilkController) GetRawMilkTankDetails(c *fiber.Ctx) error {
 		responseData["farmRepo"] = extractFarmRepo(history)
 		factoryCID = rawMilk.QualityReportCID
 
-		// ✅ ดึงข้อมูลโรงงานจาก IPFS (ใช้ factoryCID ที่ถูกต้อง)
-		fmt.Println("📌 Retrieving file from IPFS... CID:", factoryCID)
-		ipfsData, err := rmc.IPFSService.GetFromIPFS(factoryCID)
-		if err != nil {
-			fmt.Println("❌ Failed to fetch data from IPFS:", err)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality report from IPFS"})
-		}
+		// ✅ ดึงข้อมูลโรงงานจาก IPFS (ใช้ factoryCID ที่ถูกต้อง และดึงเพียงครั้งเดียว)
+		if factoryCID != "" {
+			fmt.Println("📌 Retrieving file from IPFS... CID:", factoryCID)
+			ipfsData, err := rmc.IPFSService.GetFromIPFS(factoryCID)
+			if err != nil {
+				fmt.Println("❌ Failed to fetch data from IPFS:", err)
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality report from IPFS"})
+			}
 
-		var ipfsRawMilkData map[string]interface{}
-		err = json.Unmarshal(ipfsData, &ipfsRawMilkData)
-		if err != nil {
-			fmt.Println("❌ Failed to parse IPFS JSON:", err)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS"})
-		}
+			var ipfsRawMilkData map[string]interface{}
+			err = json.Unmarshal(ipfsData, &ipfsRawMilkData)
+			if err != nil {
+				fmt.Println("❌ Failed to parse IPFS JSON:", err)
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS"})
+			}
 
-		responseData["factoryRepo"] = extractFactoryRepo(ipfsRawMilkData)
+			responseData["factoryRepo"] = extractFactoryRepo(ipfsRawMilkData)
+		}
 	}
 
 	// ✅ ส่ง Response กลับไปที่ Frontend
