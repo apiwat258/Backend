@@ -249,12 +249,18 @@ func (rmc *RawMilkController) GetFarmRawMilkTanks(c *fiber.Ctx) error {
 	for _, tank := range milkTanks {
 		tankId := tank["tankId"].(string)
 		personInCharge := tank["personInCharge"].(string)
+		oldPersonInCharge, hasOldPerson := tank["oldPersonInCharge"].(string) // ✅ ตรวจสอบว่ามี oldPersonInCharge ไหม
+
+		// ✅ ถ้ามี Old Person In Charge ให้ใช้แทน
+		if hasOldPerson && oldPersonInCharge != "" {
+			personInCharge = oldPersonInCharge
+		}
 
 		// ✅ ถ้า searchQuery ว่าง → แสดงทั้งหมด, ถ้าไม่ว่าง → ค้นหาตาม Tank ID หรือ Person in Charge
 		if searchQuery == "" || strings.Contains(strings.ToLower(tankId), searchQuery) || strings.Contains(strings.ToLower(personInCharge), searchQuery) {
 			filteredMilkTanks = append(filteredMilkTanks, map[string]interface{}{
 				"tankId":         strings.TrimRight(tankId, "\x00"),
-				"personInCharge": personInCharge,
+				"personInCharge": personInCharge,         // ✅ ใช้ Old Person ถ้ามี
 				"status":         tank["status"].(uint8), // แปลงค่า Enum เป็นเลข
 				"moreInfoLink":   fmt.Sprintf("/Farmer/FarmDetails?id=%s", tankId),
 			})
@@ -273,116 +279,120 @@ func (rmc *RawMilkController) GetRawMilkTankDetails(c *fiber.Ctx) error {
 	tankId := c.Params("tankId") // ✅ รับ tankId จาก URL Parameter
 	fmt.Println("📌 Request received: Fetching milk tank details for:", tankId)
 
-	// ✅ ดึงข้อมูลแท็งก์จาก Blockchain
-	rawMilk, err := rmc.BlockchainService.GetRawMilkTankDetails(tankId)
+	// ✅ ดึงข้อมูลแท็งก์และประวัติจาก Blockchain
+	rawMilk, history, err := rmc.BlockchainService.GetRawMilkTankDetails(tankId)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch milk tank details:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch milk tank details"})
 	}
 
-	// ✅ ดึงข้อมูลรายละเอียดเพิ่มเติมจาก IPFS โดยใช้ `QualityReportCID`
-	ipfsCID := rawMilk.QualityReportCID
-	ipfsData, err := rmc.IPFSService.GetFromIPFS(ipfsCID)
-	if err != nil {
-		fmt.Println("❌ Failed to fetch data from IPFS:", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality report from IPFS"})
-	}
+	// ✅ สร้างโครงสร้างสำหรับ response
+	responseData := fiber.Map{}
 
-	// ✅ แปลงข้อมูลจาก JSON (IPFS)
-	var ipfsRawMilkData map[string]interface{}
-	err = json.Unmarshal(ipfsData, &ipfsRawMilkData)
-	if err != nil {
-		fmt.Println("❌ Failed to parse IPFS JSON:", err)
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS"})
-	}
+	// ✅ ตรวจสอบสถานะของแท็งก์
+	var farmCID, factoryCID string
 
-	// ✅ ตรวจสอบว่ามี `rawMilkData` อยู่ใน JSON หรือไม่
-	rawMilkData, ok := ipfsRawMilkData["rawMilkData"].(map[string]interface{})
-	if !ok {
-		fmt.Println("❌ Missing rawMilkData in IPFS response")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Missing raw milk data in IPFS"})
-	}
-
-	// ✅ ตรวจสอบว่ามี `shippingAddress` หรือไม่
-	var shippingAddress map[string]interface{}
-	if rawMilkData["shippingAddress"] != nil {
-		shippingAddress, ok = rawMilkData["shippingAddress"].(map[string]interface{})
-		if !ok {
-			fmt.Println("❌ Invalid shippingAddress format in IPFS")
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid shipping address format in IPFS"})
+	if len(history) > 0 {
+		// ✅ ดึง CID ของ `Status = 0` จากประวัติ (ฟาร์ม)
+		for _, entry := range history {
+			if entry["status"].(uint8) == 0 {
+				farmCID = entry["qualityReportCID"].(string)
+				break
+			}
 		}
+	}
+
+	if rawMilk.Status == 0 {
+		// ✅ สถานะ 0 → ฟาร์มเป็นข้อมูลปัจจุบัน
+		fmt.Println("📌 Using farmRepo CID:", farmCID)
+		farmRepo := extractFarmRepo(history)
+		responseData["farmRepo"] = farmRepo
 	} else {
-		shippingAddress = map[string]interface{}{} // ✅ ใช้ค่าเริ่มต้นว่าง
-	}
+		// ✅ สถานะ 1 หรือ 2 → ต้องมีทั้ง `farmRepo` และ `factoryRepo`
+		fmt.Println("📌 Using farmRepo CID:", farmCID)
+		fmt.Println("📌 Using factoryRepo CID:", rawMilk.QualityReportCID)
+		responseData["farmRepo"] = extractFarmRepo(history)
+		factoryCID = rawMilk.QualityReportCID
 
-	// ✅ ป้องกัน Panic Error โดยตรวจสอบค่าก่อนแปลง Type
-	getString := func(key string, data map[string]interface{}) string {
-		if value, ok := data[key].(string); ok {
-			return value
+		// ✅ ดึงข้อมูลโรงงานจาก IPFS (ใช้ factoryCID ที่ถูกต้อง)
+		fmt.Println("📌 Retrieving file from IPFS... CID:", factoryCID)
+		ipfsData, err := rmc.IPFSService.GetFromIPFS(factoryCID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch data from IPFS:", err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality report from IPFS"})
 		}
-		return ""
-	}
 
-	getFloat64 := func(key string, data map[string]interface{}) float64 {
-		if value, ok := data[key].(float64); ok {
-			return value
+		var ipfsRawMilkData map[string]interface{}
+		err = json.Unmarshal(ipfsData, &ipfsRawMilkData)
+		if err != nil {
+			fmt.Println("❌ Failed to parse IPFS JSON:", err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS"})
 		}
-		return 0.0
-	}
 
-	getBool := func(key string, data map[string]interface{}) bool {
-		if value, ok := data[key].(bool); ok {
-			return value
-		}
-		return false
-	}
-
-	// ✅ สร้างโครงสร้างข้อมูลตามที่ Frontend ต้องการ
-	responseData := fiber.Map{
-		"milkTankInfo": fiber.Map{
-			"farmName":        getString("farmName", rawMilkData),
-			"milkTankNo":      rawMilk.TankId, // ✅ ใช้ Tank ID ที่ดึงจาก Blockchain
-			"personInCharge":  rawMilk.PersonInCharge,
-			"quantity":        getFloat64("quantity", rawMilkData),
-			"quantityUnit":    getString("quantityUnit", rawMilkData),
-			"temp":            getFloat64("temperature", rawMilkData),
-			"tempUnit":        getString("tempUnit", rawMilkData),
-			"pH":              getFloat64("pH", rawMilkData),
-			"fat":             getFloat64("fat", rawMilkData),
-			"protein":         getFloat64("protein", rawMilkData),
-			"bacteria":        getBool("bacteria", rawMilkData),
-			"bacteriaInfo":    getString("bacteriaInfo", rawMilkData),
-			"contaminants":    getBool("contaminants", rawMilkData),
-			"contaminantInfo": getString("contaminantInfo", rawMilkData),
-			"abnormalChar":    getBool("abnormalChar", rawMilkData),
-			"abnormalType":    rawMilkData["abnormalType"], // ✅ ส่งทั้ง Object กลับ
-		},
-		"shippingAddress": fiber.Map{
-			"companyName": getString("companyName", shippingAddress),
-			"firstName":   getString("firstName", shippingAddress),
-			"lastName":    getString("lastName", shippingAddress),
-			"email":       getString("email", shippingAddress),
-			"areaCode":    getString("areaCode", shippingAddress),
-			"phoneNumber": getString("phoneNumber", shippingAddress),
-			"address":     getString("address", shippingAddress),
-			"province":    getString("province", shippingAddress),
-			"district":    getString("district", shippingAddress),
-			"subDistrict": getString("subDistrict", shippingAddress),
-			"postalCode":  getString("postalCode", shippingAddress),
-			"location":    getString("location", shippingAddress),
-		},
+		responseData["factoryRepo"] = extractFactoryRepo(ipfsRawMilkData)
 	}
 
 	// ✅ ส่ง Response กลับไปที่ Frontend
 	return c.Status(http.StatusOK).JSON(responseData)
 }
 
+// ✅ ฟังก์ชันช่วยแยกข้อมูล `farmRepo`
+func extractFarmRepo(history []map[string]interface{}) map[string]interface{} {
+	if len(history) == 0 {
+		return nil
+	}
+	latestEntry := history[0] // ✅ ดึงข้อมูลแรกสุด (ฟาร์มที่สร้าง)
+	return map[string]interface{}{
+		"farmName":        latestEntry["farmName"],
+		"personInCharge":  latestEntry["personInCharge"],
+		"quantity":        latestEntry["quantity"],
+		"quantityUnit":    latestEntry["quantityUnit"],
+		"temp":            latestEntry["temp"],
+		"tempUnit":        latestEntry["tempUnit"],
+		"pH":              latestEntry["pH"],
+		"fat":             latestEntry["fat"],
+		"protein":         latestEntry["protein"],
+		"bacteria":        latestEntry["bacteria"],
+		"bacteriaInfo":    latestEntry["bacteriaInfo"],
+		"contaminants":    latestEntry["contaminants"],
+		"contaminantInfo": latestEntry["contaminantInfo"],
+		"abnormalChar":    latestEntry["abnormalChar"],
+		"abnormalType":    latestEntry["abnormalType"],
+	}
+}
+
+// ✅ ฟังก์ชันช่วยแยกข้อมูล `factoryRepo`
+func extractFactoryRepo(ipfsRawMilkData map[string]interface{}) map[string]interface{} {
+	rawMilkData, ok := ipfsRawMilkData["rawMilkData"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	return map[string]interface{}{
+		"personInCharge":  rawMilkData["recipientInfo"].(map[string]interface{})["personInCharge"],
+		"location":        rawMilkData["recipientInfo"].(map[string]interface{})["location"],
+		"pickUpTime":      rawMilkData["recipientInfo"].(map[string]interface{})["pickUpTime"],
+		"quantity":        rawMilkData["quantity"],
+		"quantityUnit":    rawMilkData["quantityUnit"],
+		"temp":            rawMilkData["temperature"],
+		"tempUnit":        rawMilkData["tempUnit"],
+		"pH":              rawMilkData["pH"],
+		"fat":             rawMilkData["fat"],
+		"protein":         rawMilkData["protein"],
+		"bacteria":        rawMilkData["bacteria"],
+		"bacteriaInfo":    rawMilkData["bacteriaInfo"],
+		"contaminants":    rawMilkData["contaminants"],
+		"contaminantInfo": rawMilkData["contaminantInfo"],
+		"abnormalChar":    rawMilkData["abnormalChar"],
+		"abnormalType":    rawMilkData["abnormalType"],
+	}
+}
+
 func (rmc *RawMilkController) GetQRCodeByTankID(c *fiber.Ctx) error {
 	tankId := c.Params("tankId")
 	fmt.Println("📌 Fetching QR Code for Tank ID:", tankId)
 
-	// ✅ ดึงรายละเอียดแท็งก์จาก Blockchain
-	rawMilkData, err := rmc.BlockchainService.GetRawMilkTankDetails(tankId)
+	// ✅ ดึงรายละเอียดแท็งก์จาก Blockchain (คืนค่า rawMilkData, history)
+	rawMilkData, _, err := rmc.BlockchainService.GetRawMilkTankDetails(tankId)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch tank details:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tank details"})
@@ -458,5 +468,116 @@ func (rmc *RawMilkController) GetFactoryRawMilkTanks(c *fiber.Ctx) error {
 	// ✅ ส่ง Response กลับไปที่ Frontend
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"displayedMilkTanks": filteredMilkTanks,
+	})
+}
+
+func (rmc *RawMilkController) UpdateMilkTankStatus(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Update Milk Tank Status")
+
+	// ✅ ดึงข้อมูลจาก JWT Token
+	role := c.Locals("role").(string)
+	walletAddress := c.Locals("walletAddress").(string)
+
+	// ✅ ตรวจสอบสิทธิ์
+	if role != "factory" {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only factories can update milk tanks"})
+	}
+
+	// ✅ รับข้อมูล JSON ที่ส่งมา
+	var request struct {
+		TankID   string `json:"tankId"`
+		Approved bool   `json:"approved"`
+		Input    struct {
+			RecipientInfo struct {
+				PersonInCharge string `json:"personInCharge"`
+				Location       string `json:"location"`
+				PickUpTime     string `json:"pickUpTime"`
+			} `json:"RecipientInfo"`
+			Quantity struct {
+				Quantity        float64 `json:"quantity"`
+				QuantityUnit    string  `json:"quantityUnit"`
+				Temp            float64 `json:"temp"`
+				TempUnit        string  `json:"tempUnit"`
+				PH              float64 `json:"pH"`
+				Fat             float64 `json:"fat"`
+				Protein         float64 `json:"protein"`
+				Bacteria        bool    `json:"bacteria"`
+				BacteriaInfo    string  `json:"bacteriaInfo"`
+				Contaminants    bool    `json:"contaminants"`
+				ContaminantInfo string  `json:"contaminantInfo"`
+				AbnormalChar    bool    `json:"abnormalChar"`
+				AbnormalType    struct {
+					SmellBad      bool `json:"smellBad"`
+					SmellNotFresh bool `json:"smellNotFresh"`
+					AbnormalColor bool `json:"abnormalColor"`
+					Sour          bool `json:"sour"`
+					Bitter        bool `json:"bitter"`
+					Cloudy        bool `json:"cloudy"`
+					Lumpy         bool `json:"lumpy"`
+					Separation    bool `json:"separation"`
+				} `json:"abnormalType"`
+			} `json:"Quantity"`
+		} `json:"input"`
+	}
+
+	// ✅ ตรวจสอบ JSON Request
+	if err := c.BodyParser(&request); err != nil {
+		fmt.Println("❌ Error parsing request body:", err)
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	// ✅ ตรวจสอบค่าที่จำเป็น
+	if request.TankID == "" || request.Input.RecipientInfo.PersonInCharge == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
+	}
+
+	// ✅ รวมข้อมูลอัปโหลดไป IPFS
+	milkMetadata := map[string]interface{}{
+		"recipientInfo": map[string]interface{}{
+			"personInCharge": request.Input.RecipientInfo.PersonInCharge,
+			"location":       request.Input.RecipientInfo.Location,
+			"pickUpTime":     request.Input.RecipientInfo.PickUpTime,
+		},
+		"quantity":        request.Input.Quantity.Quantity,
+		"quantityUnit":    request.Input.Quantity.QuantityUnit,
+		"temperature":     request.Input.Quantity.Temp,
+		"tempUnit":        request.Input.Quantity.TempUnit,
+		"pH":              request.Input.Quantity.PH,
+		"fat":             request.Input.Quantity.Fat,
+		"protein":         request.Input.Quantity.Protein,
+		"bacteria":        request.Input.Quantity.Bacteria,
+		"bacteriaInfo":    request.Input.Quantity.BacteriaInfo,
+		"contaminants":    request.Input.Quantity.Contaminants,
+		"contaminantInfo": request.Input.Quantity.ContaminantInfo,
+		"abnormalChar":    request.Input.Quantity.AbnormalChar,
+		"abnormalType":    request.Input.Quantity.AbnormalType,
+	}
+
+	// ✅ อัปโหลดข้อมูลไปยัง IPFS
+	qualityReportCID, err := rmc.IPFSService.UploadMilkDataToIPFS(milkMetadata, nil)
+	if err != nil {
+		fmt.Println("❌ Failed to upload to IPFS:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload quality report"})
+	}
+
+	// ✅ อัปเดตสถานะไปยัง Blockchain
+	txHash, err := rmc.BlockchainService.UpdateMilkTankStatus(
+		walletAddress,
+		request.TankID,
+		request.Approved,
+		request.Input.RecipientInfo.PersonInCharge,
+		qualityReportCID,
+	)
+	if err != nil {
+		fmt.Println("❌ Blockchain transaction failed:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Blockchain transaction failed"})
+	}
+
+	// ✅ ส่ง Response กลับไปที่ Frontend
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message":          "Milk tank status updated successfully",
+		"tankId":           request.TankID,
+		"txHash":           txHash,
+		"qualityReportCID": qualityReportCID,
 	})
 }

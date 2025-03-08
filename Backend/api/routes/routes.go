@@ -63,5 +63,6 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController) {
 	// ✅ Milk Tank Routes สำหรับโรงงาน
 	factoryMilk := api.Group("/factory/milk", middleware.AuthMiddleware())
 	factoryMilk.Get("/list", rmc.GetFactoryRawMilkTanks) // ✅ โรงงานดึงรายการแท็งก์นมดิบที่ได้รับ
+	factoryMilk.Post("/update-status", rmc.UpdateMilkTankStatus)
 
 }
