@@ -32,10 +32,10 @@ func main() {
 
 	// ✅ แก้ CORS Policy (ลบ `/` ท้าย `AllowOrigins`)
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://10.110.194.195:3000", // ✅ ลบ `/` ท้าย URL
+		AllowOrigins:     "http://10.110.194.195:3000",
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Content-Type, Authorization",
-		AllowCredentials: true, // ✅ ต้องใส่ true เพื่อให้ Cookie ใช้งานได้
+		AllowCredentials: true,
 	}))
 
 	// ✅ เชื่อมต่อฐานข้อมูล
@@ -64,16 +64,23 @@ func main() {
 		IPFSService: services.IPFSServiceInstance,
 	}
 
-	// ✅ สร้าง RawMilkController และส่งค่าที่ถูกต้อง
+	// ✅ สร้าง RawMilkController
 	rawMilkController := controllers.NewRawMilkController(
 		database.DB,
 		services.BlockchainServiceInstance,
-		services.IPFSServiceInstance, // ✅ ใช้ instance ที่ถูกต้อง
+		services.IPFSServiceInstance,
 		services.QRCodeServiceInstance,
 	)
 
-	// ✅ ส่ง `rawMilkController` ที่ถูกต้องเข้า `SetupRoutes`
-	routes.SetupRoutes(app, rawMilkController)
+	// ✅ สร้าง ProductController
+	productController := controllers.NewProductController(
+		database.DB,
+		services.BlockchainServiceInstance,
+		services.IPFSServiceInstance,
+	)
+
+	// ✅ ส่ง `rawMilkController` และ `productController` ไปที่ `SetupRoutes`
+	routes.SetupRoutes(app, rawMilkController, productController)
 
 	// ✅ ให้บริการไฟล์ Static (Frontend)
 	app.Static("/", "./frontend")

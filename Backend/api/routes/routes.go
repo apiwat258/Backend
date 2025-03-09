@@ -8,7 +8,7 @@ import (
 )
 
 // SetupRoutes sets up API routes
-func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController) {
+func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController) {
 	api := app.Group("/api/v1") // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
 
 	// ✅ Authentication Routes
@@ -65,4 +65,9 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController) {
 	factoryMilk.Get("/list", rmc.GetFactoryRawMilkTanks) // ✅ โรงงานดึงรายการแท็งก์นมดิบที่ได้รับ
 	factoryMilk.Post("/update-status", rmc.UpdateMilkTankStatus)
 
+	// ✅ Product Routes (เพิ่มเข้ามา)
+	product := api.Group("/products", middleware.AuthMiddleware())
+	product.Post("/create", pc.CreateProduct) // ✅ โรงงานสร้างสินค้าใหม่
+	//product.Get("/list", pc.GetFactoryProducts)  // ✅ ดึงสินค้าของโรงงาน
+	//product.Get("/:productId", pc.GetProductByID) // ✅ ดึงรายละเอียดสินค้าโดยใช้ Product ID
 }

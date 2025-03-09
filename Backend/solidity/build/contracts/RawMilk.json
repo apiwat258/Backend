@@ -204,8 +204,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -254,8 +253,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -274,8 +272,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -288,8 +285,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -433,8 +429,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -480,8 +475,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -527,8 +521,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"}],\"name\":\"DebugLog\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"oldQualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"newQualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"oldPersonInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"newPersonInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MilkQualityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"}],\"name\":\"MilkQualityVerified\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MilkTankCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"}],\"name\":\"MilkTankUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTank\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"struct RawMilk.MilkHistory[]\",\"name\":\"history\",\"type\":\"tuple[]\"}],\"internalType\":\"struct RawMilk.MilkTankWithHistory\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"struct RawMilk.MilkHistory[][]\",\"name\":\"\",\"type\":\"tuple[][]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_farmer\",\"type\":\"address\"}],\"name\":\"getMilkTanksByFarmer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"struct RawMilk.MilkHistory[][]\",\"name\":\"\",\"type\":\"tuple[][]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"milkHistory\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"milkTanks\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enum RawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"tankIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contract UserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_approved\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"}],\"name\":\"verifyMilkQuality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/RawMilk.sol\":\"RawMilk\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/RawMilk.sol\":{\"keccak256\":\"0x9ba8d5bf739a299375088689538ee4ef4a75bc84b4e09a34ef4367602a9620f8\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6317953ff250aa7dad7c5fb9f8be7184a516495e9f590a77706161ccebf8a238\",\"dweb:/ipfs/QmQ3q5prMFkyAt7tdhTVaWpkXuWRUFsrix4QUFrkqC5ezx\"]},\"project:/contracts/UserRegistry.sol\":{\"keccak256\":\"0xc9846adc50a789d1f2ae2b170be4b99e8b8890fd58a0377fc4fb529c6c676f5a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://7d6a3f9248c1d003135160d77dadfbb3d84ca2f4a3ae8e6f3b9303c3c37b1461\",\"dweb:/ipfs/QmNy57yxjr64tnENRZadG3DJfUdbDJXmv3ueWtKpgxgM1T\"]}},\"version\":1}",
@@ -29004,16 +28997,9 @@
     "name": "solc",
     "version": "0.8.19+commit.7dd6d404.Emscripten.clang"
   },
-  "networks": {
-    "5777": {
-      "events": {},
-      "links": {},
-      "address": "0x8636f29e3e56fADdb9062270994BB505df2Cd466",
-      "transactionHash": "0xa325244c2f919c81dad79035b53188abea063e188658b844c4063b53c41b6a36"
-    }
-  },
+  "networks": {},
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-03-08T08:52:30.063Z",
+  "updatedAt": "2025-03-09T13:32:28.779Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

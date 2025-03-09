@@ -295,43 +295,54 @@ func (rmc *RawMilkController) GetRawMilkTankDetails(c *fiber.Ctx) error {
 	if len(history) > 0 {
 		// ✅ ดึง CID ของ `Status = 0` จากประวัติ (ฟาร์ม)
 		for _, entry := range history {
-			status, ok := entry["status"].(uint8)
-			if ok && status == 0 {
+			if status, ok := entry["status"].(uint8); ok && status == 0 {
 				farmCID, _ = entry["qualityReportCID"].(string)
 				break
 			}
 		}
 	}
 
-	if rawMilk.Status == 0 {
-		// ✅ สถานะ 0 → ฟาร์มเป็นข้อมูลปัจจุบัน
-		fmt.Println("📌 Using farmRepo CID:", farmCID)
-		farmRepo := extractFarmRepo(history)
-		responseData["farmRepo"] = farmRepo
-	} else {
-		// ✅ สถานะ 1 หรือ 2 → ต้องมีทั้ง `farmRepo` และ `factoryRepo`
-		fmt.Println("📌 Using farmRepo CID:", farmCID)
-		fmt.Println("📌 Using factoryRepo CID:", rawMilk.QualityReportCID)
-		responseData["farmRepo"] = extractFarmRepo(history)
-		factoryCID = rawMilk.QualityReportCID
+	fmt.Println("📌 Final farmRepo CID:", farmCID)
+	fmt.Println("📌 Final factoryRepo CID:", rawMilk.QualityReportCID)
 
-		// ✅ ดึงข้อมูลโรงงานจาก IPFS (ใช้ factoryCID ที่ถูกต้อง และดึงเพียงครั้งเดียว)
+	// ✅ ดึงข้อมูลฟาร์มจาก IPFS
+	if farmCID != "" {
+		fmt.Println("📌 Retrieving farmRepo from IPFS... CID:", farmCID)
+		ipfsData, err := rmc.IPFSService.GetFromIPFS(farmCID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch farmRepo from IPFS:", err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch farm quality report from IPFS"})
+		}
+
+		var ipfsFarmData map[string]interface{}
+		err = json.Unmarshal(ipfsData, &ipfsFarmData)
+		if err != nil {
+			fmt.Println("❌ Failed to parse farmRepo JSON:", err)
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS for farm"})
+		}
+
+		responseData["farmRepo"] = ipfsFarmData
+	}
+
+	// ✅ ดึงข้อมูลโรงงานจาก IPFS (ใช้ factoryCID ที่ถูกต้อง และดึงเพียงครั้งเดียว)
+	if rawMilk.Status != 0 {
+		factoryCID = rawMilk.QualityReportCID
 		if factoryCID != "" {
-			fmt.Println("📌 Retrieving file from IPFS... CID:", factoryCID)
+			fmt.Println("📌 Retrieving factoryRepo from IPFS... CID:", factoryCID)
 			ipfsData, err := rmc.IPFSService.GetFromIPFS(factoryCID)
 			if err != nil {
-				fmt.Println("❌ Failed to fetch data from IPFS:", err)
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality report from IPFS"})
+				fmt.Println("❌ Failed to fetch factoryRepo from IPFS:", err)
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch factory quality report from IPFS"})
 			}
 
-			var ipfsRawMilkData map[string]interface{}
-			err = json.Unmarshal(ipfsData, &ipfsRawMilkData)
+			var ipfsFactoryData map[string]interface{}
+			err = json.Unmarshal(ipfsData, &ipfsFactoryData)
 			if err != nil {
-				fmt.Println("❌ Failed to parse IPFS JSON:", err)
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS"})
+				fmt.Println("❌ Failed to parse factoryRepo JSON:", err)
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Invalid JSON format from IPFS for factory"})
 			}
 
-			responseData["factoryRepo"] = extractFactoryRepo(ipfsRawMilkData)
+			responseData["factoryRepo"] = ipfsFactoryData
 		}
 	}
 

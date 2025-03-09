@@ -12,6 +12,10 @@ import (
 	"os"
 	"strconv"
 
+	"golang.org/x/crypto/sha3" // ✅ ใช้จาก external package	"encoding/json"
+
+	// ✅ ใช้ไลบรารีที่ถูกต้อง	"encoding/json"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -19,6 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	certification "finalyearproject/Backend/services/certification_event" // ✅ สำหรับ Raw Milk
+	"finalyearproject/Backend/services/product"
 	"finalyearproject/Backend/services/rawmilk"
 	"finalyearproject/Backend/services/userregistry"
 )
@@ -30,6 +35,7 @@ type BlockchainService struct {
 	userRegistryContract  *userregistry.Userregistry
 	certificationContract *certification.Certification
 	rawMilkContract       *rawmilk.Rawmilk
+	productContract       *product.Product
 }
 
 func getChainID() *big.Int {
@@ -44,13 +50,9 @@ func getChainID() *big.Int {
 // BlockchainServiceInstance - Global Instance
 var BlockchainServiceInstance *BlockchainService
 
-// InitBlockchainService - เชื่อมต่อ Blockchain
+// InitBlockchainService - เชื่อมต่อ Blockchain และโหลดคอนแทรค
 func InitBlockchainService() error {
-	// ✅ Debug: ตรวจสอบค่า ENV ที่โหลดเข้ามา
-	fmt.Println("📌 DEBUG - BLOCKCHAIN_RPC_URL:", os.Getenv("BLOCKCHAIN_RPC_URL"))
-	fmt.Println("📌 DEBUG - PRIVATE_KEY:", os.Getenv("PRIVATE_KEY"))
-	fmt.Println("📌 DEBUG - CERT_CONTRACT_ADDRESS:", os.Getenv("CERT_CONTRACT_ADDRESS"))
-	fmt.Println("📌 DEBUG - RAWMILK_CONTRACT_ADDRESS:", os.Getenv("RAWMILK_CONTRACT_ADDRESS"))
+	fmt.Println("🚀 Initializing Blockchain Service...")
 
 	// ✅ โหลดค่า RPC URL จาก ENV
 	rpcURL := os.Getenv("BLOCKCHAIN_RPC_URL")
@@ -64,11 +66,8 @@ func InitBlockchainService() error {
 	}
 
 	privateKeyHex := os.Getenv("PRIVATE_KEY")
-	certContractAddress := os.Getenv("CERT_CONTRACT_ADDRESS")
-	rawMilkContractAddress := os.Getenv("RAWMILK_CONTRACT_ADDRESS")
-
-	if privateKeyHex == "" || certContractAddress == "" || rawMilkContractAddress == "" {
-		return fmt.Errorf("❌ Missing blockchain env variables")
+	if privateKeyHex == "" {
+		return fmt.Errorf("❌ PRIVATE_KEY is not set")
 	}
 
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
@@ -76,37 +75,49 @@ func InitBlockchainService() error {
 		return fmt.Errorf("❌ Invalid private key: %v", err)
 	}
 
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(1337)) // ✅ ใช้ Chain ID 1337 (Ganache)
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(1337))
 	if err != nil {
 		return fmt.Errorf("❌ Failed to create transaction auth: %v", err)
 	}
 
+	// ✅ โหลด Smart Contract Address จาก ENV
+	certContractAddress := os.Getenv("CERT_CONTRACT_ADDRESS")
+	rawMilkContractAddress := os.Getenv("RAWMILK_CONTRACT_ADDRESS")
+	userRegistryAddress := os.Getenv("USER_REGISTRY_CONTRACT_ADDRESS")
+	productContractAddress := os.Getenv("PRODUCT_CONTRACT_ADDRESS") // ✅ เพิ่ม Product Contract
+
+	if certContractAddress == "" || rawMilkContractAddress == "" || userRegistryAddress == "" || productContractAddress == "" {
+		return fmt.Errorf("❌ Missing blockchain contract addresses")
+	}
+
+	// ✅ แปลง Address จาก String เป็น Ethereum Address
 	certContractAddr := common.HexToAddress(certContractAddress)
 	rawMilkContractAddr := common.HexToAddress(rawMilkContractAddress)
+	userRegistryAddr := common.HexToAddress(userRegistryAddress)
+	productContractAddr := common.HexToAddress(productContractAddress) // ✅ เพิ่ม Product Contract Address
 
-	// ✅ โหลด Certification Smart Contract
+	// ✅ โหลด Certification Contract
 	certInstance, err := certification.NewCertification(certContractAddr, client)
 	if err != nil {
 		return fmt.Errorf("❌ Failed to load certification contract: %v", err)
 	}
 
-	// ✅ โหลด RawMilk Smart Contract
+	// ✅ โหลด RawMilk Contract
 	rawMilkInstance, err := rawmilk.NewRawmilk(rawMilkContractAddr, client)
 	if err != nil {
 		return fmt.Errorf("❌ Failed to load raw milk contract: %v", err)
 	}
 
-	userRegistryAddress := os.Getenv("USER_REGISTRY_CONTRACT_ADDRESS")
-	if userRegistryAddress == "" {
-		return fmt.Errorf("❌ USER_REGISTRY_CONTRACT_ADDRESS is not set")
-	}
-
-	userRegistryAddr := common.HexToAddress(userRegistryAddress)
-
-	// ✅ โหลด UserRegistry Smart Contract
+	// ✅ โหลด UserRegistry Contract
 	userRegistryInstance, err := userregistry.NewUserregistry(userRegistryAddr, client)
 	if err != nil {
 		return fmt.Errorf("❌ Failed to load user registry contract: %v", err)
+	}
+
+	// ✅ โหลด Product Contract
+	productInstance, err := product.NewProduct(productContractAddr, client)
+	if err != nil {
+		return fmt.Errorf("❌ Failed to load product contract: %v", err)
 	}
 
 	BlockchainServiceInstance = &BlockchainService{
@@ -115,12 +126,12 @@ func InitBlockchainService() error {
 		userRegistryContract:  userRegistryInstance,
 		certificationContract: certInstance,
 		rawMilkContract:       rawMilkInstance,
+		productContract:       productInstance, // ✅ เพิ่ม Product Instance
 	}
 
 	fmt.Println("✅ Blockchain Service Initialized!")
 	return nil
 }
-
 func (b *BlockchainService) getPrivateKeyForAddress(userWallet string) (string, error) {
 	// ✅ กำหนด path ที่ถูกต้อง
 	filePath := "services/private_keys.json"
@@ -742,4 +753,115 @@ func (b *BlockchainService) UpdateMilkTankStatus(
 
 	fmt.Println("✅ Milk Tank Status Updated on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
+}
+
+// //////////////////////////////////////////////////////////// Product /////////////////////////////////////////////////////////
+// ✅ ฟังก์ชันแปลง string เป็น bytes32 แบบตรงไปตรงมา (ไม่ใช้ hash)
+func stringToBytes32(str string) [32]byte {
+	hash := sha3.NewLegacyKeccak256() // ✅ ใช้ Keccak-256
+	hash.Write([]byte(str))
+	var bytes32 [32]byte
+	copy(bytes32[:], hash.Sum(nil)) // ✅ ใช้ค่า Hash 32 Byte
+	return bytes32
+}
+
+// ✅ ฟังก์ชันสร้างสินค้า
+func (b *BlockchainService) CreateProduct(
+	factoryWallet string,
+	productId string,
+	productName string,
+	productCID string,
+	category string,
+) (string, error) {
+
+	fmt.Println("📌 Creating Product on Blockchain for Wallet:", factoryWallet)
+
+	// ✅ ตรวจสอบค่าก่อนส่งธุรกรรม
+	err := validateProductData(factoryWallet, productId, productName, productCID, category)
+	if err != nil {
+		return "", err
+	}
+
+	// ✅ ดึง Private Key ของ Factory Wallet
+	privateKeyHex, err := b.getPrivateKeyForAddress(factoryWallet)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+
+	role, err := b.userRegistryContract.GetUserRole(nil, common.HexToAddress(factoryWallet))
+	fmt.Println("✅ User Role on Blockchain:", role)
+
+	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของ Factory
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(factoryWallet) // ✅ ต้องให้ตรงกับ Wallet ของ Factory ที่ Register
+	auth.GasLimit = uint64(3000000)
+	auth.GasPrice = big.NewInt(20000000000)
+
+	// ✅ แปลง `productId` เป็น `bytes32`
+	productIDBytes := stringToBytes32(productId)
+
+	// ✅ Debug Log
+	fmt.Println("📌 Debug - Sending to Blockchain:")
+	fmt.Println("   - Product ID (Bytes32):", productIDBytes)
+	fmt.Println("   - Factory Wallet:", factoryWallet)
+	fmt.Println("   - Product Name:", productName)
+	fmt.Println("   - Product CID:", productCID)
+	fmt.Println("   - Category:", category)
+
+	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	tx, err := b.productContract.CreateProduct(
+		auth,
+		productIDBytes,
+		productName,
+		productCID,
+		category,
+	)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create product on blockchain: %v", err)
+	}
+
+	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
+
+	// ✅ รอให้ Transaction ถูกบันทึก
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
+	}
+
+	if receipt.Status == types.ReceiptStatusFailed {
+		return "", errors.New("❌ Transaction failed")
+	}
+
+	fmt.Println("✅ Product Created on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
+}
+
+func validateProductData(factoryWallet, productId, productName, productCID, category string) error {
+	if factoryWallet == "" {
+		return errors.New("❌ factoryWallet is required")
+	}
+	if !common.IsHexAddress(factoryWallet) {
+		return errors.New("❌ factoryWallet is not a valid Ethereum address")
+	}
+	if productId == "" {
+		return errors.New("❌ productId is required")
+	}
+	if productName == "" {
+		return errors.New("❌ productName is required")
+	}
+	if productCID == "" {
+		return errors.New("❌ productCID is required")
+	}
+	if category == "" {
+		return errors.New("❌ category is required")
+	}
+	return nil
 }

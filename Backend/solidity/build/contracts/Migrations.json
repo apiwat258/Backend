@@ -1940,12 +1940,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x205D9993D85a77B8B4626a93692A8c8d0043Cb52",
-      "transactionHash": "0x3bea1a5d117d1e2ce60f62d612e22d3a02fd7bbe830cbf40b59f46377caae7ed"
+      "address": "0x479F5CC9a6c294261051E944f496159D5C299222",
+      "transactionHash": "0x72e8e9a807b53de39e9ccc70e3548d8f7cb685c73cd817d8b2d6f4f0947fde4e"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-03-08T08:52:30.095Z",
+  "updatedAt": "2025-03-09T13:32:28.795Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

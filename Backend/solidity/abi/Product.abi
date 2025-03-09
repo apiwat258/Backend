@@ -1,0 +1,249 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_userRegistry",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "productId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "factoryWallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "productName",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "productCID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      }
+    ],
+    "name": "ProductCreated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "productIds",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "products",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "productId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "factoryWallet",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "productName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "productCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "userRegistry",
+    "outputs": [
+      {
+        "internalType": "contract UserRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_factoryWallet",
+        "type": "address"
+      }
+    ],
+    "name": "getProductsByFactory",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_productId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getProductById",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "productId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "factoryWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "productName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "productCID",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "category",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Product.ProductInfo",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_productId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isProductExist",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_productId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_productName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_productCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_category",
+        "type": "string"
+      }
+    ],
+    "name": "createProduct",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

@@ -259,3 +259,34 @@ func (s *IPFSService) UploadMilkDataToIPFS(rawMilkData map[string]interface{}, s
 	fmt.Println("✅ Milk Data uploaded to IPFS with CID:", cid)
 	return cid, nil
 }
+
+// ✅ ฟังก์ชันอัปโหลดข้อมูล `Product` ไปยัง IPFS
+func (s *IPFSService) UploadDataToIPFS(productData map[string]interface{}) (string, error) {
+	fmt.Println("📌 Uploading Product Data to IPFS...")
+
+	// ✅ แปลง JSON เป็น bytes
+	jsonData, err := json.Marshal(productData)
+	if err != nil {
+		fmt.Println("❌ Failed to encode JSON:", err)
+		return "", fmt.Errorf("Failed to encode JSON: %v", err)
+	}
+
+	// ✅ แปลงเป็น Buffer
+	buf := bytes.NewReader(jsonData)
+
+	// ✅ ตรวจสอบว่า IPFS Daemon ทำงานอยู่หรือไม่
+	if !s.shell.IsUp() {
+		fmt.Println("❌ IPFS Daemon is not running!")
+		return "", fmt.Errorf("IPFS node is not available")
+	}
+
+	// ✅ อัปโหลด JSON ไปยัง IPFS
+	cid, err := s.shell.Add(buf)
+	if err != nil {
+		fmt.Println("❌ Failed to upload Product Data to IPFS:", err)
+		return "", fmt.Errorf("Failed to upload to IPFS: %v", err)
+	}
+
+	fmt.Println("✅ Product Data uploaded to IPFS with CID:", cid)
+	return cid, nil
+}
