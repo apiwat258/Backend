@@ -11,8 +11,9 @@ import (
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 
-	"golang.org/x/crypto/sha3" // ✅ ใช้จาก external package	"encoding/json"
+	// ✅ ใช้จาก external package	"encoding/json"
 
 	// ✅ ใช้ไลบรารีที่ถูกต้อง	"encoding/json"
 
@@ -449,11 +450,11 @@ type RawMilkData struct {
 	Status           uint8  `json:"status"`
 }
 
-// ✅ ฟังก์ชันสร้างแท้งค์นมบนบล็อกเชน (แก้ `factoryId` เป็น `bytes32`)
+// ✅ ฟังก์ชันสร้างแท้งค์นมบนบล็อกเชน (อัปเดต Debug Log)
 func (b *BlockchainService) CreateMilkTank(
 	userWallet string,
 	tankId string,
-	factoryId string, // ✅ รับ FactoryID แบบ string (UUID หรือ Custom ID)
+	factoryId string,
 	personInCharge string,
 	qualityReportCID string,
 	qrCodeCID string,
@@ -487,10 +488,8 @@ func (b *BlockchainService) CreateMilkTank(
 	auth.GasLimit = uint64(3000000)         // ✅ เพิ่ม Gas Limit
 	auth.GasPrice = big.NewInt(20000000000) // ✅ กำหนด Gas Price
 
-	// ✅ แปลง `tankId` เป็น `bytes32`
+	// ✅ แปลง `tankId` และ `factoryId` เป็น `bytes32`
 	tankIdBytes := common.BytesToHash([]byte(tankId))
-
-	// ✅ แปลง `factoryId` เป็น `bytes32`
 	factoryIdBytes := common.BytesToHash([]byte(factoryId))
 
 	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
@@ -498,12 +497,14 @@ func (b *BlockchainService) CreateMilkTank(
 	fmt.Println("   - Tank ID (Bytes32):", tankIdBytes)
 	fmt.Println("   - Factory ID (Bytes32):", factoryIdBytes)
 	fmt.Println("   - Person In Charge:", personInCharge)
+	fmt.Println("   - Quality Report CID:", qualityReportCID)
+	fmt.Println("   - QR Code CID:", qrCodeCID)
 
 	// ✅ ส่งธุรกรรมไปที่ Smart Contract
 	tx, err := b.rawMilkContract.CreateMilkTank(
 		auth,
-		tankIdBytes,    // ✅ ใช้ [32]byte
-		factoryIdBytes, // ✅ ใช้ [32]byte
+		tankIdBytes,
+		factoryIdBytes,
 		personInCharge,
 		qualityReportCID,
 		qrCodeCID,
@@ -526,7 +527,6 @@ func (b *BlockchainService) CreateMilkTank(
 
 	fmt.Println("✅ Milk Tank Created on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
-
 }
 
 // ✅ ฟังก์ชันตรวจสอบค่าก่อนสร้างธุรกรรม (แก้ `factoryId` ให้เป็น `bytes32`)
@@ -756,34 +756,27 @@ func (b *BlockchainService) UpdateMilkTankStatus(
 }
 
 // //////////////////////////////////////////////////////////// Product /////////////////////////////////////////////////////////
-// ✅ ฟังก์ชันแปลง string เป็น bytes32 แบบตรงไปตรงมา (ไม่ใช้ hash)
-func stringToBytes32(str string) [32]byte {
-	hash := sha3.NewLegacyKeccak256() // ✅ ใช้ Keccak-256
-	hash.Write([]byte(str))
-	var bytes32 [32]byte
-	copy(bytes32[:], hash.Sum(nil)) // ✅ ใช้ค่า Hash 32 Byte
-	return bytes32
-}
+// ✅ ฟังก์ชันสร้าง Product บนบล็อกเชน
 
-// ✅ ฟังก์ชันสร้างสินค้า
+// ✅ ฟังก์ชันสร้าง Product บนบล็อกเชน
 func (b *BlockchainService) CreateProduct(
-	factoryWallet string,
+	userWallet string,
 	productId string,
 	productName string,
 	productCID string,
 	category string,
 ) (string, error) {
 
-	fmt.Println("📌 Creating Product on Blockchain for Wallet:", factoryWallet)
+	fmt.Println("📌 Creating Product on Blockchain for Wallet:", userWallet)
 
 	// ✅ ตรวจสอบค่าก่อนส่งธุรกรรม
-	err := validateProductData(factoryWallet, productId, productName, productCID, category)
+	err := validateProductData(userWallet, productId, productName, productCID, category)
 	if err != nil {
 		return "", err
 	}
 
-	// ✅ ดึง Private Key ของ Factory Wallet
-	privateKeyHex, err := b.getPrivateKeyForAddress(factoryWallet)
+	// ✅ ดึง Private Key ของ Wallet
+	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
 	if err != nil {
 		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
 	}
@@ -793,25 +786,21 @@ func (b *BlockchainService) CreateProduct(
 		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
 	}
 
-	role, err := b.userRegistryContract.GetUserRole(nil, common.HexToAddress(factoryWallet))
-	fmt.Println("✅ User Role on Blockchain:", role)
-
-	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของ Factory
+	// ✅ สร้าง Transaction Auth
 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
 	if err != nil {
 		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
 	}
-	auth.From = common.HexToAddress(factoryWallet) // ✅ ต้องให้ตรงกับ Wallet ของ Factory ที่ Register
+	auth.From = common.HexToAddress(userWallet)
 	auth.GasLimit = uint64(3000000)
 	auth.GasPrice = big.NewInt(20000000000)
 
-	// ✅ แปลง `productId` เป็น `bytes32`
-	productIDBytes := stringToBytes32(productId)
+	// ✅ แปลง `productId` เป็น `[32]byte` แบบเดียวกับ `tankId`
+	productIdBytes := common.BytesToHash([]byte(productId))
 
-	// ✅ Debug Log
+	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
 	fmt.Println("📌 Debug - Sending to Blockchain:")
-	fmt.Println("   - Product ID (Bytes32):", productIDBytes)
-	fmt.Println("   - Factory Wallet:", factoryWallet)
+	fmt.Println("   - Product ID (Bytes32):", productIdBytes) // ✅ ต้องออกมาเป็น 0x...
 	fmt.Println("   - Product Name:", productName)
 	fmt.Println("   - Product CID:", productCID)
 	fmt.Println("   - Category:", category)
@@ -819,7 +808,7 @@ func (b *BlockchainService) CreateProduct(
 	// ✅ ส่งธุรกรรมไปที่ Smart Contract
 	tx, err := b.productContract.CreateProduct(
 		auth,
-		productIDBytes,
+		productIdBytes, // ✅ แก้ให้เป็น `common.Hash`
 		productName,
 		productCID,
 		category,
@@ -864,4 +853,56 @@ func validateProductData(factoryWallet, productId, productName, productCID, cate
 		return errors.New("❌ category is required")
 	}
 	return nil
+}
+
+func (b *BlockchainService) GetProductsByFactory(factoryAddress string) ([]map[string]interface{}, error) {
+	fmt.Println("📌 Fetching products for factory:", factoryAddress)
+
+	factory := common.HexToAddress(factoryAddress)
+
+	ids, names, categories, err := b.productContract.GetProductsByFactory(&bind.CallOpts{From: factory})
+	if err != nil {
+		fmt.Println("❌ Failed to fetch products:", err)
+		return nil, err
+	}
+
+	var products []map[string]interface{}
+
+	for i := range ids {
+		product := map[string]interface{}{
+			"productId":   strings.TrimRight(string(ids[i][:]), "\x00"),
+			"productName": names[i],
+			"category":    categories[i],
+			"detailsLink": fmt.Sprintf("/Factory/ProductDetails/%s", strings.TrimRight(string(ids[i][:]), "\x00")),
+		}
+		products = append(products, product)
+	}
+
+	fmt.Println("✅ Fetched products for factory:", products)
+	return products, nil
+}
+
+// ✅ ดึงรายละเอียดสินค้าตาม Product ID
+func (b *BlockchainService) GetProductDetails(productId string) (map[string]interface{}, error) {
+	fmt.Println("📌 Fetching product details:", productId)
+
+	productIdBytes := [32]byte{}
+	copy(productIdBytes[:], []byte(productId))
+
+	productData, err := b.productContract.GetProductDetails(&bind.CallOpts{}, productIdBytes)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product details:", err)
+		return nil, err
+	}
+
+	product := map[string]interface{}{
+		"productId":     strings.TrimRight(string(productData.ProductId[:]), "\x00"),
+		"factoryWallet": productData.FactoryWallet.Hex(),
+		"productName":   productData.ProductName,
+		"productCID":    productData.ProductCID,
+		"category":      productData.Category,
+	}
+
+	fmt.Println("✅ Product details fetched successfully:", product)
+	return product, nil
 }

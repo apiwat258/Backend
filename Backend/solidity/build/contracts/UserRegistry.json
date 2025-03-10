@@ -4057,12 +4057,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x89423E5AbeAd71Ed056B9ffde778706f7428618d",
-      "transactionHash": "0x3c076c140098d9050907735d8ceb078122eae28c1c690ad5d715c7a58eac35f2"
+      "address": "0x6B4ac590088571Cba50924aB61DE1D1825f00E32",
+      "transactionHash": "0x17308411a5963ffcafacd43d9631f08d2f01bc6e5b8903727268cad0f37f2941"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-03-09T13:32:28.698Z",
+  "updatedAt": "2025-03-10T14:03:57.516Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

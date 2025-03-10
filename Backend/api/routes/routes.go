@@ -67,7 +67,6 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 
 	// ✅ Product Routes (เพิ่มเข้ามา)
 	product := api.Group("/products", middleware.AuthMiddleware())
-	product.Post("/create", pc.CreateProduct) // ✅ โรงงานสร้างสินค้าใหม่
-	//product.Get("/list", pc.GetFactoryProducts)  // ✅ ดึงสินค้าของโรงงาน
-	//product.Get("/:productId", pc.GetProductByID) // ✅ ดึงรายละเอียดสินค้าโดยใช้ Product ID
+	product.Post("/create", pc.CreateProduct)   // ✅ โรงงานสร้างสินค้าใหม่
+	product.Get("/list", pc.GetFactoryProducts) // ✅ ดึงสินค้าของโรงงาน
 }

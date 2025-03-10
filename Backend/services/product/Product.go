@@ -40,7 +40,7 @@ type ProductProductInfo struct {
 
 // ProductMetaData contains all meta data concerning the Product contract.
 var ProductMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"factoryWallet\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"name\":\"ProductCreated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"productIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"products\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factoryWallet\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factoryWallet\",\"type\":\"address\"}],\"name\":\"getProductsByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"},{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"}],\"name\":\"getProductById\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factoryWallet\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"internalType\":\"structProduct.ProductInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"}],\"name\":\"isProductExist\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_productName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_productCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_category\",\"type\":\"string\"}],\"name\":\"createProduct\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"name\":\"DebugLog\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"factoryWallet\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"name\":\"ProductCreated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"productIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"products\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factoryWallet\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_productName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_productCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_category\",\"type\":\"string\"}],\"name\":\"createProduct\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getProductsByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"},{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"}],\"name\":\"getProductDetails\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factoryWallet\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"productName\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"productCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"category\",\"type\":\"string\"}],\"internalType\":\"structProduct.ProductInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
 }
 
 // ProductABI is the input ABI used to generate the binding from.
@@ -189,12 +189,12 @@ func (_Product *ProductTransactorRaw) Transact(opts *bind.TransactOpts, method s
 	return _Product.Contract.contract.Transact(opts, method, params...)
 }
 
-// GetProductById is a free data retrieval call binding the contract method 0x5ea57703.
+// GetProductDetails is a free data retrieval call binding the contract method 0xb74d3fb5.
 //
-// Solidity: function getProductById(bytes32 _productId) view returns((bytes32,address,string,string,string))
-func (_Product *ProductCaller) GetProductById(opts *bind.CallOpts, _productId [32]byte) (ProductProductInfo, error) {
+// Solidity: function getProductDetails(bytes32 _productId) view returns((bytes32,address,string,string,string))
+func (_Product *ProductCaller) GetProductDetails(opts *bind.CallOpts, _productId [32]byte) (ProductProductInfo, error) {
 	var out []interface{}
-	err := _Product.contract.Call(opts, &out, "getProductById", _productId)
+	err := _Product.contract.Call(opts, &out, "getProductDetails", _productId)
 
 	if err != nil {
 		return *new(ProductProductInfo), err
@@ -206,26 +206,26 @@ func (_Product *ProductCaller) GetProductById(opts *bind.CallOpts, _productId [3
 
 }
 
-// GetProductById is a free data retrieval call binding the contract method 0x5ea57703.
+// GetProductDetails is a free data retrieval call binding the contract method 0xb74d3fb5.
 //
-// Solidity: function getProductById(bytes32 _productId) view returns((bytes32,address,string,string,string))
-func (_Product *ProductSession) GetProductById(_productId [32]byte) (ProductProductInfo, error) {
-	return _Product.Contract.GetProductById(&_Product.CallOpts, _productId)
+// Solidity: function getProductDetails(bytes32 _productId) view returns((bytes32,address,string,string,string))
+func (_Product *ProductSession) GetProductDetails(_productId [32]byte) (ProductProductInfo, error) {
+	return _Product.Contract.GetProductDetails(&_Product.CallOpts, _productId)
 }
 
-// GetProductById is a free data retrieval call binding the contract method 0x5ea57703.
+// GetProductDetails is a free data retrieval call binding the contract method 0xb74d3fb5.
 //
-// Solidity: function getProductById(bytes32 _productId) view returns((bytes32,address,string,string,string))
-func (_Product *ProductCallerSession) GetProductById(_productId [32]byte) (ProductProductInfo, error) {
-	return _Product.Contract.GetProductById(&_Product.CallOpts, _productId)
+// Solidity: function getProductDetails(bytes32 _productId) view returns((bytes32,address,string,string,string))
+func (_Product *ProductCallerSession) GetProductDetails(_productId [32]byte) (ProductProductInfo, error) {
+	return _Product.Contract.GetProductDetails(&_Product.CallOpts, _productId)
 }
 
-// GetProductsByFactory is a free data retrieval call binding the contract method 0x99513ad9.
+// GetProductsByFactory is a free data retrieval call binding the contract method 0xd37797e9.
 //
-// Solidity: function getProductsByFactory(address _factoryWallet) view returns(bytes32[], string[], string[])
-func (_Product *ProductCaller) GetProductsByFactory(opts *bind.CallOpts, _factoryWallet common.Address) ([][32]byte, []string, []string, error) {
+// Solidity: function getProductsByFactory() view returns(bytes32[], string[], string[])
+func (_Product *ProductCaller) GetProductsByFactory(opts *bind.CallOpts) ([][32]byte, []string, []string, error) {
 	var out []interface{}
-	err := _Product.contract.Call(opts, &out, "getProductsByFactory", _factoryWallet)
+	err := _Product.contract.Call(opts, &out, "getProductsByFactory")
 
 	if err != nil {
 		return *new([][32]byte), *new([]string), *new([]string), err
@@ -239,49 +239,18 @@ func (_Product *ProductCaller) GetProductsByFactory(opts *bind.CallOpts, _factor
 
 }
 
-// GetProductsByFactory is a free data retrieval call binding the contract method 0x99513ad9.
+// GetProductsByFactory is a free data retrieval call binding the contract method 0xd37797e9.
 //
-// Solidity: function getProductsByFactory(address _factoryWallet) view returns(bytes32[], string[], string[])
-func (_Product *ProductSession) GetProductsByFactory(_factoryWallet common.Address) ([][32]byte, []string, []string, error) {
-	return _Product.Contract.GetProductsByFactory(&_Product.CallOpts, _factoryWallet)
+// Solidity: function getProductsByFactory() view returns(bytes32[], string[], string[])
+func (_Product *ProductSession) GetProductsByFactory() ([][32]byte, []string, []string, error) {
+	return _Product.Contract.GetProductsByFactory(&_Product.CallOpts)
 }
 
-// GetProductsByFactory is a free data retrieval call binding the contract method 0x99513ad9.
+// GetProductsByFactory is a free data retrieval call binding the contract method 0xd37797e9.
 //
-// Solidity: function getProductsByFactory(address _factoryWallet) view returns(bytes32[], string[], string[])
-func (_Product *ProductCallerSession) GetProductsByFactory(_factoryWallet common.Address) ([][32]byte, []string, []string, error) {
-	return _Product.Contract.GetProductsByFactory(&_Product.CallOpts, _factoryWallet)
-}
-
-// IsProductExist is a free data retrieval call binding the contract method 0xdd91b929.
-//
-// Solidity: function isProductExist(bytes32 _productId) view returns(bool)
-func (_Product *ProductCaller) IsProductExist(opts *bind.CallOpts, _productId [32]byte) (bool, error) {
-	var out []interface{}
-	err := _Product.contract.Call(opts, &out, "isProductExist", _productId)
-
-	if err != nil {
-		return *new(bool), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
-
-	return out0, err
-
-}
-
-// IsProductExist is a free data retrieval call binding the contract method 0xdd91b929.
-//
-// Solidity: function isProductExist(bytes32 _productId) view returns(bool)
-func (_Product *ProductSession) IsProductExist(_productId [32]byte) (bool, error) {
-	return _Product.Contract.IsProductExist(&_Product.CallOpts, _productId)
-}
-
-// IsProductExist is a free data retrieval call binding the contract method 0xdd91b929.
-//
-// Solidity: function isProductExist(bytes32 _productId) view returns(bool)
-func (_Product *ProductCallerSession) IsProductExist(_productId [32]byte) (bool, error) {
-	return _Product.Contract.IsProductExist(&_Product.CallOpts, _productId)
+// Solidity: function getProductsByFactory() view returns(bytes32[], string[], string[])
+func (_Product *ProductCallerSession) GetProductsByFactory() ([][32]byte, []string, []string, error) {
+	return _Product.Contract.GetProductsByFactory(&_Product.CallOpts)
 }
 
 // ProductIds is a free data retrieval call binding the contract method 0xcb51bba9.
@@ -425,6 +394,145 @@ func (_Product *ProductSession) CreateProduct(_productId [32]byte, _productName 
 // Solidity: function createProduct(bytes32 _productId, string _productName, string _productCID, string _category) returns()
 func (_Product *ProductTransactorSession) CreateProduct(_productId [32]byte, _productName string, _productCID string, _category string) (*types.Transaction, error) {
 	return _Product.Contract.CreateProduct(&_Product.TransactOpts, _productId, _productName, _productCID, _category)
+}
+
+// ProductDebugLogIterator is returned from FilterDebugLog and is used to iterate over the raw logs and unpacked data for DebugLog events raised by the Product contract.
+type ProductDebugLogIterator struct {
+	Event *ProductDebugLog // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ProductDebugLogIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ProductDebugLog)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ProductDebugLog)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ProductDebugLogIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ProductDebugLogIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ProductDebugLog represents a DebugLog event raised by the Product contract.
+type ProductDebugLog struct {
+	Message     string
+	Sender      common.Address
+	ProductId   [32]byte
+	ProductName string
+	ProductCID  string
+	Category    string
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
+// FilterDebugLog is a free log retrieval operation binding the contract event 0x693e39e19b42d1b5ad69fada9680c72cb82a8e4a0102c9548839d6fc7e95d70c.
+//
+// Solidity: event DebugLog(string message, address sender, bytes32 productId, string productName, string productCID, string category)
+func (_Product *ProductFilterer) FilterDebugLog(opts *bind.FilterOpts) (*ProductDebugLogIterator, error) {
+
+	logs, sub, err := _Product.contract.FilterLogs(opts, "DebugLog")
+	if err != nil {
+		return nil, err
+	}
+	return &ProductDebugLogIterator{contract: _Product.contract, event: "DebugLog", logs: logs, sub: sub}, nil
+}
+
+// WatchDebugLog is a free log subscription operation binding the contract event 0x693e39e19b42d1b5ad69fada9680c72cb82a8e4a0102c9548839d6fc7e95d70c.
+//
+// Solidity: event DebugLog(string message, address sender, bytes32 productId, string productName, string productCID, string category)
+func (_Product *ProductFilterer) WatchDebugLog(opts *bind.WatchOpts, sink chan<- *ProductDebugLog) (event.Subscription, error) {
+
+	logs, sub, err := _Product.contract.WatchLogs(opts, "DebugLog")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ProductDebugLog)
+				if err := _Product.contract.UnpackLog(event, "DebugLog", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseDebugLog is a log parse operation binding the contract event 0x693e39e19b42d1b5ad69fada9680c72cb82a8e4a0102c9548839d6fc7e95d70c.
+//
+// Solidity: event DebugLog(string message, address sender, bytes32 productId, string productName, string productCID, string category)
+func (_Product *ProductFilterer) ParseDebugLog(log types.Log) (*ProductDebugLog, error) {
+	event := new(ProductDebugLog)
+	if err := _Product.contract.UnpackLog(event, "DebugLog", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // ProductProductCreatedIterator is returned from FilterProductCreated and is used to iterate over the raw logs and unpacked data for ProductCreated events raised by the Product contract.

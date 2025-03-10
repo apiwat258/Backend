@@ -14,6 +14,49 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "productId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "productName",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "productCID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      }
+    ],
+    "name": "DebugLog",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "bytes32",
         "name": "productId",
@@ -124,11 +167,33 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_factoryWallet",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "_productId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_productName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_productCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_category",
+        "type": "string"
       }
     ],
+    "name": "createProduct",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getProductsByFactory",
     "outputs": [
       {
@@ -159,7 +224,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "getProductById",
+    "name": "getProductDetails",
     "outputs": [
       {
         "components": [
@@ -197,53 +262,5 @@
     "stateMutability": "view",
     "type": "function",
     "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_productId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "isProductExist",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_productId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "string",
-        "name": "_productName",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_productCID",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_category",
-        "type": "string"
-      }
-    ],
-    "name": "createProduct",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
   }
 ]

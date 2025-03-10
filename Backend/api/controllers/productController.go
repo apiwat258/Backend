@@ -170,3 +170,59 @@ func (pc *ProductController) CreateProduct(c *fiber.Ctx) error {
 		"category":  request.GeneralInfo.Category, // ✅ ส่ง Category ใน Response ด้วย
 	})
 }
+
+func (pc *ProductController) GetFactoryProducts(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Factory Products")
+
+	// ✅ ดึงข้อมูลจาก JWT Token
+	role := c.Locals("role").(string)
+
+	// ✅ ตรวจสอบสิทธิ์ (เฉพาะ Factory เท่านั้น)
+	if role != "factory" {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only factories can view products"})
+	}
+
+	// ✅ ดึง `entityID` จาก JWT Token ที่ AuthMiddleware กำหนดไว้
+	factoryID, ok := c.Locals("entityID").(string)
+	if !ok || factoryID == "" {
+		fmt.Println("❌ Factory ID is missing in Context")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - Factory ID is missing"})
+	}
+	fmt.Println("✅ Factory ID from Context:", factoryID)
+
+	// ✅ ดึงค่าที่พิมพ์ในช่องค้นหา (Search Query)
+	searchQuery := strings.ToLower(c.Query("search", ""))
+
+	// ✅ ดึงข้อมูลสินค้าในโรงงานจาก Blockchain
+	products, err := pc.BlockchainService.GetProductsByFactory(factoryID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch factory products:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch factory products"})
+	}
+
+	// ✅ กรองข้อมูลตาม Search Query
+	var filteredProducts []map[string]interface{}
+	for _, product := range products {
+		productId := product["productId"].(string)
+		productName := product["productName"].(string)
+		category := product["category"].(string)
+
+		if searchQuery == "" ||
+			strings.Contains(strings.ToLower(productId), searchQuery) ||
+			strings.Contains(strings.ToLower(productName), searchQuery) ||
+			strings.Contains(strings.ToLower(category), searchQuery) {
+
+			filteredProducts = append(filteredProducts, map[string]interface{}{
+				"productId":   strings.TrimRight(productId, "\x00"),
+				"productName": productName,
+				"category":    category,
+				"detailsLink": fmt.Sprintf("/Factory/ProductDetails/%s", productId),
+			})
+		}
+	}
+
+	// ✅ ส่ง Response กลับไปที่ Frontend ให้มีมาตรฐานเดียวกัน
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"displayedProducts": filteredProducts,
+	})
+}
