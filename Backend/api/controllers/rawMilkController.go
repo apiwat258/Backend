@@ -434,7 +434,7 @@ func (rmc *RawMilkController) GetQRCodeByTankID(c *fiber.Ctx) error {
 }
 
 // //////For Factory////
-func (rmc *RawMilkController) GetFactoryRawMilkTanks(c *fiber.Ctx) error {
+/*func (rmc *RawMilkController) GetFactoryRawMilkTanks(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Get Factory Raw Milk Tanks")
 
 	// ✅ ดึงข้อมูลจาก JWT Token
@@ -482,6 +482,118 @@ func (rmc *RawMilkController) GetFactoryRawMilkTanks(c *fiber.Ctx) error {
 	// ✅ ส่ง Response กลับไปที่ Frontend
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"displayedMilkTanks": filteredMilkTanks,
+	})
+}*/
+func (rmc *RawMilkController) GetFactoryRawMilkTanks(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Factory Raw Milk Tanks")
+
+	// ✅ ดึงข้อมูลจาก JWT Token
+	role := c.Locals("role").(string)
+
+	// ✅ ตรวจสอบสิทธิ์ (เฉพาะ Factory เท่านั้น)
+	if role != "factory" {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only factories can view raw milk tanks"})
+	}
+
+	// ✅ ดึง `entityID` จาก JWT Token
+	factoryID, ok := c.Locals("entityID").(string)
+	if !ok || factoryID == "" {
+		fmt.Println("❌ Factory ID is missing in Context")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - Factory ID is missing"})
+	}
+	fmt.Println("✅ Factory ID from Context:", factoryID)
+
+	// ✅ ดึงค่าที่พิมพ์ในช่องค้นหา (Search Query)
+	searchQuery := strings.ToLower(c.Query("search", ""))
+
+	// ✅ ดึงข้อมูลแท็งก์จาก Blockchain
+	milkTanks, err := rmc.BlockchainService.GetMilkTanksByFactory(factoryID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch raw milk tanks for factory:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch raw milk tanks"})
+	}
+
+	// ✅ เตรียม response
+	var displayedMilkTanks []map[string]interface{}
+
+	for _, tank := range milkTanks {
+		tankId := strings.TrimRight(tank["tankId"].(string), "\x00")
+		personInCharge := tank["personInCharge"].(string)
+		status := tank["status"].(uint8)
+
+		// ✅ ดึง `farmID` จาก `tankId`
+		parts := strings.Split(tankId, "-")
+		if len(parts) < 1 {
+			fmt.Println("❌ Invalid Tank ID format:", tankId)
+			continue
+		}
+		farmID := parts[0]
+
+		// ✅ ดึง `farmName` และ `location` จาก PostgreSQL
+		var farmer models.Farmer
+		if err := rmc.DB.Where("farmerid = ?", farmID).First(&farmer).Error; err != nil {
+			fmt.Println("❌ Failed to fetch farm details:", err)
+			continue
+		}
+
+		// ✅ ใช้ `GetRawMilkTankDetails` ดึง factoryCID
+		rawMilkDetails, _, err := rmc.BlockchainService.GetRawMilkTankDetails(tankId)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch tank details for:", tankId)
+			continue
+		}
+
+		factoryCID := rawMilkDetails.QualityReportCID
+		fmt.Println("📌 Found factoryRepo CID:", factoryCID)
+
+		// ✅ ดึงข้อมูลจาก IPFS (ถ้ามี CID)
+		var quantity, quantityUnit, temperature, tempUnit string
+		if factoryCID != "" {
+			ipfsData, err := rmc.IPFSService.GetFromIPFS(factoryCID)
+			if err == nil {
+				var ipfsFactoryData map[string]interface{}
+				if err := json.Unmarshal(ipfsData, &ipfsFactoryData); err == nil {
+					// ✅ ดึงค่าที่ต้องการจาก `factoryRepo.rawMilkData`
+					if rawMilkData, exists := ipfsFactoryData["rawMilkData"].(map[string]interface{}); exists {
+						if q, ok := rawMilkData["quantity"].(float64); ok {
+							quantity = fmt.Sprintf("%.2f", q)
+						}
+						if qUnit, ok := rawMilkData["quantityUnit"].(string); ok {
+							quantityUnit = qUnit
+						}
+						if temp, ok := rawMilkData["temperature"].(float64); ok {
+							temperature = fmt.Sprintf("%.2f", temp)
+						}
+						if tUnit, ok := rawMilkData["tempUnit"].(string); ok {
+							tempUnit = tUnit
+						}
+					}
+				}
+			}
+		}
+
+		// ✅ รวม `quantity` + `quantityUnit` และ `temperature` + `tempUnit`
+		quantityInfo := quantity + " " + quantityUnit
+		temperatureInfo := temperature + " " + tempUnit
+
+		// ✅ กรองข้อมูลตาม Search Query
+		if searchQuery == "" || strings.Contains(strings.ToLower(tankId), searchQuery) || strings.Contains(strings.ToLower(personInCharge), searchQuery) {
+			displayedMilkTanks = append(displayedMilkTanks, map[string]interface{}{
+				"tankId":         tankId,
+				"personInCharge": personInCharge,
+				"status":         status,
+				"moreInfoLink":   fmt.Sprintf("/Factory/FactoryDetails?id=%s", tankId),
+				"farmName":       farmer.CompanyName, // ✅ เพิ่มชื่อฟาร์ม
+				"location":       farmer.Province,    // ✅ เพิ่มโลเคชันของฟาร์ม
+				"quantity":       quantityInfo,       // ✅ เพิ่มจำนวน
+				"temperature":    temperatureInfo,    // ✅ เพิ่มอุณหภูมิ
+			})
+		}
+	}
+
+	// ✅ ส่ง Response กลับไปที่ Frontend (เหมือนโครงสร้างเดิม)
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"displayedMilkTanks": displayedMilkTanks,
 	})
 }
 

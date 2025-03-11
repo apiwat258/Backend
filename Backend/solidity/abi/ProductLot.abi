@@ -1,0 +1,350 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_userRegistry",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_rawMilkContract",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_productContract",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "lotId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "productId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "factory",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "inspector",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "inspectionDate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "grade",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "qualityAndNutritionCID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32[]",
+        "name": "milkTankIds",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "ProductLotCreated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "productContract",
+    "outputs": [
+      {
+        "internalType": "contract Product",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "productLotIds",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "productLots",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "lotId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "productId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "factory",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "inspector",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "inspectionDate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "grade",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "qualityAndNutritionCID",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "rawMilkContract",
+    "outputs": [
+      {
+        "internalType": "contract RawMilk",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "userRegistry",
+    "outputs": [
+      {
+        "internalType": "contract UserRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_productId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_inspector",
+        "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "_grade",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "_qualityAndNutritionCID",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "_milkTankIds",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "createProductLot",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getProductLot",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "lotId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "productId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "inspector",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "inspectionDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "grade",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "qualityAndNutritionCID",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32[]",
+            "name": "milkTankIds",
+            "type": "bytes32[]"
+          }
+        ],
+        "internalType": "struct ProductLot.ProductLotInfo",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isProductLotExists",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_factory",
+        "type": "address"
+      }
+    ],
+    "name": "getProductLotsByFactory",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getMilkTanksByProductLot",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  }
+]

@@ -190,11 +190,19 @@ func (pc *ProductController) GetFactoryProducts(c *fiber.Ctx) error {
 	}
 	fmt.Println("✅ Factory ID from Context:", factoryID)
 
+	// ✅ ดึง Wallet Address จาก JWT Token
+	walletAddress, ok := c.Locals("walletAddress").(string)
+	if !ok || walletAddress == "" {
+		fmt.Println("❌ Wallet Address is missing in Context")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - Wallet Address is missing"})
+	}
+	fmt.Println("✅ Wallet Address from Context:", walletAddress)
+
 	// ✅ ดึงค่าที่พิมพ์ในช่องค้นหา (Search Query)
 	searchQuery := strings.ToLower(c.Query("search", ""))
 
-	// ✅ ดึงข้อมูลสินค้าในโรงงานจาก Blockchain
-	products, err := pc.BlockchainService.GetProductsByFactory(factoryID)
+	// ✅ ดึงข้อมูลสินค้าในโรงงานจาก Blockchain (ใช้ Wallet Address แทน Factory ID)
+	products, err := pc.BlockchainService.GetProductsByFactory(walletAddress)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch factory products:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch factory products"})
@@ -225,4 +233,44 @@ func (pc *ProductController) GetFactoryProducts(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"displayedProducts": filteredProducts,
 	})
+}
+
+func (pc *ProductController) GetProductDetails(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Product Details")
+
+	// ✅ ดึง `productId` จาก URL Parameter
+	productID := c.Params("productId")
+	if productID == "" {
+		fmt.Println("❌ Product ID is missing")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Product ID is required"})
+	}
+	fmt.Println("✅ Product ID:", productID)
+
+	// ✅ ดึงข้อมูล Product จาก Smart Contract
+	productData, err := pc.BlockchainService.GetProductDetails(productID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product from blockchain:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product details"})
+	}
+
+	// ✅ ดึงข้อมูล JSON จาก IPFS
+	ipfsData, err := pc.IPFSService.GetJSONFromIPFS(productData["productCID"].(string))
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product data from IPFS:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product data"})
+	}
+
+	// ✅ จัดรูปแบบ Response ให้ตรงกับ Frontend
+	response := fiber.Map{
+		"GeneralInfo": fiber.Map{
+			"productName": productData["productName"],
+			"category":    productData["category"],
+			"description": ipfsData["description"],
+			"quantity":    ipfsData["quantity"],
+		},
+		"Nutrition": ipfsData["nutrition"], // ✅ ดึง Nutrition จาก IPFS
+	}
+
+	// ✅ ส่งข้อมูลให้ Frontend
+	return c.Status(http.StatusOK).JSON(response)
 }

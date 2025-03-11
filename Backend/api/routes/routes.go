@@ -8,7 +8,7 @@ import (
 )
 
 // SetupRoutes sets up API routes
-func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController) {
+func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController, plc *controllers.ProductLotController) {
 	api := app.Group("/api/v1") // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
 
 	// ✅ Authentication Routes
@@ -45,6 +45,9 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	retailer.Post("/", middleware.AuthMiddleware(), controllers.CreateRetailer)
 	retailer.Get("/", middleware.AuthMiddleware(), controllers.GetRetailerByUser)
 	retailer.Put("/", middleware.AuthMiddleware(), controllers.UpdateRetailer)
+	retailer.Get("/list", controllers.GetAllRetailers)           // ดึง retailerID และชื่อร้านค้าทั้งหมด
+	retailer.Get("/:id", controllers.GetRetailerByID)            // ดึงข้อมูลร้านค้าตาม retailerID
+	retailer.Get("/usernames", controllers.GetRetailerUsernames) // ดึง username ทั้งหมดของร้านค้า
 
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
@@ -53,20 +56,27 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	certification.Get("/check/:certCID", controllers.CheckCertificationCID)
 	certification.Post("/store", middleware.AuthMiddleware(), controllers.StoreCertification)
 
-	// ✅ Milk Tank Routes (แก้ให้เรียกผ่าน `rmc.CreateMilkTank`)
+	// ✅ Milk Tank Routes
 	milk := api.Group("/farm/milk", middleware.AuthMiddleware())
-	milk.Post("/create", rmc.CreateMilkTank)                // ✅ ฟาร์มสร้างแท็งก์นมดิบใหม่
-	milk.Get("/list", rmc.GetFarmRawMilkTanks)              // ✅ ฟาร์มดึงรายการแท็งก์นมดิบของตัวเอง
-	milk.Get("/details/:tankId", rmc.GetRawMilkTankDetails) // ✅ ดึงรายละเอียดแท็งก์นมดิบตาม Tank ID
-	milk.Get("/qrcode/:tankId", rmc.GetQRCodeByTankID)      // ✅ ดึง QR Code ของแท็งก์นมดิบ
+	milk.Post("/create", rmc.CreateMilkTank)
+	milk.Get("/list", rmc.GetFarmRawMilkTanks)
+	milk.Get("/details/:tankId", rmc.GetRawMilkTankDetails)
+	milk.Get("/qrcode/:tankId", rmc.GetQRCodeByTankID)
 
 	// ✅ Milk Tank Routes สำหรับโรงงาน
 	factoryMilk := api.Group("/factory/milk", middleware.AuthMiddleware())
-	factoryMilk.Get("/list", rmc.GetFactoryRawMilkTanks) // ✅ โรงงานดึงรายการแท็งก์นมดิบที่ได้รับ
+	factoryMilk.Get("/list", rmc.GetFactoryRawMilkTanks)
 	factoryMilk.Post("/update-status", rmc.UpdateMilkTankStatus)
 
-	// ✅ Product Routes (เพิ่มเข้ามา)
+	// ✅ Product Routes
 	product := api.Group("/products", middleware.AuthMiddleware())
-	product.Post("/create", pc.CreateProduct)   // ✅ โรงงานสร้างสินค้าใหม่
-	product.Get("/list", pc.GetFactoryProducts) // ✅ ดึงสินค้าของโรงงาน
+	product.Post("/create", pc.CreateProduct)
+	product.Get("/list", pc.GetFactoryProducts)
+	product.Get("/:productId", pc.GetProductDetails)
+
+	// ✅ Product Lot Routes (ใหม่)
+	productLot := api.Group("/product-lots", middleware.AuthMiddleware())
+	productLot.Post("/create", plc.CreateProductLot) // ✅ โรงงานสร้าง Product Lot ใหม่
+	//productLot.Get("/list", plc.GetFactoryProductLots) // ✅ ดึงรายการ Product Lot ของโรงงาน
+	//productLot.Get("/:lotId", plc.GetProductLotDetails) // ✅ ดึงรายละเอียด Product Lot โดยใช้ lotId
 }

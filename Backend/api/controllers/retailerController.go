@@ -294,3 +294,88 @@ func UpdateRetailer(c *fiber.Ctx) error {
 		"retailer_id": user.EntityID,
 	})
 }
+
+// GetAllRetailers ดึง retailerID และชื่อร้านค้าทั้งหมด
+func GetAllRetailers(c *fiber.Ctx) error {
+	var retailers []models.Retailer // ✅ ใช้ Model เต็ม
+
+	// ✅ ลอง Query โดยใช้ Model เต็ม
+	result := database.DB.Find(&retailers)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch retailers"})
+	}
+
+	// ✅ Debug Log เช็คค่าที่ GORM ดึงออกมา
+	fmt.Println("📡 Query Result:", retailers)
+
+	// ✅ ถ้าไม่มีข้อมูล ให้แจ้งเตือน
+	if len(retailers) == 0 {
+		fmt.Println("⚠️ No retailers found in database")
+		return c.JSON([]models.Retailer{})
+	}
+
+	// ✅ สร้าง Array ใหม่ที่มีเฉพาะ `retailer_id` และ `company_name`
+	var simplifiedRetailers []struct {
+		RetailerID  string `json:"retailer_id"`
+		CompanyName string `json:"company_name"`
+	}
+
+	for _, retailer := range retailers {
+		simplifiedRetailers = append(simplifiedRetailers, struct {
+			RetailerID  string `json:"retailer_id"`
+			CompanyName string `json:"company_name"`
+		}{
+			RetailerID:  retailer.RetailerID,
+			CompanyName: retailer.CompanyName,
+		})
+	}
+
+	// ✅ Debug Log เช็คค่าก่อนส่งออกไป
+	fmt.Println("📡 Simplified Query Result:", simplifiedRetailers)
+
+	// ✅ ส่งข้อมูลกลับไป
+	return c.JSON(simplifiedRetailers)
+}
+
+// GetRetailerByID ดึงข้อมูลร้านค้าตาม retailerID
+func GetRetailerByID(c *fiber.Ctx) error {
+	retailerID := c.Params("id")
+
+	var retailer models.Retailer
+	if err := database.DB.Where("retailerid = ?", retailerID).First(&retailer).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Retailer not found"})
+	}
+
+	return c.JSON(fiber.Map{
+		"retailer_id":   retailer.RetailerID,
+		"company_name":  retailer.CompanyName,
+		"email":         retailer.Email,
+		"telephone":     retailer.Telephone,
+		"address":       retailer.Address,
+		"province":      retailer.Province,
+		"district":      retailer.District,
+		"subdistrict":   retailer.SubDistrict,
+		"post_code":     retailer.PostCode,
+		"location_link": retailer.LocationLink,
+	})
+}
+
+// GetRetailerUsernames ดึง username ทั้งหมดของร้านค้า
+func GetRetailerUsernames(c *fiber.Ctx) error {
+	var users []struct {
+		Username   string `json:"username"`
+		FirstName  string `json:"first_name"`
+		LastName   string `json:"last_name"`
+		RetailerID string `json:"retailer_id"`
+	}
+
+	if err := database.DB.Raw(`
+		SELECT username, SUBSTRING_INDEX(username, ' ', 1) AS first_name, 
+		SUBSTRING_INDEX(username, ' ', -1) AS last_name, entityid AS retailer_id 
+		FROM user WHERE role = 'retailer'
+	`).Scan(&users).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch usernames"})
+	}
+
+	return c.JSON(users)
+}

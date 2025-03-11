@@ -79,8 +79,15 @@ func main() {
 		services.IPFSServiceInstance,
 	)
 
-	// ✅ ส่ง `rawMilkController` และ `productController` ไปที่ `SetupRoutes`
-	routes.SetupRoutes(app, rawMilkController, productController)
+	// ✅ สร้าง ProductLotController
+	productLotController := controllers.NewProductLotController(
+		database.DB, // ✅ ใช้ database.DB ที่เป็น *gorm.DB
+		services.BlockchainServiceInstance,
+		services.IPFSServiceInstance,
+	)
+
+	// ✅ ส่ง Controller ไปที่ `SetupRoutes`
+	routes.SetupRoutes(app, rawMilkController, productController, productLotController)
 
 	// ✅ ให้บริการไฟล์ Static (Frontend)
 	app.Static("/", "./frontend")

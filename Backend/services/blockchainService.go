@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	// ✅ ใช้จาก external package	"encoding/json"
 
@@ -25,6 +26,7 @@ import (
 
 	certification "finalyearproject/Backend/services/certification_event" // ✅ สำหรับ Raw Milk
 	"finalyearproject/Backend/services/product"
+	"finalyearproject/Backend/services/productlot"
 	"finalyearproject/Backend/services/rawmilk"
 	"finalyearproject/Backend/services/userregistry"
 )
@@ -37,6 +39,7 @@ type BlockchainService struct {
 	certificationContract *certification.Certification
 	rawMilkContract       *rawmilk.Rawmilk
 	productContract       *product.Product
+	productLotContract    *productlot.Productlot
 }
 
 func getChainID() *big.Int {
@@ -85,9 +88,10 @@ func InitBlockchainService() error {
 	certContractAddress := os.Getenv("CERT_CONTRACT_ADDRESS")
 	rawMilkContractAddress := os.Getenv("RAWMILK_CONTRACT_ADDRESS")
 	userRegistryAddress := os.Getenv("USER_REGISTRY_CONTRACT_ADDRESS")
-	productContractAddress := os.Getenv("PRODUCT_CONTRACT_ADDRESS") // ✅ เพิ่ม Product Contract
+	productContractAddress := os.Getenv("PRODUCT_CONTRACT_ADDRESS")
+	productLotContractAddress := os.Getenv("PRODUCTLOT_CONTRACT_ADDRESS") // ✅ เพิ่ม ProductLot Contract
 
-	if certContractAddress == "" || rawMilkContractAddress == "" || userRegistryAddress == "" || productContractAddress == "" {
+	if certContractAddress == "" || rawMilkContractAddress == "" || userRegistryAddress == "" || productContractAddress == "" || productLotContractAddress == "" {
 		return fmt.Errorf("❌ Missing blockchain contract addresses")
 	}
 
@@ -95,7 +99,8 @@ func InitBlockchainService() error {
 	certContractAddr := common.HexToAddress(certContractAddress)
 	rawMilkContractAddr := common.HexToAddress(rawMilkContractAddress)
 	userRegistryAddr := common.HexToAddress(userRegistryAddress)
-	productContractAddr := common.HexToAddress(productContractAddress) // ✅ เพิ่ม Product Contract Address
+	productContractAddr := common.HexToAddress(productContractAddress)
+	productLotContractAddr := common.HexToAddress(productLotContractAddress) // ✅ แปลง ProductLot Address
 
 	// ✅ โหลด Certification Contract
 	certInstance, err := certification.NewCertification(certContractAddr, client)
@@ -121,18 +126,26 @@ func InitBlockchainService() error {
 		return fmt.Errorf("❌ Failed to load product contract: %v", err)
 	}
 
+	// ✅ โหลด ProductLot Contract
+	productLotInstance, err := productlot.NewProductlot(productLotContractAddr, client)
+	if err != nil {
+		return fmt.Errorf("❌ Failed to load product lot contract: %v", err)
+	}
+
 	BlockchainServiceInstance = &BlockchainService{
 		client:                client,
 		auth:                  auth,
 		userRegistryContract:  userRegistryInstance,
 		certificationContract: certInstance,
 		rawMilkContract:       rawMilkInstance,
-		productContract:       productInstance, // ✅ เพิ่ม Product Instance
+		productContract:       productInstance,
+		productLotContract:    productLotInstance, // ✅ เพิ่ม ProductLot Instance
 	}
 
 	fmt.Println("✅ Blockchain Service Initialized!")
 	return nil
 }
+
 func (b *BlockchainService) getPrivateKeyForAddress(userWallet string) (string, error) {
 	// ✅ กำหนด path ที่ถูกต้อง
 	filePath := "services/private_keys.json"
@@ -858,8 +871,10 @@ func validateProductData(factoryWallet, productId, productName, productCID, cate
 func (b *BlockchainService) GetProductsByFactory(factoryAddress string) ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching products for factory:", factoryAddress)
 
+	// ✅ แปลงที่อยู่ของโรงงานจาก string เป็น Ethereum Address
 	factory := common.HexToAddress(factoryAddress)
 
+	// ✅ ดึงรายการสินค้า จาก Smart Contract
 	ids, names, categories, err := b.productContract.GetProductsByFactory(&bind.CallOpts{From: factory})
 	if err != nil {
 		fmt.Println("❌ Failed to fetch products:", err)
@@ -868,12 +883,15 @@ func (b *BlockchainService) GetProductsByFactory(factoryAddress string) ([]map[s
 
 	var products []map[string]interface{}
 
+	// ✅ วนลูปดึงข้อมูลของแต่ละ Product และลบ NULL Characters (`\x00`)
 	for i := range ids {
+		productIdStr := string(bytes.Trim(ids[i][:], "\x00"))
+
 		product := map[string]interface{}{
-			"productId":   strings.TrimRight(string(ids[i][:]), "\x00"),
+			"productId":   productIdStr,
 			"productName": names[i],
 			"category":    categories[i],
-			"detailsLink": fmt.Sprintf("/Factory/ProductDetails/%s", strings.TrimRight(string(ids[i][:]), "\x00")),
+			"detailsLink": fmt.Sprintf("/Factory/ProductDetails/%s", productIdStr),
 		}
 		products = append(products, product)
 	}
@@ -886,8 +904,8 @@ func (b *BlockchainService) GetProductsByFactory(factoryAddress string) ([]map[s
 func (b *BlockchainService) GetProductDetails(productId string) (map[string]interface{}, error) {
 	fmt.Println("📌 Fetching product details:", productId)
 
-	productIdBytes := [32]byte{}
-	copy(productIdBytes[:], []byte(productId))
+	// ✅ ใช้ `common.BytesToHash([]byte(productId))` เหมือนตอนบันทึก
+	productIdBytes := common.BytesToHash([]byte(productId))
 
 	productData, err := b.productContract.GetProductDetails(&bind.CallOpts{}, productIdBytes)
 	if err != nil {
@@ -905,4 +923,124 @@ func (b *BlockchainService) GetProductDetails(productId string) (map[string]inte
 
 	fmt.Println("✅ Product details fetched successfully:", product)
 	return product, nil
+}
+
+// //////////////////////////////////////////////////////////// ProductLot /////////////////////////////////////////////////////////
+func (b *BlockchainService) CreateProductLot(
+	userWallet string,
+	lotId string,
+	productId string,
+	inspector string,
+	grade bool,
+	qualityAndNutritionCID string,
+	milkTankIds []string,
+) (string, error) {
+
+	fmt.Println("📌 Creating Product Lot on Blockchain for:", userWallet)
+
+	// ✅ ตรวจสอบค่าก่อนส่งธุรกรรม
+	err := validateProductLotData(userWallet, lotId, productId, inspector, strconv.FormatBool(grade), qualityAndNutritionCID, milkTankIds)
+	if err != nil {
+		return "", err
+	}
+
+	// ✅ ดึง Private Key ของ Wallet ของโรงงาน
+	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+
+	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของโรงงาน
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(userWallet)
+	auth.GasLimit = uint64(3000000)
+	auth.GasPrice = big.NewInt(20000000000)
+
+	// ✅ แปลง `lotId` และ `productId` เป็น `bytes32`
+	lotIdBytes := common.BytesToHash([]byte(lotId))
+	productIdBytes := common.BytesToHash([]byte(productId))
+
+	// ✅ แปลง `milkTankIds` เป็น `[][32]byte`
+	var milkTankBytes [][32]byte
+	for _, tankId := range milkTankIds {
+		var tankBytes [32]byte
+		copy(tankBytes[:], []byte(tankId))
+		milkTankBytes = append(milkTankBytes, tankBytes)
+	}
+
+	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	fmt.Println("📌 Debug - Sending to Blockchain:")
+	fmt.Println("   - Lot ID (Bytes32):", lotIdBytes)
+	fmt.Println("   - Product ID (Bytes32):", productIdBytes)
+	fmt.Println("   - Inspector:", inspector)
+	fmt.Println("   - Inspection Date:", time.Now().Unix()) // ใช้ timestamp ปัจจุบัน
+	fmt.Println("   - Grade:", grade)
+	fmt.Println("   - Quality & Nutrition CID:", qualityAndNutritionCID)
+	fmt.Println("   - Milk Tanks:", milkTankBytes)
+
+	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	tx, err := b.productLotContract.CreateProductLot(
+		auth,
+		lotIdBytes,
+		productIdBytes,
+		inspector,
+		grade,
+		qualityAndNutritionCID,
+		milkTankBytes,
+	)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create product lot on blockchain: %v", err)
+	}
+
+	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
+
+	// ✅ รอให้ Transaction ถูกบันทึก
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
+	}
+
+	if receipt.Status == types.ReceiptStatusFailed {
+		return "", errors.New("❌ Transaction failed")
+	}
+
+	fmt.Println("✅ Product Lot Created on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
+}
+
+// ✅ ฟังก์ชันตรวจสอบค่าก่อนสร้างธุรกรรม
+func validateProductLotData(userWallet, lotId, productId, inspector, grade, qualityAndNutritionCID string, milkTankIds []string) error {
+	if userWallet == "" {
+		return errors.New("❌ userWallet is required")
+	}
+	if !common.IsHexAddress(userWallet) {
+		return errors.New("❌ userWallet is not a valid Ethereum address")
+	}
+	if lotId == "" {
+		return errors.New("❌ lotId is required")
+	}
+	if productId == "" {
+		return errors.New("❌ productId is required")
+	}
+	if inspector == "" {
+		return errors.New("❌ inspector is required")
+	}
+	if grade == "" {
+		return errors.New("❌ grade is required")
+	}
+	if qualityAndNutritionCID == "" {
+		return errors.New("❌ qualityAndNutritionCID is required")
+	}
+	if len(milkTankIds) == 0 {
+		return errors.New("❌ milkTankIds cannot be empty")
+	}
+	return nil
 }
