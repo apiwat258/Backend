@@ -32,7 +32,7 @@ func main() {
 
 	// ✅ แก้ CORS Policy (ลบ `/` ท้าย `AllowOrigins`)
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://192.168.43.218:3000",
+		AllowOrigins:     "http://10.110.194.195:3000",
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Content-Type, Authorization",
 		AllowCredentials: true,

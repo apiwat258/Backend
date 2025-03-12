@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -153,6 +154,17 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product data"})
 	}
 
+	// ✅ Debug Log ตรวจสอบว่า `productIPFSData` มีอะไรอยู่บ้าง
+	fmt.Println("📌 Debug: productIPFSData =", productIPFSData)
+
+	// ✅ ตรวจสอบว่า Nutrition มีค่าหรือไม่
+	NutritionData, ok := productIPFSData["nutrition"].(map[string]interface{})
+	if !ok {
+		fmt.Println("❌ Error: Nutrition data is missing or incorrect")
+		fmt.Println("📌 Debug: Available keys in productIPFSData:", reflect.ValueOf(productIPFSData).MapKeys()) // ✅ เช็คว่า key มีอะไรบ้าง
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Nutrition data structure is incorrect"})
+	}
+
 	// ✅ ดึงข้อมูล JSON จาก IPFS ของ Product Lot (Quality & Nutrition)
 	ipfsCID := productLotData.QualityAndNutritionCID
 	ipfsData, err := pc.IPFSService.GetJSONFromIPFS(ipfsCID)
@@ -160,6 +172,40 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 		fmt.Println("❌ Failed to fetch quality & nutrition data from IPFS:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality & nutrition data"})
 	}
+
+	// ✅ Debug Log ตรวจสอบว่า `ipfsData` มีอะไรอยู่บ้าง
+	fmt.Println("📌 Debug: ipfsData =", ipfsData)
+
+	// ✅ ตรวจสอบว่า qualityData มีอยู่จริงหรือไม่
+	qualityDataMap, ok := ipfsData["qualityData"].(map[string]interface{})
+	if !ok {
+		fmt.Println("❌ Error: qualityData is missing or incorrect")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "qualityData structure is incorrect"})
+	}
+
+	// ✅ ดึงข้อมูล quality
+	qualityData, ok := qualityDataMap["quality"].(map[string]interface{})
+	if !ok {
+		fmt.Println("❌ Error: Quality data is missing or incorrect")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Quality data structure is incorrect"})
+	}
+
+	// ✅ ดึงข้อมูล nutrition (แก้จาก := เป็น =)
+	nutritionData, ok := qualityDataMap["nutrition"].(map[string]interface{})
+	if !ok {
+		fmt.Println("❌ Error: Nutrition data is missing or incorrect")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Nutrition data structure is incorrect"})
+	}
+	// ✅ แปลง `grade` เป็นข้อความ
+	var gradeText string
+	if productLotData.Grade {
+		gradeText = "Passed"
+	} else {
+		gradeText = "Failed"
+	}
+
+	// ✅ แปลง `inspectionDate` เป็น `YYYY-MM-DD HH:mm:ss`
+	inspectionTime := time.Unix(productLotData.InspectionDate.Unix(), 0).Format("2006-01-02 15:04:05")
 
 	// ✅ จัดรูปแบบข้อมูลที่ส่งไป Frontend
 	response := fiber.Map{
@@ -169,32 +215,33 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 			"category":     productData["category"],
 			"description":  productIPFSData["description"],
 			"quantity":     productIPFSData["quantity"],
-			"quantityUnit": productIPFSData["Nutrition"].(map[string]interface{})["quantityUnit"], // ✅ ใช้จาก IPFS ของ Product
+			"quantityUnit": NutritionData["quantityUnit"], // ✅ ใช้จาก IPFS ของ Product
 		},
 		"selectMilkTank": fiber.Map{
 			"tankIds":         productLotData.MilkTankIDs,
-			"temp":            ipfsData["quality"].(map[string]interface{})["temp"],
-			"tempUnit":        ipfsData["quality"].(map[string]interface{})["tempUnit"],
-			"pH":              ipfsData["quality"].(map[string]interface{})["pH"],
-			"fat":             ipfsData["quality"].(map[string]interface{})["fat"],
-			"protein":         ipfsData["quality"].(map[string]interface{})["protein"],
-			"bacteria":        ipfsData["quality"].(map[string]interface{})["bacteria"],
-			"bacteriaInfo":    ipfsData["quality"].(map[string]interface{})["bacteriaInfo"],
-			"contaminants":    ipfsData["quality"].(map[string]interface{})["contaminants"],
-			"contaminantInfo": ipfsData["quality"].(map[string]interface{})["contaminantInfo"],
-			"abnormalChar":    ipfsData["quality"].(map[string]interface{})["abnormalChar"],
-			"abnormalType":    ipfsData["quality"].(map[string]interface{})["abnormalType"],
+			"temp":            qualityData["temp"],
+			"tempUnit":        qualityData["tempUnit"],
+			"pH":              qualityData["pH"],
+			"fat":             qualityData["fat"],
+			"protein":         qualityData["protein"],
+			"bacteria":        qualityData["bacteria"],
+			"bacteriaInfo":    qualityData["bacteriaInfo"],
+			"contaminants":    qualityData["contaminants"],
+			"contaminantInfo": qualityData["contaminantInfo"],
+			"abnormalChar":    qualityData["abnormalChar"],
+			"abnormalType":    qualityData["abnormalType"],
 		},
 		"Quality": fiber.Map{
-			"grade":          productLotData.Grade,
-			"inspectionDate": productLotData.InspectionDate.Unix(), // ✅ แปลงเป็น Timestamp
+			"grade":          gradeText,
+			"inspectionDate": inspectionTime, // ✅ แปลงเป็น Timestamp
 			"inspector":      productLotData.Inspector,
 		},
-		"nutrition": ipfsData["nutrition"],
+		"nutrition": nutritionData, // ✅ ใช้ nutritionData ที่ถูกต้อง
 	}
 
 	// ✅ ส่งข้อมูลให้ Frontend
 	return c.Status(http.StatusOK).JSON(response)
+
 }
 
 // ✅ ฟังก์ชันดึง Product Lots ทั้งหมดของโรงงาน
