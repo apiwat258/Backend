@@ -926,6 +926,18 @@ func (b *BlockchainService) GetProductDetails(productId string) (map[string]inte
 }
 
 // //////////////////////////////////////////////////////////// ProductLot /////////////////////////////////////////////////////////
+
+type ProductLotInfo struct {
+	LotID                  string
+	ProductID              string
+	Factory                string
+	Inspector              string
+	InspectionDate         time.Time
+	Grade                  bool
+	QualityAndNutritionCID string
+	MilkTankIDs            []string
+}
+
 func (b *BlockchainService) CreateProductLot(
 	userWallet string,
 	lotId string,
@@ -971,8 +983,7 @@ func (b *BlockchainService) CreateProductLot(
 	// ✅ แปลง `milkTankIds` เป็น `[][32]byte`
 	var milkTankBytes [][32]byte
 	for _, tankId := range milkTankIds {
-		var tankBytes [32]byte
-		copy(tankBytes[:], []byte(tankId))
+		tankBytes := common.BytesToHash([]byte(tankId)) // ✅ ใช้วิธีเดียวกับตอนสร้าง Milk Tank
 		milkTankBytes = append(milkTankBytes, tankBytes)
 	}
 
@@ -1043,4 +1054,90 @@ func validateProductLotData(userWallet, lotId, productId, inspector, grade, qual
 		return errors.New("❌ milkTankIds cannot be empty")
 	}
 	return nil
+}
+
+// ✅ ดึงข้อมูล Product Lot ตาม `productId`
+func (b *BlockchainService) GetProductLotByLotID(lotId string) (*ProductLotInfo, error) {
+	fmt.Println("📌 Fetching Product Lot for Lot ID:", lotId)
+
+	// ✅ แปลง `lotId` เป็น `bytes32`
+	lotIdBytes := common.BytesToHash([]byte(lotId))
+
+	// ✅ เรียก Smart Contract เพื่อนำข้อมูล Product Lot ออกมา
+	productLotData, err := b.productLotContract.GetProductLot(nil, lotIdBytes)
+	if err != nil {
+		return nil, fmt.Errorf("❌ Failed to fetch Product Lot: %v", err)
+	}
+
+	// ✅ แปลงข้อมูลจาก Smart Contract เป็น Struct
+	result := &ProductLotInfo{
+		LotID:                  string(bytes.Trim(productLotData.LotId[:], "\x00")),
+		ProductID:              string(bytes.Trim(productLotData.ProductId[:], "\x00")),
+		Factory:                productLotData.Factory.Hex(),
+		Inspector:              productLotData.Inspector,
+		InspectionDate:         time.Unix(productLotData.InspectionDate.Int64(), 0),
+		Grade:                  productLotData.Grade,
+		QualityAndNutritionCID: productLotData.QualityAndNutritionCID,
+		MilkTankIDs:            convertBytes32ArrayToStrings(productLotData.MilkTankIds),
+	}
+
+	fmt.Println("✅ Product Lot Found:", result)
+	return result, nil
+}
+
+// ✅ ดึง Product Lots ทั้งหมดของโรงงาน
+func (b *BlockchainService) GetProductLotsByFactory(factoryAddress string) ([]map[string]string, error) {
+	fmt.Println("📌 Fetching Product Lots for Factory:", factoryAddress)
+
+	// ✅ แปลงที่อยู่โรงงานเป็น Address
+	factoryAddr := common.HexToAddress(factoryAddress)
+
+	// ✅ เรียก Smart Contract เพื่อดึง Lot IDs ทั้งหมดของโรงงาน
+	lotIds, err := b.productLotContract.GetProductLotsByFactory(nil, factoryAddr)
+	if err != nil {
+		return nil, fmt.Errorf("❌ Failed to fetch Product Lots: %v", err)
+	}
+
+	// ✅ แปลง `bytes32[]` เป็น `[]string`
+	lotIdStrings := convertBytes32ArrayToStrings(lotIds)
+
+	// ✅ เตรียมผลลัพธ์
+	var productLots []map[string]string
+
+	// ✅ ดึงข้อมูลของแต่ละ Product Lot
+	for _, lotId := range lotIdStrings {
+		// ✅ ดึงข้อมูล Product Lot จาก Blockchain
+		productLotData, err := b.GetProductLotByLotID(lotId)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch Product Lot:", lotId, err)
+			continue // ข้ามอันที่ดึงไม่ได้
+		}
+
+		// ✅ ดึงข้อมูล Product Name จาก Smart Contract
+		productID := productLotData.ProductID
+		productData, err := b.GetProductDetails(productID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch Product Name for Product ID:", productID, err)
+			continue // ข้ามอันที่ดึงไม่ได้
+		}
+
+		// ✅ เพิ่มข้อมูลเข้าไปในผลลัพธ์
+		productLots = append(productLots, map[string]string{
+			"Product Lot No":   lotId,
+			"Product Name":     productData["productName"].(string),
+			"Person In Charge": productLotData.Inspector, // ✅ ดึงชื่อ Inspector
+		})
+	}
+
+	fmt.Println("✅ Product Lots Fetched Successfully:", productLots)
+	return productLots, nil
+}
+
+// ✅ Helper Function: แปลง `bytes32[]` เป็น `[]string`
+func convertBytes32ArrayToStrings(arr [][32]byte) []string {
+	var result []string
+	for _, item := range arr {
+		result = append(result, string(bytes.Trim(item[:], "\x00"))) // ลบ NULL Bytes
+	}
+	return result
 }

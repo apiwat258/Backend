@@ -45,9 +45,9 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	retailer.Post("/", middleware.AuthMiddleware(), controllers.CreateRetailer)
 	retailer.Get("/", middleware.AuthMiddleware(), controllers.GetRetailerByUser)
 	retailer.Put("/", middleware.AuthMiddleware(), controllers.UpdateRetailer)
-	retailer.Get("/list", controllers.GetAllRetailers)           // ดึง retailerID และชื่อร้านค้าทั้งหมด
-	retailer.Get("/:id", controllers.GetRetailerByID)            // ดึงข้อมูลร้านค้าตาม retailerID
-	retailer.Get("/usernames", controllers.GetRetailerUsernames) // ดึง username ทั้งหมดของร้านค้า
+	retailer.Get("/list", controllers.GetAllRetailers) // ดึง retailerID และชื่อร้านค้าทั้งหมด
+	retailer.Get("/usernames", controllers.GetRetailerUsernames)
+	retailer.Get("/:id", controllers.GetRetailerByID) // ดึงข้อมูลร้านค้าตาม retailerID
 
 	certification := api.Group("/certifications")
 	certification.Post("/upload", controllers.UploadCertificate)
@@ -76,7 +76,7 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 
 	// ✅ Product Lot Routes (ใหม่)
 	productLot := api.Group("/product-lots", middleware.AuthMiddleware())
-	productLot.Post("/create", plc.CreateProductLot) // ✅ โรงงานสร้าง Product Lot ใหม่
-	//productLot.Get("/list", plc.GetFactoryProductLots) // ✅ ดึงรายการ Product Lot ของโรงงาน
-	//productLot.Get("/:lotId", plc.GetProductLotDetails) // ✅ ดึงรายละเอียด Product Lot โดยใช้ lotId
+	productLot.Post("/create", plc.CreateProductLot)    // ✅ โรงงานสร้าง Product Lot ใหม่
+	productLot.Get("/list", plc.GetFactoryProductLots)  // ✅ ดึงรายการ Product Lot ของโรงงาน
+	productLot.Get("/:lotId", plc.GetProductLotDetails) // ✅ ดึงรายละเอียด Product Lot โดยใช้ lotId
 }

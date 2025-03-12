@@ -117,3 +117,130 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 func (plc *ProductLotController) generateLotID(factoryID string) string {
 	return fmt.Sprintf("LOT-%s-%d", factoryID, time.Now().Unix())
 }
+
+// ✅ ฟังก์ชันดึงข้อมูล Product Lot Details
+func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Product Lot Details")
+
+	// ✅ ดึง `lotId` จาก URL Parameter
+	lotID := c.Params("lotId")
+	if lotID == "" {
+		fmt.Println("❌ Product Lot ID is missing")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Product Lot ID is required"})
+	}
+	fmt.Println("✅ Product Lot ID:", lotID)
+
+	// ✅ ดึงข้อมูล Product Lot จาก Blockchain
+	productLotData, err := pc.BlockchainService.GetProductLotByLotID(lotID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product lot from blockchain:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product lot details"})
+	}
+
+	// ✅ ดึงข้อมูล Product จาก Smart Contract
+	productID := productLotData.ProductID
+	productData, err := pc.BlockchainService.GetProductDetails(productID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product from blockchain:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product details"})
+	}
+
+	// ✅ ดึงข้อมูล JSON จาก IPFS ของ Product (เพื่อหา quantityUnit)
+	productIPFSCID := productData["productCID"].(string)
+	productIPFSData, err := pc.IPFSService.GetJSONFromIPFS(productIPFSCID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product data from IPFS:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product data"})
+	}
+
+	// ✅ ดึงข้อมูล JSON จาก IPFS ของ Product Lot (Quality & Nutrition)
+	ipfsCID := productLotData.QualityAndNutritionCID
+	ipfsData, err := pc.IPFSService.GetJSONFromIPFS(ipfsCID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch quality & nutrition data from IPFS:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch quality & nutrition data"})
+	}
+
+	// ✅ จัดรูปแบบข้อมูลที่ส่งไป Frontend
+	response := fiber.Map{
+		"GeneralInfo": fiber.Map{
+			"productId":    productID,
+			"productName":  productData["productName"],
+			"category":     productData["category"],
+			"description":  productIPFSData["description"],
+			"quantity":     productIPFSData["quantity"],
+			"quantityUnit": productIPFSData["Nutrition"].(map[string]interface{})["quantityUnit"], // ✅ ใช้จาก IPFS ของ Product
+		},
+		"selectMilkTank": fiber.Map{
+			"tankIds":         productLotData.MilkTankIDs,
+			"temp":            ipfsData["quality"].(map[string]interface{})["temp"],
+			"tempUnit":        ipfsData["quality"].(map[string]interface{})["tempUnit"],
+			"pH":              ipfsData["quality"].(map[string]interface{})["pH"],
+			"fat":             ipfsData["quality"].(map[string]interface{})["fat"],
+			"protein":         ipfsData["quality"].(map[string]interface{})["protein"],
+			"bacteria":        ipfsData["quality"].(map[string]interface{})["bacteria"],
+			"bacteriaInfo":    ipfsData["quality"].(map[string]interface{})["bacteriaInfo"],
+			"contaminants":    ipfsData["quality"].(map[string]interface{})["contaminants"],
+			"contaminantInfo": ipfsData["quality"].(map[string]interface{})["contaminantInfo"],
+			"abnormalChar":    ipfsData["quality"].(map[string]interface{})["abnormalChar"],
+			"abnormalType":    ipfsData["quality"].(map[string]interface{})["abnormalType"],
+		},
+		"Quality": fiber.Map{
+			"grade":          productLotData.Grade,
+			"inspectionDate": productLotData.InspectionDate.Unix(), // ✅ แปลงเป็น Timestamp
+			"inspector":      productLotData.Inspector,
+		},
+		"nutrition": ipfsData["nutrition"],
+	}
+
+	// ✅ ส่งข้อมูลให้ Frontend
+	return c.Status(http.StatusOK).JSON(response)
+}
+
+// ✅ ฟังก์ชันดึง Product Lots ทั้งหมดของโรงงาน
+func (plc *ProductLotController) GetFactoryProductLots(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Factory Product Lots")
+
+	// ✅ ดึงข้อมูลจาก JWT Token
+	role := c.Locals("role").(string)
+	factoryWallet := c.Locals("walletAddress").(string)
+
+	// ✅ ตรวจสอบสิทธิ์ (เฉพาะ Factory เท่านั้น)
+	if role != "factory" {
+		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only factories can view product lots"})
+	}
+
+	// ✅ ดึงค่าที่พิมพ์ในช่องค้นหา (Search Query)
+	searchQuery := strings.ToLower(c.Query("search", ""))
+
+	// ✅ ดึงข้อมูล Product Lots จาก Blockchain (ได้ค่าครบเลย)
+	productLots, err := plc.BlockchainService.GetProductLotsByFactory(factoryWallet)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product lots:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product lots"})
+	}
+
+	// ✅ กรองข้อมูลตาม Search Query
+	var filteredProductLots []map[string]interface{}
+	for _, lot := range productLots {
+		lotID := lot["Product Lot No"]
+		productName := lot["Product Name"]
+		personInCharge := lot["Person In Charge"]
+
+		// ✅ ถ้า searchQuery ว่าง → แสดงทั้งหมด, ถ้าไม่ว่าง → ค้นหาตาม Lot ID หรือ Product Name
+		if searchQuery == "" || strings.Contains(strings.ToLower(lotID), searchQuery) || strings.Contains(strings.ToLower(productName), searchQuery) {
+			filteredProductLots = append(filteredProductLots, map[string]interface{}{
+				"productLotNo":   lotID,
+				"productName":    productName,
+				"personInCharge": personInCharge,
+				"moreInfoLink":   fmt.Sprintf("/Factory/ProductLot/Details?id=%s", lotID),
+			})
+		}
+	}
+
+	// ✅ ส่ง Response กลับไปที่ Frontend
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"displayedProductLots": filteredProductLots,
+		"addNewLotLink":        "/Factory/CreateProductLot",
+	})
+}

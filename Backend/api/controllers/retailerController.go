@@ -362,20 +362,51 @@ func GetRetailerByID(c *fiber.Ctx) error {
 
 // GetRetailerUsernames ดึง username ทั้งหมดของร้านค้า
 func GetRetailerUsernames(c *fiber.Ctx) error {
+	// ✅ ดึงค่า retailer_id จาก query parameter
+	retailerID := c.Query("retailer_id")               // <-- ตรวจสอบว่าค่านี้ถูกต้องจริงๆ
+	fmt.Println("📌 Received retailer_id:", retailerID) // ✅ Debug Log
+
+	// ✅ ถ้าไม่มี retailer_id ให้ return error
+	if retailerID == "" {
+		fmt.Println("❌ Missing retailer_id") // ✅ Debug Log
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing retailer_id"})
+	}
+
+	// ✅ ตรวจสอบว่ามี retailer_id จริงใน database
+	var count int64
+	if err := database.DB.Model(&models.Retailer{}).Where("retailerid = ?", retailerID).Count(&count).Error; err != nil {
+		fmt.Println("❌ Database Error:", err) // ✅ Debug Log
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error"})
+	}
+
+	// ✅ ถ้าไม่พบ retailer_id
+	if count == 0 {
+		fmt.Println("❌ Retailer not found in database for ID:", retailerID) // ✅ Debug Log
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Retailer not found"})
+	}
+
+	// ✅ Query หาข้อมูล users ที่ entityid ตรงกับ retailer_id
 	var users []struct {
-		Username   string `json:"username"`
-		FirstName  string `json:"first_name"`
-		LastName   string `json:"last_name"`
-		RetailerID string `json:"retailer_id"`
+		Username  string `json:"username"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		EntityID  string `json:"entity_id"`
 	}
 
 	if err := database.DB.Raw(`
-		SELECT username, SUBSTRING_INDEX(username, ' ', 1) AS first_name, 
-		SUBSTRING_INDEX(username, ' ', -1) AS last_name, entityid AS retailer_id 
-		FROM user WHERE role = 'retailer'
-	`).Scan(&users).Error; err != nil {
+		SELECT username, 
+		       SPLIT_PART(username, ' ', 1) AS first_name, 
+		       SPLIT_PART(username, ' ', 2) AS last_name, 
+		       entityid AS entity_id 
+		FROM users WHERE role = 'retailer' AND entityid = ?
+	`, retailerID).Scan(&users).Error; err != nil {
+		fmt.Println("❌ Query Error:", err) // ✅ Debug Log
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch usernames"})
 	}
 
+	// ✅ Debug Log เช็คค่าที่ดึงออกมา
+	fmt.Println("📡 Query Result:", users)
+
+	// ✅ ส่งข้อมูลกลับไป
 	return c.JSON(users)
 }
