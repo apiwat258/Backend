@@ -14,7 +14,7 @@ contract Tracking {
     struct TrackingEvent {
         bytes32 trackingId;
         bytes32 productLotId;
-        address retailer;
+        string retailerId; // ✅ เก็บไอดีของร้านค้าแทน Address
         string qrCodeCID;
         TrackingStatus status;
     }
@@ -32,7 +32,7 @@ contract Tracking {
 
     struct RetailerConfirmation {
         bytes32 trackingId;
-        address retailer;
+        string retailerId; // ✅ ใช้ Retailer ID แทน Address
         uint256 receivedTime;
         string qualityCID;
         string personInCharge;
@@ -41,20 +41,20 @@ contract Tracking {
     mapping(bytes32 => TrackingEvent) public trackingEvents;
     mapping(bytes32 => LogisticsCheckpoint[]) public logisticsCheckpoints;
     mapping(bytes32 => RetailerConfirmation) public retailerConfirmations;
-    mapping(address => bytes32[]) public retailerTracking;
+    mapping(string => bytes32[]) public retailerTracking; // ✅ ใช้ Retailer ID เป็น key
     bytes32[] public trackingIds;
 
-    event TrackingCreated(bytes32 indexed trackingId, bytes32 indexed productLotId, address indexed retailer, string qrCodeCID);
+    event TrackingCreated(bytes32 indexed trackingId, bytes32 indexed productLotId, string retailerId, string qrCodeCID);
     event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, LogisticsCheckType checkType);
-    event RetailerReceived(bytes32 indexed trackingId, address indexed retailer, string qualityCID);
+    event RetailerReceived(bytes32 indexed trackingId, string retailerId, string qualityCID);
 
     modifier onlyLogistics() {
         require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Logistics, "Access denied: Only logistics allowed");
         _;
     }
 
-    modifier onlyRetailer() {
-        require(userRegistry.getUserRole(msg.sender) == UserRegistry.UserRole.Retailer, "Access denied: Only retailers allowed");
+    modifier onlyRetailer(string memory _retailerId) {
+        require(bytes(_retailerId).length > 0, "Access denied: Invalid retailer ID");
         _;
     }
 
@@ -66,23 +66,25 @@ contract Tracking {
     function createTrackingEvent(
         bytes32 _trackingId,
         bytes32 _productLotId,
-        address _retailer,
+        string memory _retailerId,
         string memory _qrCodeCID
     ) public {
         require(productLotContract.isProductLotExists(_productLotId), "Error: Product Lot does not exist");
         require(trackingEvents[_trackingId].trackingId == bytes32(0), "Error: Tracking ID already exists");
+        require(bytes(_retailerId).length > 0, "Error: Invalid Retailer ID");
+        require(bytes(_qrCodeCID).length > 0, "Error: QR Code CID cannot be empty");
 
         trackingEvents[_trackingId] = TrackingEvent({
             trackingId: _trackingId,
             productLotId: _productLotId,
-            retailer: _retailer,
+            retailerId: _retailerId,
             qrCodeCID: _qrCodeCID,
             status: TrackingStatus.Pending
         });
 
         trackingIds.push(_trackingId);
-        retailerTracking[_retailer].push(_trackingId);
-        emit TrackingCreated(_trackingId, _productLotId, _retailer, _qrCodeCID);
+        retailerTracking[_retailerId].push(_trackingId);
+        emit TrackingCreated(_trackingId, _productLotId, _retailerId, _qrCodeCID);
     }
 
     function updateLogisticsCheckpoint(
@@ -110,21 +112,22 @@ contract Tracking {
 
     function retailerReceiveProduct(
         bytes32 _trackingId,
+        string memory _retailerId,
         string memory _qualityCID,
         string memory _personInCharge
-    ) public onlyRetailer {
+    ) public onlyRetailer(_retailerId) {
         require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
-        require(trackingEvents[_trackingId].retailer == msg.sender, "Error: Only assigned retailer can receive");
+        require(keccak256(abi.encodePacked(trackingEvents[_trackingId].retailerId)) == keccak256(abi.encodePacked(_retailerId)), "Error: Only assigned retailer can receive");
 
         trackingEvents[_trackingId].status = TrackingStatus.Received;
         retailerConfirmations[_trackingId] = RetailerConfirmation({
             trackingId: _trackingId,
-            retailer: msg.sender,
+            retailerId: _retailerId,
             receivedTime: block.timestamp,
             qualityCID: _qualityCID,
             personInCharge: _personInCharge
         });
-        emit RetailerReceived(_trackingId, msg.sender, _qualityCID);
+        emit RetailerReceived(_trackingId, _retailerId, _qualityCID);
     }
 
     function getTrackingById(bytes32 _trackingId) public view returns (TrackingEvent memory, LogisticsCheckpoint[] memory, RetailerConfirmation memory) {
@@ -132,7 +135,7 @@ contract Tracking {
         return (trackingEvents[_trackingId], logisticsCheckpoints[_trackingId], retailerConfirmations[_trackingId]);
     }
 
-    function getTrackingByRetailer(address _retailer) public view returns (bytes32[] memory) {
-        return retailerTracking[_retailer];
+    function getTrackingByRetailer(string memory _retailerId) public view returns (bytes32[] memory) {
+        return retailerTracking[_retailerId];
     }
 }

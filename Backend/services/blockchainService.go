@@ -28,6 +28,7 @@ import (
 	"finalyearproject/Backend/services/product"
 	"finalyearproject/Backend/services/productlot"
 	"finalyearproject/Backend/services/rawmilk"
+	"finalyearproject/Backend/services/tracking"
 	"finalyearproject/Backend/services/userregistry"
 )
 
@@ -40,6 +41,7 @@ type BlockchainService struct {
 	rawMilkContract       *rawmilk.Rawmilk
 	productContract       *product.Product
 	productLotContract    *productlot.Productlot
+	trackingContract      *tracking.Tracking
 }
 
 func getChainID() *big.Int {
@@ -89,7 +91,8 @@ func InitBlockchainService() error {
 	rawMilkContractAddress := os.Getenv("RAWMILK_CONTRACT_ADDRESS")
 	userRegistryAddress := os.Getenv("USER_REGISTRY_CONTRACT_ADDRESS")
 	productContractAddress := os.Getenv("PRODUCT_CONTRACT_ADDRESS")
-	productLotContractAddress := os.Getenv("PRODUCTLOT_CONTRACT_ADDRESS") // ✅ เพิ่ม ProductLot Contract
+	productLotContractAddress := os.Getenv("PRODUCTLOT_CONTRACT_ADDRESS")
+	trackingContractAddress := os.Getenv("TRACKING_CONTRACT_ADDRESS")
 
 	if certContractAddress == "" || rawMilkContractAddress == "" || userRegistryAddress == "" || productContractAddress == "" || productLotContractAddress == "" {
 		return fmt.Errorf("❌ Missing blockchain contract addresses")
@@ -100,7 +103,8 @@ func InitBlockchainService() error {
 	rawMilkContractAddr := common.HexToAddress(rawMilkContractAddress)
 	userRegistryAddr := common.HexToAddress(userRegistryAddress)
 	productContractAddr := common.HexToAddress(productContractAddress)
-	productLotContractAddr := common.HexToAddress(productLotContractAddress) // ✅ แปลง ProductLot Address
+	productLotContractAddr := common.HexToAddress(productLotContractAddress)
+	trackingContractAddr := common.HexToAddress(trackingContractAddress)
 
 	// ✅ โหลด Certification Contract
 	certInstance, err := certification.NewCertification(certContractAddr, client)
@@ -132,6 +136,12 @@ func InitBlockchainService() error {
 		return fmt.Errorf("❌ Failed to load product lot contract: %v", err)
 	}
 
+	// ✅ โหลด Tracking Contract
+	trackingInstance, err := tracking.NewTracking(trackingContractAddr, client)
+	if err != nil {
+		return fmt.Errorf("❌ Failed to load tracking contract: %v", err)
+	}
+
 	BlockchainServiceInstance = &BlockchainService{
 		client:                client,
 		auth:                  auth,
@@ -139,7 +149,8 @@ func InitBlockchainService() error {
 		certificationContract: certInstance,
 		rawMilkContract:       rawMilkInstance,
 		productContract:       productInstance,
-		productLotContract:    productLotInstance, // ✅ เพิ่ม ProductLot Instance
+		productLotContract:    productLotInstance,
+		trackingContract:      trackingInstance,
 	}
 
 	fmt.Println("✅ Blockchain Service Initialized!")
@@ -1140,4 +1151,75 @@ func convertBytes32ArrayToStrings(arr [][32]byte) []string {
 		result = append(result, string(bytes.Trim(item[:], "\x00"))) // ลบ NULL Bytes
 	}
 	return result
+}
+
+// //////////////////////////////////////////////////////////// Tracking Event /////////////////////////////////////////////////////////
+// CreateTrackingEvent - สร้างแทรคกิ้งอีเว้นต์
+func (b *BlockchainService) CreateTrackingEvent(
+	userWallet string,
+	trackingId string,
+	productLotId string,
+	retailerId string,
+	qrCodeCID string,
+) (string, error) {
+
+	fmt.Println("📌 Creating Tracking Event on Blockchain for:", userWallet)
+
+	// ✅ ดึง Private Key ของโรงงาน
+	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+
+	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของโรงงาน
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(userWallet)
+	auth.GasLimit = uint64(3000000)
+	auth.GasPrice = big.NewInt(20000000000)
+
+	// ✅ แปลง `trackingId` และ `productLotId` เป็น `bytes32`
+	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	productLotIdBytes := common.BytesToHash([]byte(productLotId))
+
+	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	fmt.Println("📌 Debug - Sending to Blockchain:")
+	fmt.Println("   - Tracking ID (Bytes32):", trackingIdBytes)
+	fmt.Println("   - Product Lot ID (Bytes32):", productLotIdBytes)
+	fmt.Println("   - Retailer ID:", retailerId)
+	fmt.Println("   - QR Code CID:", qrCodeCID)
+
+	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	tx, err := b.trackingContract.CreateTrackingEvent(
+		auth,
+		trackingIdBytes,
+		productLotIdBytes,
+		retailerId,
+		qrCodeCID,
+	)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create tracking event on blockchain: %v", err)
+	}
+
+	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
+
+	// ✅ รอให้ Transaction ถูกบันทึก
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
+	}
+
+	if receipt.Status == types.ReceiptStatusFailed {
+		return "", errors.New("❌ Transaction failed")
+	}
+
+	fmt.Println("✅ Tracking Event Created on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
 }

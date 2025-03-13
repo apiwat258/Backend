@@ -50,10 +50,10 @@
         "type": "bytes32"
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "retailer",
-        "type": "address"
+        "indexed": false,
+        "internalType": "string",
+        "name": "retailerId",
+        "type": "string"
       },
       {
         "indexed": false,
@@ -81,10 +81,10 @@
         "type": "bytes32"
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "retailer",
-        "type": "address"
+        "indexed": false,
+        "internalType": "string",
+        "name": "retailerId",
+        "type": "string"
       },
       {
         "indexed": false,
@@ -153,8 +153,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -167,8 +166,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -186,9 +184,9 @@
         "type": "bytes32"
       },
       {
-        "internalType": "address",
-        "name": "retailer",
-        "type": "address"
+        "internalType": "string",
+        "name": "retailerId",
+        "type": "string"
       },
       {
         "internalType": "uint256",
@@ -207,15 +205,14 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
       {
-        "internalType": "address",
+        "internalType": "string",
         "name": "",
-        "type": "address"
+        "type": "string"
       },
       {
         "internalType": "uint256",
@@ -232,8 +229,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -256,9 +252,9 @@
         "type": "bytes32"
       },
       {
-        "internalType": "address",
-        "name": "retailer",
-        "type": "address"
+        "internalType": "string",
+        "name": "retailerId",
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -272,8 +268,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -292,8 +287,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -306,8 +300,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -322,9 +315,9 @@
         "type": "bytes32"
       },
       {
-        "internalType": "address",
-        "name": "_retailer",
-        "type": "address"
+        "internalType": "string",
+        "name": "_retailerId",
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -389,6 +382,11 @@
       },
       {
         "internalType": "string",
+        "name": "_retailerId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
         "name": "_qualityCID",
         "type": "string"
       },
@@ -426,9 +424,9 @@
             "type": "bytes32"
           },
           {
-            "internalType": "address",
-            "name": "retailer",
-            "type": "address"
+            "internalType": "string",
+            "name": "retailerId",
+            "type": "string"
           },
           {
             "internalType": "string",
@@ -500,9 +498,9 @@
             "type": "bytes32"
           },
           {
-            "internalType": "address",
-            "name": "retailer",
-            "type": "address"
+            "internalType": "string",
+            "name": "retailerId",
+            "type": "string"
           },
           {
             "internalType": "uint256",
@@ -526,15 +524,14 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_retailer",
-        "type": "address"
+        "internalType": "string",
+        "name": "_retailerId",
+        "type": "string"
       }
     ],
     "name": "getTrackingByRetailer",
@@ -546,7 +543,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   }
 ]

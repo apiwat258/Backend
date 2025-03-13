@@ -291,3 +291,77 @@ func (plc *ProductLotController) GetFactoryProductLots(c *fiber.Ctx) error {
 		"addNewLotLink":        "/Factory/CreateProductLot",
 	})
 }
+
+// ///tracking///
+// TestCreateTrackingController - ควบคุมการเทสสร้าง Tracking Event
+func TestCreateTrackingController(w http.ResponseWriter, r *http.Request) {
+	type RequestData struct {
+		UserWallet        string `json:"userWallet"`
+		ProductLotID      string `json:"productLotId"`
+		ShippingAddresses []struct {
+			RetailerID string `json:"retailerId"`
+		} `json:"shippingAddresses"`
+	}
+
+	var requestData RequestData
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	userWallet := requestData.UserWallet
+	productLotID := requestData.ProductLotID
+
+	if userWallet == "" || productLotID == "" {
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	// ✅ สร้าง Tracking Events ตาม Retailer ID
+	var trackingIDs []string
+	for _, shipping := range requestData.ShippingAddresses {
+		if shipping.RetailerID == "" {
+			continue // ข้ามถ้าไม่มี Retailer ID
+		}
+
+		// ✅ สร้าง Tracking ID แบบสุ่ม
+		trackingID := services.GenerateRandomID()
+
+		// ✅ สร้าง QR Code
+		qrCodeCID, err := qrService.GenerateQRCode(trackingID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to generate QR Code: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// ✅ อัปโหลด QR Code ไปยัง IPFS
+		qrImageCID, err := ipfsService.UploadQRCodeToIPFS(qrCodeCID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to upload QR Code to IPFS: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// ✅ บันทึก Tracking Event ลงใน Blockchain
+		txHash, err := services.BlockchainServiceInstance.CreateTrackingEvent(
+			userWallet,
+			trackingID,
+			productLotID,
+			shipping.RetailerID,
+			qrImageCID,
+		)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Blockchain transaction failed: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		trackingIDs = append(trackingIDs, txHash)
+	}
+
+	// ✅ ส่ง Response กลับไปพร้อม Tracking IDs
+	response := map[string]interface{}{
+		"message":     "Tracking events created successfully",
+		"trackingIds": trackingIDs,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
