@@ -1,0 +1,552 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_userRegistry",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_productLotContract",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "trackingId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "logisticsProvider",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum Tracking.LogisticsCheckType",
+        "name": "checkType",
+        "type": "uint8"
+      }
+    ],
+    "name": "LogisticsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "trackingId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "retailer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "qualityCID",
+        "type": "string"
+      }
+    ],
+    "name": "RetailerReceived",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "trackingId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "productLotId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "retailer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "qrCodeCID",
+        "type": "string"
+      }
+    ],
+    "name": "TrackingCreated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "logisticsCheckpoints",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "trackingId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "logisticsProvider",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pickupTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deliveryTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "quantity",
+        "type": "uint256"
+      },
+      {
+        "internalType": "int256",
+        "name": "temperature",
+        "type": "int256"
+      },
+      {
+        "internalType": "string",
+        "name": "personInCharge",
+        "type": "string"
+      },
+      {
+        "internalType": "enum Tracking.LogisticsCheckType",
+        "name": "checkType",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "productLotContract",
+    "outputs": [
+      {
+        "internalType": "contract ProductLot",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "retailerConfirmations",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "trackingId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "retailer",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "receivedTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "qualityCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "personInCharge",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "retailerTracking",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "trackingEvents",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "trackingId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "productLotId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "retailer",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "qrCodeCID",
+        "type": "string"
+      },
+      {
+        "internalType": "enum Tracking.TrackingStatus",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "trackingIds",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "userRegistry",
+    "outputs": [
+      {
+        "internalType": "contract UserRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_trackingId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_productLotId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "_retailer",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_qrCodeCID",
+        "type": "string"
+      }
+    ],
+    "name": "createTrackingEvent",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_trackingId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_pickupTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_deliveryTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_quantity",
+        "type": "uint256"
+      },
+      {
+        "internalType": "int256",
+        "name": "_temperature",
+        "type": "int256"
+      },
+      {
+        "internalType": "string",
+        "name": "_personInCharge",
+        "type": "string"
+      },
+      {
+        "internalType": "enum Tracking.LogisticsCheckType",
+        "name": "_checkType",
+        "type": "uint8"
+      }
+    ],
+    "name": "updateLogisticsCheckpoint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_trackingId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "_qualityCID",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_personInCharge",
+        "type": "string"
+      }
+    ],
+    "name": "retailerReceiveProduct",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_trackingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getTrackingById",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "trackingId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "productLotId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "retailer",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "qrCodeCID",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Tracking.TrackingStatus",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Tracking.TrackingEvent",
+        "name": "",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "trackingId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "logisticsProvider",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pickupTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deliveryTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "quantity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "temperature",
+            "type": "int256"
+          },
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Tracking.LogisticsCheckType",
+            "name": "checkType",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Tracking.LogisticsCheckpoint[]",
+        "name": "",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "trackingId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "retailer",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "receivedTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "qualityCID",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Tracking.RetailerConfirmation",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_retailer",
+        "type": "address"
+      }
+    ],
+    "name": "getTrackingByRetailer",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  }
+]
