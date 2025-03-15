@@ -35,6 +35,12 @@
         "internalType": "enum Tracking.LogisticsCheckType",
         "name": "checkType",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "receiverCID",
+        "type": "string"
       }
     ],
     "name": "LogisticsUpdated",
@@ -99,6 +105,26 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "allTrackingIds",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
@@ -150,10 +176,16 @@
         "internalType": "enum Tracking.LogisticsCheckType",
         "name": "checkType",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "receiverCID",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -166,7 +198,8 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -205,7 +238,8 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -229,7 +263,8 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -268,26 +303,8 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "trackingIds",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [],
@@ -300,7 +317,8 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -366,6 +384,11 @@
         "internalType": "enum Tracking.LogisticsCheckType",
         "name": "_checkType",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "_receiverCID",
+        "type": "string"
       }
     ],
     "name": "updateLogisticsCheckpoint",
@@ -484,6 +507,11 @@
             "internalType": "enum Tracking.LogisticsCheckType",
             "name": "checkType",
             "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "receiverCID",
+            "type": "string"
           }
         ],
         "internalType": "struct Tracking.LogisticsCheckpoint[]",
@@ -524,7 +552,8 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
   },
   {
     "inputs": [
@@ -543,6 +572,222 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_productLotId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getTrackingByLotId",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "resultTrackingIds",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "retailerIds",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "qrCodeCIDs",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "getAllTrackingIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_trackingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getLogisticsCheckpointsByTrackingId",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "trackingId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "logisticsProvider",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pickupTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deliveryTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "quantity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "temperature",
+            "type": "int256"
+          },
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Tracking.LogisticsCheckType",
+            "name": "checkType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "receiverCID",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Tracking.LogisticsCheckpoint[]",
+        "name": "beforeCheckpoints",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "trackingId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "logisticsProvider",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pickupTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deliveryTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "quantity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "temperature",
+            "type": "int256"
+          },
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Tracking.LogisticsCheckType",
+            "name": "checkType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "receiverCID",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Tracking.LogisticsCheckpoint[]",
+        "name": "duringCheckpoints",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "trackingId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "logisticsProvider",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pickupTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deliveryTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "quantity",
+            "type": "uint256"
+          },
+          {
+            "internalType": "int256",
+            "name": "temperature",
+            "type": "int256"
+          },
+          {
+            "internalType": "string",
+            "name": "personInCharge",
+            "type": "string"
+          },
+          {
+            "internalType": "enum Tracking.LogisticsCheckType",
+            "name": "checkType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "receiverCID",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct Tracking.LogisticsCheckpoint[]",
+        "name": "afterCheckpoints",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   }
 ]

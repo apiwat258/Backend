@@ -20,15 +20,16 @@ contract Tracking {
     }
 
     struct LogisticsCheckpoint {
-        bytes32 trackingId;
-        address logisticsProvider;
-        uint256 pickupTime;
-        uint256 deliveryTime;
-        uint256 quantity;
-        int256 temperature;
-        string personInCharge;
-        LogisticsCheckType checkType;
-    }
+    bytes32 trackingId;
+    address logisticsProvider;
+    uint256 pickupTime;
+    uint256 deliveryTime;
+    uint256 quantity;
+    int256 temperature;
+    string personInCharge;
+    LogisticsCheckType checkType;
+    string receiverCID; // ✅ บันทึกข้อมูลผู้รับสินค้า (IPFS CID)
+}
 
     struct RetailerConfirmation {
         bytes32 trackingId;
@@ -42,10 +43,17 @@ contract Tracking {
     mapping(bytes32 => LogisticsCheckpoint[]) public logisticsCheckpoints;
     mapping(bytes32 => RetailerConfirmation) public retailerConfirmations;
     mapping(string => bytes32[]) public retailerTracking; // ✅ ใช้ Retailer ID เป็น key
-    bytes32[] public trackingIds;
+   bytes32[] public allTrackingIds; // ✅ เปลี่ยนชื่อให้ไม่ชนกับตัวแปรในฟังก์ชัน
+
+
 
     event TrackingCreated(bytes32 indexed trackingId, bytes32 indexed productLotId, string retailerId, string qrCodeCID);
-    event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, LogisticsCheckType checkType);
+    event LogisticsUpdated(
+    bytes32 indexed trackingId,
+    address indexed logisticsProvider,
+    LogisticsCheckType checkType,
+    string receiverCID // ✅ เพิ่มในอีเวนต์
+);
     event RetailerReceived(bytes32 indexed trackingId, string retailerId, string qualityCID);
 
     modifier onlyLogistics() {
@@ -82,33 +90,37 @@ contract Tracking {
             status: TrackingStatus.Pending
         });
 
-        trackingIds.push(_trackingId);
+        allTrackingIds.push(_trackingId);
         retailerTracking[_retailerId].push(_trackingId);
         emit TrackingCreated(_trackingId, _productLotId, _retailerId, _qrCodeCID);
     }
 
     function updateLogisticsCheckpoint(
-        bytes32 _trackingId,
-        uint256 _pickupTime,
-        uint256 _deliveryTime,
-        uint256 _quantity,
-        int256 _temperature,
-        string memory _personInCharge,
-        LogisticsCheckType _checkType
-    ) public onlyLogistics {
-        require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
-        logisticsCheckpoints[_trackingId].push(LogisticsCheckpoint({
-            trackingId: _trackingId,
-            logisticsProvider: msg.sender,
-            pickupTime: _pickupTime,
-            deliveryTime: _deliveryTime,
-            quantity: _quantity,
-            temperature: _temperature,
-            personInCharge: _personInCharge,
-            checkType: _checkType
-        }));
-        emit LogisticsUpdated(_trackingId, msg.sender, _checkType);
-    }
+    bytes32 _trackingId,
+    uint256 _pickupTime,
+    uint256 _deliveryTime,
+    uint256 _quantity,
+    int256 _temperature,
+    string memory _personInCharge,
+    LogisticsCheckType _checkType,
+    string memory _receiverCID // ✅ เพิ่ม parameter
+) public onlyLogistics {
+    require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
+
+    logisticsCheckpoints[_trackingId].push(LogisticsCheckpoint({
+        trackingId: _trackingId,
+        logisticsProvider: msg.sender,
+        pickupTime: _pickupTime,
+        deliveryTime: _deliveryTime,
+        quantity: _quantity,
+        temperature: _temperature,
+        personInCharge: _personInCharge,
+        checkType: _checkType,
+        receiverCID: _receiverCID // ✅ บันทึกข้อมูลผู้รับสินค้า
+    }));
+
+    emit LogisticsUpdated(_trackingId, msg.sender, _checkType, _receiverCID);
+}
 
     function retailerReceiveProduct(
         bytes32 _trackingId,
@@ -138,4 +150,89 @@ contract Tracking {
     function getTrackingByRetailer(string memory _retailerId) public view returns (bytes32[] memory) {
         return retailerTracking[_retailerId];
     }
+function getTrackingByLotId(bytes32 _productLotId) 
+    public view 
+    returns (bytes32[] memory resultTrackingIds, string[] memory retailerIds, string[] memory qrCodeCIDs) 
+{
+    uint count = 0;
+
+    // ✅ ใช้ `allTrackingIds` เพื่อนับจำนวน Tracking Events
+    for (uint i = 0; i < allTrackingIds.length; i++) {
+        if (trackingEvents[allTrackingIds[i]].productLotId == _productLotId) {
+            count++;
+        }
+    }
+
+    // ✅ สร้างอาเรย์สำหรับเก็บผลลัพธ์
+    resultTrackingIds = new bytes32[](count);
+    retailerIds = new string[](count);
+    qrCodeCIDs = new string[](count);
+
+    uint index = 0;
+    for (uint i = 0; i < allTrackingIds.length; i++) {
+        if (trackingEvents[allTrackingIds[i]].productLotId == _productLotId) {
+            resultTrackingIds[index] = allTrackingIds[i];
+            retailerIds[index] = trackingEvents[allTrackingIds[i]].retailerId;
+            qrCodeCIDs[index] = trackingEvents[allTrackingIds[i]].qrCodeCID;
+            index++;
+        }
+    }
+
+    return (resultTrackingIds, retailerIds, qrCodeCIDs);
+}
+function getAllTrackingIds() public view returns (bytes32[] memory) {
+    return allTrackingIds;
+}
+function getLogisticsCheckpointsByTrackingId(bytes32 _trackingId) 
+    public view 
+    returns (
+        LogisticsCheckpoint[] memory beforeCheckpoints, 
+        LogisticsCheckpoint[] memory duringCheckpoints, 
+        LogisticsCheckpoint[] memory afterCheckpoints
+    ) 
+{
+    require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
+
+    uint beforeCount = 0;
+    uint duringCount = 0;
+    uint afterCount = 0;
+
+    // ✅ นับจำนวนแต่ละประเภทก่อนสร้างอาเรย์
+    for (uint i = 0; i < logisticsCheckpoints[_trackingId].length; i++) {
+        if (logisticsCheckpoints[_trackingId][i].checkType == LogisticsCheckType.Before) {
+            beforeCount++;
+        } else if (logisticsCheckpoints[_trackingId][i].checkType == LogisticsCheckType.During) {
+            duringCount++;
+        } else if (logisticsCheckpoints[_trackingId][i].checkType == LogisticsCheckType.After) {
+            afterCount++;
+        }
+    }
+
+    // ✅ สร้างอาเรย์สำหรับแต่ละประเภท
+    beforeCheckpoints = new LogisticsCheckpoint[](beforeCount);
+    duringCheckpoints = new LogisticsCheckpoint[](duringCount);
+    afterCheckpoints = new LogisticsCheckpoint[](afterCount);
+
+    uint beforeIndex = 0;
+    uint duringIndex = 0;
+    uint afterIndex = 0;
+
+    // ✅ แยกข้อมูลเข้าไปในแต่ละอาเรย์
+    for (uint i = 0; i < logisticsCheckpoints[_trackingId].length; i++) {
+        if (logisticsCheckpoints[_trackingId][i].checkType == LogisticsCheckType.Before) {
+            beforeCheckpoints[beforeIndex] = logisticsCheckpoints[_trackingId][i];
+            beforeIndex++;
+        } else if (logisticsCheckpoints[_trackingId][i].checkType == LogisticsCheckType.During) {
+            duringCheckpoints[duringIndex] = logisticsCheckpoints[_trackingId][i];
+            duringIndex++;
+        } else if (logisticsCheckpoints[_trackingId][i].checkType == LogisticsCheckType.After) {
+            afterCheckpoints[afterIndex] = logisticsCheckpoints[_trackingId][i];
+            afterIndex++;
+        }
+    }
+
+    return (beforeCheckpoints, duringCheckpoints, afterCheckpoints);
+}
+
+
 }

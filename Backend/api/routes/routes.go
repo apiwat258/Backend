@@ -8,8 +8,9 @@ import (
 )
 
 // SetupRoutes sets up API routes
-func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController, plc *controllers.ProductLotController) {
+func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController, plc *controllers.ProductLotController, tc *controllers.TrackingController) {
 	api := app.Group("/api/v1") // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
+	app.Get("/api/v1/tracking-details", tc.GetTrackingDetails)
 
 	// ✅ Authentication Routes
 	auth := api.Group("/auth")
@@ -79,4 +80,14 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	productLot.Post("/create", plc.CreateProductLot)    // ✅ โรงงานสร้าง Product Lot ใหม่
 	productLot.Get("/list", plc.GetFactoryProductLots)  // ✅ ดึงรายการ Product Lot ของโรงงาน
 	productLot.Get("/:lotId", plc.GetProductLotDetails) // ✅ ดึงรายละเอียด Product Lot โดยใช้ lotId
+
+	// ✅ กลุ่ม Routing ของ Tracking
+	tracking := api.Group("/tracking", middleware.AuthMiddleware())
+	tracking.Get("/ids", plc.GetAllTrackingIds)                                     // ✅ ดึง Tracking ID ทั้งหมด
+	tracking.Post("/logistics", plc.UpdateLogisticsCheckpoint)                      // ✅ อัปเดตจุดตรวจโลจิสติกส์
+	tracking.Get("/logistics/checkpoints", plc.GetLogisticsCheckpointsByTrackingId) // ✅ ดึงข้อมูล Checkpoint ตาม Tracking ID
+	tracking.Get("/retailer", plc.GetRetailerTracking)                              // ✅ ดึง Tracking IDs ตาม Retailer ID
+	tracking.Post("/retailer/receive", plc.RetailerReceiveProduct)                  // ✅ Retailer รับสินค้า
+	tracking.Get("/retailer/received", plc.GetRetailerReceivedProduct)              // ✅ ดึงข้อมูลสินค้าที่ Retailer รับแล้ว
+
 }

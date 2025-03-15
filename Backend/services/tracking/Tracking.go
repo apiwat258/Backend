@@ -39,6 +39,7 @@ type TrackingLogisticsCheckpoint struct {
 	Temperature       *big.Int
 	PersonInCharge    string
 	CheckType         uint8
+	ReceiverCID       string
 }
 
 // TrackingRetailerConfirmation is an auto generated low-level Go binding around an user-defined struct.
@@ -61,7 +62,7 @@ type TrackingTrackingEvent struct {
 
 // TrackingMetaData contains all meta data concerning the Tracking contract.
 var TrackingMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_productLotContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"}],\"name\":\"LogisticsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityCID\",\"type\":\"string\"}],\"name\":\"RetailerReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productLotId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"name\":\"TrackingCreated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"logisticsCheckpoints\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"productLotContract\",\"outputs\":[{\"internalType\":\"contractProductLot\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"retailerConfirmations\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"receivedTime\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"qualityCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"retailerTracking\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"trackingEvents\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productLotId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"internalType\":\"enumTracking.TrackingStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"trackingIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_productLotId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createTrackingEvent\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"_temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"_checkType\",\"type\":\"uint8\"}],\"name\":\"updateLogisticsCheckpoint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qualityCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"}],\"name\":\"retailerReceiveProduct\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"}],\"name\":\"getTrackingById\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productLotId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"internalType\":\"enumTracking.TrackingStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structTracking.TrackingEvent\",\"name\":\"\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"}],\"internalType\":\"structTracking.LogisticsCheckpoint[]\",\"name\":\"\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"receivedTime\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"qualityCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"}],\"internalType\":\"structTracking.RetailerConfirmation\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_retailerId\",\"type\":\"string\"}],\"name\":\"getTrackingByRetailer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_productLotContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"receiverCID\",\"type\":\"string\"}],\"name\":\"LogisticsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityCID\",\"type\":\"string\"}],\"name\":\"RetailerReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productLotId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"name\":\"TrackingCreated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"allTrackingIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"logisticsCheckpoints\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"receiverCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"productLotContract\",\"outputs\":[{\"internalType\":\"contractProductLot\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"retailerConfirmations\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"receivedTime\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"qualityCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"retailerTracking\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"trackingEvents\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productLotId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"internalType\":\"enumTracking.TrackingStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_productLotId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createTrackingEvent\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"_temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"_checkType\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"_receiverCID\",\"type\":\"string\"}],\"name\":\"updateLogisticsCheckpoint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qualityCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"}],\"name\":\"retailerReceiveProduct\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"}],\"name\":\"getTrackingById\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productLotId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"internalType\":\"enumTracking.TrackingStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structTracking.TrackingEvent\",\"name\":\"\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"receiverCID\",\"type\":\"string\"}],\"internalType\":\"structTracking.LogisticsCheckpoint[]\",\"name\":\"\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"retailerId\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"receivedTime\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"qualityCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"}],\"internalType\":\"structTracking.RetailerConfirmation\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_retailerId\",\"type\":\"string\"}],\"name\":\"getTrackingByRetailer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_productLotId\",\"type\":\"bytes32\"}],\"name\":\"getTrackingByLotId\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"resultTrackingIds\",\"type\":\"bytes32[]\"},{\"internalType\":\"string[]\",\"name\":\"retailerIds\",\"type\":\"string[]\"},{\"internalType\":\"string[]\",\"name\":\"qrCodeCIDs\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"getAllTrackingIds\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_trackingId\",\"type\":\"bytes32\"}],\"name\":\"getLogisticsCheckpointsByTrackingId\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"receiverCID\",\"type\":\"string\"}],\"internalType\":\"structTracking.LogisticsCheckpoint[]\",\"name\":\"beforeCheckpoints\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"receiverCID\",\"type\":\"string\"}],\"internalType\":\"structTracking.LogisticsCheckpoint[]\",\"name\":\"duringCheckpoints\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"trackingId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"logisticsProvider\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"pickupTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deliveryTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"int256\",\"name\":\"temperature\",\"type\":\"int256\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumTracking.LogisticsCheckType\",\"name\":\"checkType\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"receiverCID\",\"type\":\"string\"}],\"internalType\":\"structTracking.LogisticsCheckpoint[]\",\"name\":\"afterCheckpoints\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
 }
 
 // TrackingABI is the input ABI used to generate the binding from.
@@ -210,9 +211,121 @@ func (_Tracking *TrackingTransactorRaw) Transact(opts *bind.TransactOpts, method
 	return _Tracking.Contract.contract.Transact(opts, method, params...)
 }
 
+// AllTrackingIds is a free data retrieval call binding the contract method 0x1a5c3d0e.
+//
+// Solidity: function allTrackingIds(uint256 ) view returns(bytes32)
+func (_Tracking *TrackingCaller) AllTrackingIds(opts *bind.CallOpts, arg0 *big.Int) ([32]byte, error) {
+	var out []interface{}
+	err := _Tracking.contract.Call(opts, &out, "allTrackingIds", arg0)
+
+	if err != nil {
+		return *new([32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
+
+	return out0, err
+
+}
+
+// AllTrackingIds is a free data retrieval call binding the contract method 0x1a5c3d0e.
+//
+// Solidity: function allTrackingIds(uint256 ) view returns(bytes32)
+func (_Tracking *TrackingSession) AllTrackingIds(arg0 *big.Int) ([32]byte, error) {
+	return _Tracking.Contract.AllTrackingIds(&_Tracking.CallOpts, arg0)
+}
+
+// AllTrackingIds is a free data retrieval call binding the contract method 0x1a5c3d0e.
+//
+// Solidity: function allTrackingIds(uint256 ) view returns(bytes32)
+func (_Tracking *TrackingCallerSession) AllTrackingIds(arg0 *big.Int) ([32]byte, error) {
+	return _Tracking.Contract.AllTrackingIds(&_Tracking.CallOpts, arg0)
+}
+
+// GetAllTrackingIds is a free data retrieval call binding the contract method 0x54cb24a4.
+//
+// Solidity: function getAllTrackingIds() view returns(bytes32[])
+func (_Tracking *TrackingCaller) GetAllTrackingIds(opts *bind.CallOpts) ([][32]byte, error) {
+	var out []interface{}
+	err := _Tracking.contract.Call(opts, &out, "getAllTrackingIds")
+
+	if err != nil {
+		return *new([][32]byte), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([][32]byte)).(*[][32]byte)
+
+	return out0, err
+
+}
+
+// GetAllTrackingIds is a free data retrieval call binding the contract method 0x54cb24a4.
+//
+// Solidity: function getAllTrackingIds() view returns(bytes32[])
+func (_Tracking *TrackingSession) GetAllTrackingIds() ([][32]byte, error) {
+	return _Tracking.Contract.GetAllTrackingIds(&_Tracking.CallOpts)
+}
+
+// GetAllTrackingIds is a free data retrieval call binding the contract method 0x54cb24a4.
+//
+// Solidity: function getAllTrackingIds() view returns(bytes32[])
+func (_Tracking *TrackingCallerSession) GetAllTrackingIds() ([][32]byte, error) {
+	return _Tracking.Contract.GetAllTrackingIds(&_Tracking.CallOpts)
+}
+
+// GetLogisticsCheckpointsByTrackingId is a free data retrieval call binding the contract method 0x56ef21b4.
+//
+// Solidity: function getLogisticsCheckpointsByTrackingId(bytes32 _trackingId) view returns((bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] beforeCheckpoints, (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] duringCheckpoints, (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] afterCheckpoints)
+func (_Tracking *TrackingCaller) GetLogisticsCheckpointsByTrackingId(opts *bind.CallOpts, _trackingId [32]byte) (struct {
+	BeforeCheckpoints []TrackingLogisticsCheckpoint
+	DuringCheckpoints []TrackingLogisticsCheckpoint
+	AfterCheckpoints  []TrackingLogisticsCheckpoint
+}, error) {
+	var out []interface{}
+	err := _Tracking.contract.Call(opts, &out, "getLogisticsCheckpointsByTrackingId", _trackingId)
+
+	outstruct := new(struct {
+		BeforeCheckpoints []TrackingLogisticsCheckpoint
+		DuringCheckpoints []TrackingLogisticsCheckpoint
+		AfterCheckpoints  []TrackingLogisticsCheckpoint
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.BeforeCheckpoints = *abi.ConvertType(out[0], new([]TrackingLogisticsCheckpoint)).(*[]TrackingLogisticsCheckpoint)
+	outstruct.DuringCheckpoints = *abi.ConvertType(out[1], new([]TrackingLogisticsCheckpoint)).(*[]TrackingLogisticsCheckpoint)
+	outstruct.AfterCheckpoints = *abi.ConvertType(out[2], new([]TrackingLogisticsCheckpoint)).(*[]TrackingLogisticsCheckpoint)
+
+	return *outstruct, err
+
+}
+
+// GetLogisticsCheckpointsByTrackingId is a free data retrieval call binding the contract method 0x56ef21b4.
+//
+// Solidity: function getLogisticsCheckpointsByTrackingId(bytes32 _trackingId) view returns((bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] beforeCheckpoints, (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] duringCheckpoints, (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] afterCheckpoints)
+func (_Tracking *TrackingSession) GetLogisticsCheckpointsByTrackingId(_trackingId [32]byte) (struct {
+	BeforeCheckpoints []TrackingLogisticsCheckpoint
+	DuringCheckpoints []TrackingLogisticsCheckpoint
+	AfterCheckpoints  []TrackingLogisticsCheckpoint
+}, error) {
+	return _Tracking.Contract.GetLogisticsCheckpointsByTrackingId(&_Tracking.CallOpts, _trackingId)
+}
+
+// GetLogisticsCheckpointsByTrackingId is a free data retrieval call binding the contract method 0x56ef21b4.
+//
+// Solidity: function getLogisticsCheckpointsByTrackingId(bytes32 _trackingId) view returns((bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] beforeCheckpoints, (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] duringCheckpoints, (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[] afterCheckpoints)
+func (_Tracking *TrackingCallerSession) GetLogisticsCheckpointsByTrackingId(_trackingId [32]byte) (struct {
+	BeforeCheckpoints []TrackingLogisticsCheckpoint
+	DuringCheckpoints []TrackingLogisticsCheckpoint
+	AfterCheckpoints  []TrackingLogisticsCheckpoint
+}, error) {
+	return _Tracking.Contract.GetLogisticsCheckpointsByTrackingId(&_Tracking.CallOpts, _trackingId)
+}
+
 // GetTrackingById is a free data retrieval call binding the contract method 0xc93c35eb.
 //
-// Solidity: function getTrackingById(bytes32 _trackingId) view returns((bytes32,bytes32,string,string,uint8), (bytes32,address,uint256,uint256,uint256,int256,string,uint8)[], (bytes32,string,uint256,string,string))
+// Solidity: function getTrackingById(bytes32 _trackingId) view returns((bytes32,bytes32,string,string,uint8), (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[], (bytes32,string,uint256,string,string))
 func (_Tracking *TrackingCaller) GetTrackingById(opts *bind.CallOpts, _trackingId [32]byte) (TrackingTrackingEvent, []TrackingLogisticsCheckpoint, TrackingRetailerConfirmation, error) {
 	var out []interface{}
 	err := _Tracking.contract.Call(opts, &out, "getTrackingById", _trackingId)
@@ -231,16 +344,66 @@ func (_Tracking *TrackingCaller) GetTrackingById(opts *bind.CallOpts, _trackingI
 
 // GetTrackingById is a free data retrieval call binding the contract method 0xc93c35eb.
 //
-// Solidity: function getTrackingById(bytes32 _trackingId) view returns((bytes32,bytes32,string,string,uint8), (bytes32,address,uint256,uint256,uint256,int256,string,uint8)[], (bytes32,string,uint256,string,string))
+// Solidity: function getTrackingById(bytes32 _trackingId) view returns((bytes32,bytes32,string,string,uint8), (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[], (bytes32,string,uint256,string,string))
 func (_Tracking *TrackingSession) GetTrackingById(_trackingId [32]byte) (TrackingTrackingEvent, []TrackingLogisticsCheckpoint, TrackingRetailerConfirmation, error) {
 	return _Tracking.Contract.GetTrackingById(&_Tracking.CallOpts, _trackingId)
 }
 
 // GetTrackingById is a free data retrieval call binding the contract method 0xc93c35eb.
 //
-// Solidity: function getTrackingById(bytes32 _trackingId) view returns((bytes32,bytes32,string,string,uint8), (bytes32,address,uint256,uint256,uint256,int256,string,uint8)[], (bytes32,string,uint256,string,string))
+// Solidity: function getTrackingById(bytes32 _trackingId) view returns((bytes32,bytes32,string,string,uint8), (bytes32,address,uint256,uint256,uint256,int256,string,uint8,string)[], (bytes32,string,uint256,string,string))
 func (_Tracking *TrackingCallerSession) GetTrackingById(_trackingId [32]byte) (TrackingTrackingEvent, []TrackingLogisticsCheckpoint, TrackingRetailerConfirmation, error) {
 	return _Tracking.Contract.GetTrackingById(&_Tracking.CallOpts, _trackingId)
+}
+
+// GetTrackingByLotId is a free data retrieval call binding the contract method 0x65f0f7d5.
+//
+// Solidity: function getTrackingByLotId(bytes32 _productLotId) view returns(bytes32[] resultTrackingIds, string[] retailerIds, string[] qrCodeCIDs)
+func (_Tracking *TrackingCaller) GetTrackingByLotId(opts *bind.CallOpts, _productLotId [32]byte) (struct {
+	ResultTrackingIds [][32]byte
+	RetailerIds       []string
+	QrCodeCIDs        []string
+}, error) {
+	var out []interface{}
+	err := _Tracking.contract.Call(opts, &out, "getTrackingByLotId", _productLotId)
+
+	outstruct := new(struct {
+		ResultTrackingIds [][32]byte
+		RetailerIds       []string
+		QrCodeCIDs        []string
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.ResultTrackingIds = *abi.ConvertType(out[0], new([][32]byte)).(*[][32]byte)
+	outstruct.RetailerIds = *abi.ConvertType(out[1], new([]string)).(*[]string)
+	outstruct.QrCodeCIDs = *abi.ConvertType(out[2], new([]string)).(*[]string)
+
+	return *outstruct, err
+
+}
+
+// GetTrackingByLotId is a free data retrieval call binding the contract method 0x65f0f7d5.
+//
+// Solidity: function getTrackingByLotId(bytes32 _productLotId) view returns(bytes32[] resultTrackingIds, string[] retailerIds, string[] qrCodeCIDs)
+func (_Tracking *TrackingSession) GetTrackingByLotId(_productLotId [32]byte) (struct {
+	ResultTrackingIds [][32]byte
+	RetailerIds       []string
+	QrCodeCIDs        []string
+}, error) {
+	return _Tracking.Contract.GetTrackingByLotId(&_Tracking.CallOpts, _productLotId)
+}
+
+// GetTrackingByLotId is a free data retrieval call binding the contract method 0x65f0f7d5.
+//
+// Solidity: function getTrackingByLotId(bytes32 _productLotId) view returns(bytes32[] resultTrackingIds, string[] retailerIds, string[] qrCodeCIDs)
+func (_Tracking *TrackingCallerSession) GetTrackingByLotId(_productLotId [32]byte) (struct {
+	ResultTrackingIds [][32]byte
+	RetailerIds       []string
+	QrCodeCIDs        []string
+}, error) {
+	return _Tracking.Contract.GetTrackingByLotId(&_Tracking.CallOpts, _productLotId)
 }
 
 // GetTrackingByRetailer is a free data retrieval call binding the contract method 0x83fb9889.
@@ -276,7 +439,7 @@ func (_Tracking *TrackingCallerSession) GetTrackingByRetailer(_retailerId string
 
 // LogisticsCheckpoints is a free data retrieval call binding the contract method 0xf30459e3.
 //
-// Solidity: function logisticsCheckpoints(bytes32 , uint256 ) view returns(bytes32 trackingId, address logisticsProvider, uint256 pickupTime, uint256 deliveryTime, uint256 quantity, int256 temperature, string personInCharge, uint8 checkType)
+// Solidity: function logisticsCheckpoints(bytes32 , uint256 ) view returns(bytes32 trackingId, address logisticsProvider, uint256 pickupTime, uint256 deliveryTime, uint256 quantity, int256 temperature, string personInCharge, uint8 checkType, string receiverCID)
 func (_Tracking *TrackingCaller) LogisticsCheckpoints(opts *bind.CallOpts, arg0 [32]byte, arg1 *big.Int) (struct {
 	TrackingId        [32]byte
 	LogisticsProvider common.Address
@@ -286,6 +449,7 @@ func (_Tracking *TrackingCaller) LogisticsCheckpoints(opts *bind.CallOpts, arg0 
 	Temperature       *big.Int
 	PersonInCharge    string
 	CheckType         uint8
+	ReceiverCID       string
 }, error) {
 	var out []interface{}
 	err := _Tracking.contract.Call(opts, &out, "logisticsCheckpoints", arg0, arg1)
@@ -299,6 +463,7 @@ func (_Tracking *TrackingCaller) LogisticsCheckpoints(opts *bind.CallOpts, arg0 
 		Temperature       *big.Int
 		PersonInCharge    string
 		CheckType         uint8
+		ReceiverCID       string
 	})
 	if err != nil {
 		return *outstruct, err
@@ -312,6 +477,7 @@ func (_Tracking *TrackingCaller) LogisticsCheckpoints(opts *bind.CallOpts, arg0 
 	outstruct.Temperature = *abi.ConvertType(out[5], new(*big.Int)).(**big.Int)
 	outstruct.PersonInCharge = *abi.ConvertType(out[6], new(string)).(*string)
 	outstruct.CheckType = *abi.ConvertType(out[7], new(uint8)).(*uint8)
+	outstruct.ReceiverCID = *abi.ConvertType(out[8], new(string)).(*string)
 
 	return *outstruct, err
 
@@ -319,7 +485,7 @@ func (_Tracking *TrackingCaller) LogisticsCheckpoints(opts *bind.CallOpts, arg0 
 
 // LogisticsCheckpoints is a free data retrieval call binding the contract method 0xf30459e3.
 //
-// Solidity: function logisticsCheckpoints(bytes32 , uint256 ) view returns(bytes32 trackingId, address logisticsProvider, uint256 pickupTime, uint256 deliveryTime, uint256 quantity, int256 temperature, string personInCharge, uint8 checkType)
+// Solidity: function logisticsCheckpoints(bytes32 , uint256 ) view returns(bytes32 trackingId, address logisticsProvider, uint256 pickupTime, uint256 deliveryTime, uint256 quantity, int256 temperature, string personInCharge, uint8 checkType, string receiverCID)
 func (_Tracking *TrackingSession) LogisticsCheckpoints(arg0 [32]byte, arg1 *big.Int) (struct {
 	TrackingId        [32]byte
 	LogisticsProvider common.Address
@@ -329,13 +495,14 @@ func (_Tracking *TrackingSession) LogisticsCheckpoints(arg0 [32]byte, arg1 *big.
 	Temperature       *big.Int
 	PersonInCharge    string
 	CheckType         uint8
+	ReceiverCID       string
 }, error) {
 	return _Tracking.Contract.LogisticsCheckpoints(&_Tracking.CallOpts, arg0, arg1)
 }
 
 // LogisticsCheckpoints is a free data retrieval call binding the contract method 0xf30459e3.
 //
-// Solidity: function logisticsCheckpoints(bytes32 , uint256 ) view returns(bytes32 trackingId, address logisticsProvider, uint256 pickupTime, uint256 deliveryTime, uint256 quantity, int256 temperature, string personInCharge, uint8 checkType)
+// Solidity: function logisticsCheckpoints(bytes32 , uint256 ) view returns(bytes32 trackingId, address logisticsProvider, uint256 pickupTime, uint256 deliveryTime, uint256 quantity, int256 temperature, string personInCharge, uint8 checkType, string receiverCID)
 func (_Tracking *TrackingCallerSession) LogisticsCheckpoints(arg0 [32]byte, arg1 *big.Int) (struct {
 	TrackingId        [32]byte
 	LogisticsProvider common.Address
@@ -345,6 +512,7 @@ func (_Tracking *TrackingCallerSession) LogisticsCheckpoints(arg0 [32]byte, arg1
 	Temperature       *big.Int
 	PersonInCharge    string
 	CheckType         uint8
+	ReceiverCID       string
 }, error) {
 	return _Tracking.Contract.LogisticsCheckpoints(&_Tracking.CallOpts, arg0, arg1)
 }
@@ -531,37 +699,6 @@ func (_Tracking *TrackingCallerSession) TrackingEvents(arg0 [32]byte) (struct {
 	return _Tracking.Contract.TrackingEvents(&_Tracking.CallOpts, arg0)
 }
 
-// TrackingIds is a free data retrieval call binding the contract method 0x84e3edce.
-//
-// Solidity: function trackingIds(uint256 ) view returns(bytes32)
-func (_Tracking *TrackingCaller) TrackingIds(opts *bind.CallOpts, arg0 *big.Int) ([32]byte, error) {
-	var out []interface{}
-	err := _Tracking.contract.Call(opts, &out, "trackingIds", arg0)
-
-	if err != nil {
-		return *new([32]byte), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
-
-	return out0, err
-
-}
-
-// TrackingIds is a free data retrieval call binding the contract method 0x84e3edce.
-//
-// Solidity: function trackingIds(uint256 ) view returns(bytes32)
-func (_Tracking *TrackingSession) TrackingIds(arg0 *big.Int) ([32]byte, error) {
-	return _Tracking.Contract.TrackingIds(&_Tracking.CallOpts, arg0)
-}
-
-// TrackingIds is a free data retrieval call binding the contract method 0x84e3edce.
-//
-// Solidity: function trackingIds(uint256 ) view returns(bytes32)
-func (_Tracking *TrackingCallerSession) TrackingIds(arg0 *big.Int) ([32]byte, error) {
-	return _Tracking.Contract.TrackingIds(&_Tracking.CallOpts, arg0)
-}
-
 // UserRegistry is a free data retrieval call binding the contract method 0x5c7460d6.
 //
 // Solidity: function userRegistry() view returns(address)
@@ -635,25 +772,25 @@ func (_Tracking *TrackingTransactorSession) RetailerReceiveProduct(_trackingId [
 	return _Tracking.Contract.RetailerReceiveProduct(&_Tracking.TransactOpts, _trackingId, _retailerId, _qualityCID, _personInCharge)
 }
 
-// UpdateLogisticsCheckpoint is a paid mutator transaction binding the contract method 0x777699cb.
+// UpdateLogisticsCheckpoint is a paid mutator transaction binding the contract method 0xa7e604b2.
 //
-// Solidity: function updateLogisticsCheckpoint(bytes32 _trackingId, uint256 _pickupTime, uint256 _deliveryTime, uint256 _quantity, int256 _temperature, string _personInCharge, uint8 _checkType) returns()
-func (_Tracking *TrackingTransactor) UpdateLogisticsCheckpoint(opts *bind.TransactOpts, _trackingId [32]byte, _pickupTime *big.Int, _deliveryTime *big.Int, _quantity *big.Int, _temperature *big.Int, _personInCharge string, _checkType uint8) (*types.Transaction, error) {
-	return _Tracking.contract.Transact(opts, "updateLogisticsCheckpoint", _trackingId, _pickupTime, _deliveryTime, _quantity, _temperature, _personInCharge, _checkType)
+// Solidity: function updateLogisticsCheckpoint(bytes32 _trackingId, uint256 _pickupTime, uint256 _deliveryTime, uint256 _quantity, int256 _temperature, string _personInCharge, uint8 _checkType, string _receiverCID) returns()
+func (_Tracking *TrackingTransactor) UpdateLogisticsCheckpoint(opts *bind.TransactOpts, _trackingId [32]byte, _pickupTime *big.Int, _deliveryTime *big.Int, _quantity *big.Int, _temperature *big.Int, _personInCharge string, _checkType uint8, _receiverCID string) (*types.Transaction, error) {
+	return _Tracking.contract.Transact(opts, "updateLogisticsCheckpoint", _trackingId, _pickupTime, _deliveryTime, _quantity, _temperature, _personInCharge, _checkType, _receiverCID)
 }
 
-// UpdateLogisticsCheckpoint is a paid mutator transaction binding the contract method 0x777699cb.
+// UpdateLogisticsCheckpoint is a paid mutator transaction binding the contract method 0xa7e604b2.
 //
-// Solidity: function updateLogisticsCheckpoint(bytes32 _trackingId, uint256 _pickupTime, uint256 _deliveryTime, uint256 _quantity, int256 _temperature, string _personInCharge, uint8 _checkType) returns()
-func (_Tracking *TrackingSession) UpdateLogisticsCheckpoint(_trackingId [32]byte, _pickupTime *big.Int, _deliveryTime *big.Int, _quantity *big.Int, _temperature *big.Int, _personInCharge string, _checkType uint8) (*types.Transaction, error) {
-	return _Tracking.Contract.UpdateLogisticsCheckpoint(&_Tracking.TransactOpts, _trackingId, _pickupTime, _deliveryTime, _quantity, _temperature, _personInCharge, _checkType)
+// Solidity: function updateLogisticsCheckpoint(bytes32 _trackingId, uint256 _pickupTime, uint256 _deliveryTime, uint256 _quantity, int256 _temperature, string _personInCharge, uint8 _checkType, string _receiverCID) returns()
+func (_Tracking *TrackingSession) UpdateLogisticsCheckpoint(_trackingId [32]byte, _pickupTime *big.Int, _deliveryTime *big.Int, _quantity *big.Int, _temperature *big.Int, _personInCharge string, _checkType uint8, _receiverCID string) (*types.Transaction, error) {
+	return _Tracking.Contract.UpdateLogisticsCheckpoint(&_Tracking.TransactOpts, _trackingId, _pickupTime, _deliveryTime, _quantity, _temperature, _personInCharge, _checkType, _receiverCID)
 }
 
-// UpdateLogisticsCheckpoint is a paid mutator transaction binding the contract method 0x777699cb.
+// UpdateLogisticsCheckpoint is a paid mutator transaction binding the contract method 0xa7e604b2.
 //
-// Solidity: function updateLogisticsCheckpoint(bytes32 _trackingId, uint256 _pickupTime, uint256 _deliveryTime, uint256 _quantity, int256 _temperature, string _personInCharge, uint8 _checkType) returns()
-func (_Tracking *TrackingTransactorSession) UpdateLogisticsCheckpoint(_trackingId [32]byte, _pickupTime *big.Int, _deliveryTime *big.Int, _quantity *big.Int, _temperature *big.Int, _personInCharge string, _checkType uint8) (*types.Transaction, error) {
-	return _Tracking.Contract.UpdateLogisticsCheckpoint(&_Tracking.TransactOpts, _trackingId, _pickupTime, _deliveryTime, _quantity, _temperature, _personInCharge, _checkType)
+// Solidity: function updateLogisticsCheckpoint(bytes32 _trackingId, uint256 _pickupTime, uint256 _deliveryTime, uint256 _quantity, int256 _temperature, string _personInCharge, uint8 _checkType, string _receiverCID) returns()
+func (_Tracking *TrackingTransactorSession) UpdateLogisticsCheckpoint(_trackingId [32]byte, _pickupTime *big.Int, _deliveryTime *big.Int, _quantity *big.Int, _temperature *big.Int, _personInCharge string, _checkType uint8, _receiverCID string) (*types.Transaction, error) {
+	return _Tracking.Contract.UpdateLogisticsCheckpoint(&_Tracking.TransactOpts, _trackingId, _pickupTime, _deliveryTime, _quantity, _temperature, _personInCharge, _checkType, _receiverCID)
 }
 
 // TrackingLogisticsUpdatedIterator is returned from FilterLogisticsUpdated and is used to iterate over the raw logs and unpacked data for LogisticsUpdated events raised by the Tracking contract.
@@ -728,12 +865,13 @@ type TrackingLogisticsUpdated struct {
 	TrackingId        [32]byte
 	LogisticsProvider common.Address
 	CheckType         uint8
+	ReceiverCID       string
 	Raw               types.Log // Blockchain specific contextual infos
 }
 
-// FilterLogisticsUpdated is a free log retrieval operation binding the contract event 0xf6035bdd30559a10b699c510827368744d386b193dcba64240507652ba3dd3b5.
+// FilterLogisticsUpdated is a free log retrieval operation binding the contract event 0x710a10364a49834e8c6e0fafff5354ca1e160f26a1ba1d7b33c7100c80d7ea6d.
 //
-// Solidity: event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, uint8 checkType)
+// Solidity: event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, uint8 checkType, string receiverCID)
 func (_Tracking *TrackingFilterer) FilterLogisticsUpdated(opts *bind.FilterOpts, trackingId [][32]byte, logisticsProvider []common.Address) (*TrackingLogisticsUpdatedIterator, error) {
 
 	var trackingIdRule []interface{}
@@ -752,9 +890,9 @@ func (_Tracking *TrackingFilterer) FilterLogisticsUpdated(opts *bind.FilterOpts,
 	return &TrackingLogisticsUpdatedIterator{contract: _Tracking.contract, event: "LogisticsUpdated", logs: logs, sub: sub}, nil
 }
 
-// WatchLogisticsUpdated is a free log subscription operation binding the contract event 0xf6035bdd30559a10b699c510827368744d386b193dcba64240507652ba3dd3b5.
+// WatchLogisticsUpdated is a free log subscription operation binding the contract event 0x710a10364a49834e8c6e0fafff5354ca1e160f26a1ba1d7b33c7100c80d7ea6d.
 //
-// Solidity: event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, uint8 checkType)
+// Solidity: event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, uint8 checkType, string receiverCID)
 func (_Tracking *TrackingFilterer) WatchLogisticsUpdated(opts *bind.WatchOpts, sink chan<- *TrackingLogisticsUpdated, trackingId [][32]byte, logisticsProvider []common.Address) (event.Subscription, error) {
 
 	var trackingIdRule []interface{}
@@ -798,9 +936,9 @@ func (_Tracking *TrackingFilterer) WatchLogisticsUpdated(opts *bind.WatchOpts, s
 	}), nil
 }
 
-// ParseLogisticsUpdated is a log parse operation binding the contract event 0xf6035bdd30559a10b699c510827368744d386b193dcba64240507652ba3dd3b5.
+// ParseLogisticsUpdated is a log parse operation binding the contract event 0x710a10364a49834e8c6e0fafff5354ca1e160f26a1ba1d7b33c7100c80d7ea6d.
 //
-// Solidity: event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, uint8 checkType)
+// Solidity: event LogisticsUpdated(bytes32 indexed trackingId, address indexed logisticsProvider, uint8 checkType, string receiverCID)
 func (_Tracking *TrackingFilterer) ParseLogisticsUpdated(log types.Log) (*TrackingLogisticsUpdated, error) {
 	event := new(TrackingLogisticsUpdated)
 	if err := _Tracking.contract.UnpackLog(event, "LogisticsUpdated", log); err != nil {

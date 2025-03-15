@@ -84,11 +84,18 @@ func main() {
 		database.DB, // ✅ ใช้ database.DB ที่เป็น *gorm.DB
 		services.BlockchainServiceInstance,
 		services.IPFSServiceInstance,
+		services.QRCodeServiceInstance,
+	)
+
+	trackingController := controllers.NewTrackingController(
+		database.DB,
+		services.BlockchainServiceInstance,
+		services.IPFSServiceInstance,
+		services.QRCodeServiceInstance,
 	)
 
 	// ✅ ส่ง Controller ไปที่ `SetupRoutes`
-	routes.SetupRoutes(app, rawMilkController, productController, productLotController)
-
+	routes.SetupRoutes(app, rawMilkController, productController, productLotController, trackingController)
 	// ✅ ให้บริการไฟล์ Static (Frontend)
 	app.Static("/", "./frontend")
 

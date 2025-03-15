@@ -1223,3 +1223,349 @@ func (b *BlockchainService) CreateTrackingEvent(
 	fmt.Println("✅ Tracking Event Created on Blockchain:", tx.Hash().Hex())
 	return tx.Hash().Hex(), nil
 }
+
+func (b *BlockchainService) GetTrackingByLotId(productLotId string) ([]string, []string, []string, error) {
+	fmt.Println("📌 Fetching Tracking Events for Product Lot ID:", productLotId)
+
+	// ✅ แปลง `productLotId` เป็น `bytes32`
+	productLotIdBytes := common.BytesToHash([]byte(productLotId))
+	fmt.Println("✅ Converted ProductLotId to Bytes32:", productLotIdBytes)
+
+	fmt.Println("📡 Calling Smart Contract...")
+	result, err := b.trackingContract.GetTrackingByLotId(nil, productLotIdBytes)
+	fmt.Println("✅ Smart Contract Call Completed!") // ❌ ถ้าไม่แสดงผล = Smart Contract มีปัญหา
+
+	if err != nil {
+		fmt.Println("❌ Failed to fetch tracking events:", err)
+		return nil, nil, nil, fmt.Errorf("❌ Failed to fetch tracking events: %v", err)
+	}
+	// ✅ แปลง `[][32]byte` เป็น `[]string` โดยใช้ฟังก์ชันที่คุณให้มา
+	trackingIds := convertBytes32ArrayToStrings(result.ResultTrackingIds)
+	fmt.Println("✅ Smart Contract Returned Data:", result)
+	return trackingIds, result.RetailerIds, result.QrCodeCIDs, nil
+}
+
+func (b *BlockchainService) GetAllTrackingIds() ([]string, error) {
+	fmt.Println("📌 Fetching All Tracking Events...")
+
+	fmt.Println("📡 Calling Smart Contract...")
+	result, err := b.trackingContract.GetAllTrackingIds(nil)
+	fmt.Println("✅ Smart Contract Call Completed!")
+
+	if err != nil {
+		fmt.Println("❌ Failed to fetch tracking events:", err)
+		return nil, fmt.Errorf("❌ Failed to fetch tracking events: %v", err)
+	}
+
+	// ✅ แปลง `[][32]byte` เป็น `[]string`
+	trackingIds := convertBytes32ArrayToStrings(result)
+
+	fmt.Println("✅ All Tracking IDs Retrieved:", trackingIds)
+	return trackingIds, nil
+}
+
+func (b *BlockchainService) UpdateLogisticsCheckpoint(
+	logisticsWallet string,
+	trackingId string,
+	pickupTime uint64,
+	deliveryTime uint64,
+	quantity uint64,
+	temperature int64,
+	personInCharge string,
+	checkType uint8, // ✅ 0 = Before, 1 = During, 2 = After
+	receiverCID string, // ✅ บันทึกข้อมูลผู้รับสินค้า (IPFS CID)
+) (string, error) {
+
+	fmt.Println("📌 Updating Logistics Checkpoint on Blockchain for:", logisticsWallet)
+
+	// ✅ ตรวจสอบค่าก่อนส่งธุรกรรม
+	if logisticsWallet == "" || trackingId == "" || personInCharge == "" || receiverCID == "" {
+		return "", fmt.Errorf("❌ Missing required fields")
+	}
+
+	// ✅ ดึง Private Key ของ Wallet ของโลจิสติกส์
+	privateKeyHex, err := b.getPrivateKeyForAddress(logisticsWallet)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+
+	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของโลจิสติกส์
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(logisticsWallet)
+	auth.GasLimit = uint64(3000000)         // ✅ กำหนด Gas Limit
+	auth.GasPrice = big.NewInt(20000000000) // ✅ กำหนด Gas Price
+
+	// ✅ แปลง `trackingId` เป็น `bytes32`
+	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+
+	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	fmt.Println("📌 Debug - Sending to Blockchain:")
+	fmt.Println("   - Tracking ID (Bytes32):", trackingIdBytes)
+	fmt.Println("   - Pickup Time:", pickupTime)
+	fmt.Println("   - Delivery Time:", deliveryTime)
+	fmt.Println("   - Quantity:", quantity)
+	fmt.Println("   - Temperature:", temperature)
+	fmt.Println("   - Check Type:", checkType)
+	fmt.Println("   - Receiver CID:", receiverCID)
+
+	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	tx, err := b.trackingContract.UpdateLogisticsCheckpoint(
+		auth,
+		trackingIdBytes, // ✅ ใช้ `bytes32`
+		big.NewInt(int64(pickupTime)),
+		big.NewInt(int64(deliveryTime)),
+		big.NewInt(int64(quantity)),
+		big.NewInt(temperature),
+		personInCharge,
+		uint8(checkType), // ✅ แปลง `enum` เป็น `uint8`
+		receiverCID,      // ✅ บันทึกข้อมูลผู้รับสินค้า (IPFS CID)
+	)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to update logistics checkpoint on blockchain: %v", err)
+	}
+
+	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
+
+	// ✅ รอให้ Transaction ถูกบันทึก
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
+	}
+
+	if receipt.Status == types.ReceiptStatusFailed {
+		return "", errors.New("❌ Transaction failed")
+	}
+
+	fmt.Println("✅ Logistics Checkpoint Updated on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
+}
+
+// ✅ Struct LogisticsCheckpoint ใน Go
+type LogisticsCheckpoint struct {
+	TrackingId        string `json:"trackingId"`
+	LogisticsProvider string `json:"logisticsProvider"`
+	PickupTime        uint64 `json:"pickupTime"`
+	DeliveryTime      uint64 `json:"deliveryTime"`
+	Quantity          uint64 `json:"quantity"`
+	Temperature       int64  `json:"temperature"`
+	PersonInCharge    string `json:"personInCharge"`
+	CheckType         uint8  `json:"checkType"`
+	ReceiverCID       string `json:"receiverCID"`
+}
+
+// ✅ ฟังก์ชันดึง Logistics Checkpoints จาก Blockchain
+func (b *BlockchainService) GetLogisticsCheckpointsByTrackingId(trackingId string) ([]LogisticsCheckpoint, []LogisticsCheckpoint, []LogisticsCheckpoint, error) {
+	fmt.Println("📌 Fetching Logistics Checkpoints for Tracking ID:", trackingId)
+
+	// ✅ แปลง `trackingId` เป็น `bytes32`
+	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	fmt.Println("🛠 Debug - Tracking ID Before Query:", trackingId)
+	fmt.Println("🛠 Debug - Tracking ID as Bytes32:", trackingIdBytes.Hex())
+
+	// ✅ สร้างตัวแปรรับค่าผลลัพธ์จาก Smart Contract
+	result, err := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, trackingIdBytes)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch logistics checkpoints:", err)
+		return nil, nil, nil, fmt.Errorf("❌ Failed to fetch logistics checkpoints: %v", err)
+	}
+
+	// ✅ แปลงข้อมูลจาก Smart Contract เป็น Struct ของ Go
+	beforeCheckpoints := convertToLogisticsCheckpointArray(result.BeforeCheckpoints)
+	duringCheckpoints := convertToLogisticsCheckpointArray(result.DuringCheckpoints)
+	afterCheckpoints := convertToLogisticsCheckpointArray(result.AfterCheckpoints)
+
+	fmt.Println("✅ Logistics Checkpoints Retrieved Successfully")
+	return beforeCheckpoints, duringCheckpoints, afterCheckpoints, nil
+}
+
+// ✅ แก้ไขฟังก์ชันให้รองรับ `tracking.TrackingLogisticsCheckpoint`
+func convertToLogisticsCheckpointArray(data []tracking.TrackingLogisticsCheckpoint) []LogisticsCheckpoint {
+	var checkpoints []LogisticsCheckpoint
+	for _, d := range data {
+		checkpoints = append(checkpoints, LogisticsCheckpoint{
+			TrackingId:        bytes32ToString(d.TrackingId),
+			LogisticsProvider: d.LogisticsProvider.Hex(),
+			PickupTime:        d.PickupTime.Uint64(),
+			DeliveryTime:      d.DeliveryTime.Uint64(),
+			Quantity:          d.Quantity.Uint64(),
+			Temperature:       d.Temperature.Int64(),
+			PersonInCharge:    d.PersonInCharge,
+			CheckType:         d.CheckType,
+			ReceiverCID:       d.ReceiverCID,
+		})
+	}
+	return checkpoints
+}
+
+// ✅ ฟังก์ชันช่วยแปลง bytes32 เป็น string
+func bytes32ToString(data [32]byte) string {
+	return strings.TrimRight(string(data[:]), "\x00")
+}
+
+func (b *BlockchainService) GetTrackingByRetailer(retailerID string) ([]map[string]interface{}, error) {
+	fmt.Println("📌 Fetching tracking events for retailer:", retailerID)
+
+	// ✅ ดึงรายการ Tracking IDs จาก Smart Contract
+	trackingIDs, err := b.trackingContract.GetTrackingByRetailer(&bind.CallOpts{}, retailerID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch tracking events for retailer:", err)
+		return nil, err
+	}
+
+	var trackingEvents []map[string]interface{}
+
+	// ✅ วนลูปดึงข้อมูลของแต่ละ Tracking ID
+	for _, id := range trackingIDs {
+		trackingIDStr := string(bytes.Trim(id[:], "\x00"))
+
+		// ✅ ดึงเฉพาะข้อมูล RetailerConfirmation
+		_, _, retailerConfirmation, err := b.trackingContract.GetTrackingById(&bind.CallOpts{}, id)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch tracking details for:", trackingIDStr, err)
+			continue
+		}
+
+		// ✅ สร้าง JSON Response
+		eventData := map[string]interface{}{
+			"trackingId": trackingIDStr,
+			"retailer":   retailerConfirmation,
+		}
+
+		trackingEvents = append(trackingEvents, eventData)
+	}
+
+	fmt.Println("✅ Fetched all tracking events for retailer:", retailerID, trackingEvents)
+	return trackingEvents, nil
+}
+
+func (b *BlockchainService) RetailerReceiveProduct(
+	userWallet string,
+	trackingId string,
+	retailerId string,
+	qualityCID string,
+	personInCharge string,
+) (string, error) {
+
+	fmt.Println("📌 Retailer Receiving Product on Blockchain for:", userWallet)
+
+	// ✅ ดึง Private Key ของ Retailer
+	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
+	}
+
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
+	}
+
+	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของ Retailer
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
+	}
+	auth.From = common.HexToAddress(userWallet)
+	auth.GasLimit = uint64(3000000)
+	auth.GasPrice = big.NewInt(20000000000)
+
+	// ✅ แปลง `trackingId` เป็น `bytes32`
+	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+
+	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	fmt.Println("📌 Debug - Sending to Blockchain:")
+	fmt.Println("   - Tracking ID (Bytes32):", trackingIdBytes)
+	fmt.Println("   - Retailer ID:", retailerId)
+	fmt.Println("   - Quality CID:", qualityCID)
+	fmt.Println("   - Person In Charge:", personInCharge)
+
+	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	tx, err := b.trackingContract.RetailerReceiveProduct(
+		auth,
+		trackingIdBytes,
+		retailerId,
+		qualityCID,
+		personInCharge,
+	)
+	if err != nil {
+		return "", fmt.Errorf("❌ Failed to execute retailerReceiveProduct on blockchain: %v", err)
+	}
+
+	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
+
+	// ✅ รอให้ Transaction ถูกบันทึก
+	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
+	if err != nil {
+		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
+	}
+
+	if receipt.Status == types.ReceiptStatusFailed {
+		return "", errors.New("❌ Transaction failed")
+	}
+
+	fmt.Println("✅ Retailer Received Product on Blockchain:", tx.Hash().Hex())
+	return tx.Hash().Hex(), nil
+}
+
+func (b *BlockchainService) GetRetailerConfirmation(trackingId string) (map[string]interface{}, error) {
+	fmt.Println("📌 Fetching Retailer Confirmation for Tracking ID:", trackingId)
+
+	// ✅ แปลง Tracking ID เป็น bytes32
+	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+
+	// ✅ ดึงเฉพาะข้อมูล Retailer Confirmation จาก Smart Contract
+	_, _, retailerConfirmation, err := b.trackingContract.GetTrackingById(nil, trackingIdBytes)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch retailer confirmation:", err)
+		return nil, fmt.Errorf("Failed to fetch retailer confirmation: %v", err)
+	}
+
+	// ✅ ตรวจสอบว่า Retailer Confirmation มีอยู่จริง
+	if retailerConfirmation.TrackingId == [32]byte{} {
+		return nil, fmt.Errorf("No retailer confirmation found for Tracking ID: %s", trackingId)
+	}
+
+	// ✅ แปลงข้อมูลที่ได้เป็น Map (JSON-compatible)
+	retailerData := map[string]interface{}{
+		"trackingId":     trackingId,
+		"retailerId":     retailerConfirmation.RetailerId,
+		"receivedTime":   retailerConfirmation.ReceivedTime,
+		"qualityCID":     retailerConfirmation.QualityCID,
+		"personInCharge": retailerConfirmation.PersonInCharge,
+	}
+
+	fmt.Println("✅ Retailer Confirmation Data:", retailerData)
+	return retailerData, nil
+}
+
+func (b *BlockchainService) GetProductLotByTrackingId(trackingId string) (string, error) {
+	fmt.Println("📌 Fetching Product Lot for Tracking ID:", trackingId)
+
+	// ✅ แปลง Tracking ID เป็น bytes32
+	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+
+	// ✅ ดึงข้อมูลจาก Smart Contract
+	trackingEvent, _, _, err := b.trackingContract.GetTrackingById(nil, trackingIdBytes)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch product lot by tracking ID:", err)
+		return "", fmt.Errorf("Failed to fetch product lot by tracking ID: %v", err)
+	}
+
+	// ✅ ตรวจสอบว่า Tracking Event มีอยู่จริง
+	if trackingEvent.TrackingId == [32]byte{} {
+		return "", fmt.Errorf("No tracking event found for Tracking ID: %s", trackingId)
+	}
+
+	// ✅ แปลงข้อมูล ProductLotId เป็น string
+	productLotId := string(trackingEvent.ProductLotId[:])
+
+	fmt.Println("✅ Product Lot ID:", productLotId)
+	return productLotId, nil
+}
