@@ -33,10 +33,14 @@ module.exports = async function (deployer, network, accounts) {
   const productLotInstance = await ProductLot.deployed();
   console.log("✅ ProductLot Contract Deployed at:", productLotInstance.address);
 
-  // ✅ 6. Deploy Tracking Contract (ใหม่)
+  // ✅ 6. Deploy Tracking Contract
   await deployer.deploy(Tracking, userRegistryInstance.address, productLotInstance.address);
   const trackingInstance = await Tracking.deployed();
   console.log("✅ Tracking Contract Deployed at:", trackingInstance.address);
+
+  // ✅ 7. เชื่อม `Tracking Contract` กับ `ProductLot Contract`
+  await productLotInstance.setTrackingContract(trackingInstance.address);
+  console.log("✅ ProductLot Contract linked with Tracking Contract");
 
   console.log("🎉 Deployment completed successfully!");
 };

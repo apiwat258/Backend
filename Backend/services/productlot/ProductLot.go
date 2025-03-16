@@ -39,11 +39,12 @@ type ProductLotProductLotInfo struct {
 	Grade                  bool
 	QualityAndNutritionCID string
 	MilkTankIds            [][32]byte
+	Status                 uint8
 }
 
 // ProductlotMetaData contains all meta data concerning the Productlot contract.
 var ProductlotMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_rawMilkContract\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_productContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"ProductLotCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"productContract\",\"outputs\":[{\"internalType\":\"contractProduct\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"productLotIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"productLots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"rawMilkContract\",\"outputs\":[{\"internalType\":\"contractRawMilk\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_inspector\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"_grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"_milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"createProductLot\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getProductLot\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"}],\"internalType\":\"structProductLot.ProductLotInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"isProductLotExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"}],\"name\":\"getProductLotsByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByProductLot\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_rawMilkContract\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_productContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"ProductLotCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"productContract\",\"outputs\":[{\"internalType\":\"contractProduct\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"productLotIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"productLots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"rawMilkContract\",\"outputs\":[{\"internalType\":\"contractRawMilk\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"trackingContract\",\"outputs\":[{\"internalType\":\"contractTracking\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_inspector\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"_grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"_milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"createProductLot\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getProductLot\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structProductLot.ProductLotInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"isProductLotExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"}],\"name\":\"getProductLotsByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByProductLot\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_trackingContract\",\"type\":\"address\"}],\"name\":\"setTrackingContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"updateProductLotStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // ProductlotABI is the input ABI used to generate the binding from.
@@ -225,7 +226,7 @@ func (_Productlot *ProductlotCallerSession) GetMilkTanksByProductLot(_lotId [32]
 
 // GetProductLot is a free data retrieval call binding the contract method 0xd794e362.
 //
-// Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[]))
+// Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[],uint8))
 func (_Productlot *ProductlotCaller) GetProductLot(opts *bind.CallOpts, _lotId [32]byte) (ProductLotProductLotInfo, error) {
 	var out []interface{}
 	err := _Productlot.contract.Call(opts, &out, "getProductLot", _lotId)
@@ -242,14 +243,14 @@ func (_Productlot *ProductlotCaller) GetProductLot(opts *bind.CallOpts, _lotId [
 
 // GetProductLot is a free data retrieval call binding the contract method 0xd794e362.
 //
-// Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[]))
+// Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[],uint8))
 func (_Productlot *ProductlotSession) GetProductLot(_lotId [32]byte) (ProductLotProductLotInfo, error) {
 	return _Productlot.Contract.GetProductLot(&_Productlot.CallOpts, _lotId)
 }
 
 // GetProductLot is a free data retrieval call binding the contract method 0xd794e362.
 //
-// Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[]))
+// Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[],uint8))
 func (_Productlot *ProductlotCallerSession) GetProductLot(_lotId [32]byte) (ProductLotProductLotInfo, error) {
 	return _Productlot.Contract.GetProductLot(&_Productlot.CallOpts, _lotId)
 }
@@ -380,7 +381,7 @@ func (_Productlot *ProductlotCallerSession) ProductLotIds(arg0 *big.Int) ([32]by
 
 // ProductLots is a free data retrieval call binding the contract method 0xd5729549.
 //
-// Solidity: function productLots(bytes32 ) view returns(bytes32 lotId, bytes32 productId, address factory, string inspector, uint256 inspectionDate, bool grade, string qualityAndNutritionCID)
+// Solidity: function productLots(bytes32 ) view returns(bytes32 lotId, bytes32 productId, address factory, string inspector, uint256 inspectionDate, bool grade, string qualityAndNutritionCID, uint8 status)
 func (_Productlot *ProductlotCaller) ProductLots(opts *bind.CallOpts, arg0 [32]byte) (struct {
 	LotId                  [32]byte
 	ProductId              [32]byte
@@ -389,6 +390,7 @@ func (_Productlot *ProductlotCaller) ProductLots(opts *bind.CallOpts, arg0 [32]b
 	InspectionDate         *big.Int
 	Grade                  bool
 	QualityAndNutritionCID string
+	Status                 uint8
 }, error) {
 	var out []interface{}
 	err := _Productlot.contract.Call(opts, &out, "productLots", arg0)
@@ -401,6 +403,7 @@ func (_Productlot *ProductlotCaller) ProductLots(opts *bind.CallOpts, arg0 [32]b
 		InspectionDate         *big.Int
 		Grade                  bool
 		QualityAndNutritionCID string
+		Status                 uint8
 	})
 	if err != nil {
 		return *outstruct, err
@@ -413,6 +416,7 @@ func (_Productlot *ProductlotCaller) ProductLots(opts *bind.CallOpts, arg0 [32]b
 	outstruct.InspectionDate = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
 	outstruct.Grade = *abi.ConvertType(out[5], new(bool)).(*bool)
 	outstruct.QualityAndNutritionCID = *abi.ConvertType(out[6], new(string)).(*string)
+	outstruct.Status = *abi.ConvertType(out[7], new(uint8)).(*uint8)
 
 	return *outstruct, err
 
@@ -420,7 +424,7 @@ func (_Productlot *ProductlotCaller) ProductLots(opts *bind.CallOpts, arg0 [32]b
 
 // ProductLots is a free data retrieval call binding the contract method 0xd5729549.
 //
-// Solidity: function productLots(bytes32 ) view returns(bytes32 lotId, bytes32 productId, address factory, string inspector, uint256 inspectionDate, bool grade, string qualityAndNutritionCID)
+// Solidity: function productLots(bytes32 ) view returns(bytes32 lotId, bytes32 productId, address factory, string inspector, uint256 inspectionDate, bool grade, string qualityAndNutritionCID, uint8 status)
 func (_Productlot *ProductlotSession) ProductLots(arg0 [32]byte) (struct {
 	LotId                  [32]byte
 	ProductId              [32]byte
@@ -429,13 +433,14 @@ func (_Productlot *ProductlotSession) ProductLots(arg0 [32]byte) (struct {
 	InspectionDate         *big.Int
 	Grade                  bool
 	QualityAndNutritionCID string
+	Status                 uint8
 }, error) {
 	return _Productlot.Contract.ProductLots(&_Productlot.CallOpts, arg0)
 }
 
 // ProductLots is a free data retrieval call binding the contract method 0xd5729549.
 //
-// Solidity: function productLots(bytes32 ) view returns(bytes32 lotId, bytes32 productId, address factory, string inspector, uint256 inspectionDate, bool grade, string qualityAndNutritionCID)
+// Solidity: function productLots(bytes32 ) view returns(bytes32 lotId, bytes32 productId, address factory, string inspector, uint256 inspectionDate, bool grade, string qualityAndNutritionCID, uint8 status)
 func (_Productlot *ProductlotCallerSession) ProductLots(arg0 [32]byte) (struct {
 	LotId                  [32]byte
 	ProductId              [32]byte
@@ -444,6 +449,7 @@ func (_Productlot *ProductlotCallerSession) ProductLots(arg0 [32]byte) (struct {
 	InspectionDate         *big.Int
 	Grade                  bool
 	QualityAndNutritionCID string
+	Status                 uint8
 }, error) {
 	return _Productlot.Contract.ProductLots(&_Productlot.CallOpts, arg0)
 }
@@ -477,6 +483,37 @@ func (_Productlot *ProductlotSession) RawMilkContract() (common.Address, error) 
 // Solidity: function rawMilkContract() view returns(address)
 func (_Productlot *ProductlotCallerSession) RawMilkContract() (common.Address, error) {
 	return _Productlot.Contract.RawMilkContract(&_Productlot.CallOpts)
+}
+
+// TrackingContract is a free data retrieval call binding the contract method 0x8c91be92.
+//
+// Solidity: function trackingContract() view returns(address)
+func (_Productlot *ProductlotCaller) TrackingContract(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _Productlot.contract.Call(opts, &out, "trackingContract")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// TrackingContract is a free data retrieval call binding the contract method 0x8c91be92.
+//
+// Solidity: function trackingContract() view returns(address)
+func (_Productlot *ProductlotSession) TrackingContract() (common.Address, error) {
+	return _Productlot.Contract.TrackingContract(&_Productlot.CallOpts)
+}
+
+// TrackingContract is a free data retrieval call binding the contract method 0x8c91be92.
+//
+// Solidity: function trackingContract() view returns(address)
+func (_Productlot *ProductlotCallerSession) TrackingContract() (common.Address, error) {
+	return _Productlot.Contract.TrackingContract(&_Productlot.CallOpts)
 }
 
 // UserRegistry is a free data retrieval call binding the contract method 0x5c7460d6.
@@ -529,6 +566,48 @@ func (_Productlot *ProductlotSession) CreateProductLot(_lotId [32]byte, _product
 // Solidity: function createProductLot(bytes32 _lotId, bytes32 _productId, string _inspector, bool _grade, string _qualityAndNutritionCID, bytes32[] _milkTankIds) returns()
 func (_Productlot *ProductlotTransactorSession) CreateProductLot(_lotId [32]byte, _productId [32]byte, _inspector string, _grade bool, _qualityAndNutritionCID string, _milkTankIds [][32]byte) (*types.Transaction, error) {
 	return _Productlot.Contract.CreateProductLot(&_Productlot.TransactOpts, _lotId, _productId, _inspector, _grade, _qualityAndNutritionCID, _milkTankIds)
+}
+
+// SetTrackingContract is a paid mutator transaction binding the contract method 0x42dc43b0.
+//
+// Solidity: function setTrackingContract(address _trackingContract) returns()
+func (_Productlot *ProductlotTransactor) SetTrackingContract(opts *bind.TransactOpts, _trackingContract common.Address) (*types.Transaction, error) {
+	return _Productlot.contract.Transact(opts, "setTrackingContract", _trackingContract)
+}
+
+// SetTrackingContract is a paid mutator transaction binding the contract method 0x42dc43b0.
+//
+// Solidity: function setTrackingContract(address _trackingContract) returns()
+func (_Productlot *ProductlotSession) SetTrackingContract(_trackingContract common.Address) (*types.Transaction, error) {
+	return _Productlot.Contract.SetTrackingContract(&_Productlot.TransactOpts, _trackingContract)
+}
+
+// SetTrackingContract is a paid mutator transaction binding the contract method 0x42dc43b0.
+//
+// Solidity: function setTrackingContract(address _trackingContract) returns()
+func (_Productlot *ProductlotTransactorSession) SetTrackingContract(_trackingContract common.Address) (*types.Transaction, error) {
+	return _Productlot.Contract.SetTrackingContract(&_Productlot.TransactOpts, _trackingContract)
+}
+
+// UpdateProductLotStatus is a paid mutator transaction binding the contract method 0x52df0ee6.
+//
+// Solidity: function updateProductLotStatus(bytes32 _lotId) returns()
+func (_Productlot *ProductlotTransactor) UpdateProductLotStatus(opts *bind.TransactOpts, _lotId [32]byte) (*types.Transaction, error) {
+	return _Productlot.contract.Transact(opts, "updateProductLotStatus", _lotId)
+}
+
+// UpdateProductLotStatus is a paid mutator transaction binding the contract method 0x52df0ee6.
+//
+// Solidity: function updateProductLotStatus(bytes32 _lotId) returns()
+func (_Productlot *ProductlotSession) UpdateProductLotStatus(_lotId [32]byte) (*types.Transaction, error) {
+	return _Productlot.Contract.UpdateProductLotStatus(&_Productlot.TransactOpts, _lotId)
+}
+
+// UpdateProductLotStatus is a paid mutator transaction binding the contract method 0x52df0ee6.
+//
+// Solidity: function updateProductLotStatus(bytes32 _lotId) returns()
+func (_Productlot *ProductlotTransactorSession) UpdateProductLotStatus(_lotId [32]byte) (*types.Transaction, error) {
+	return _Productlot.Contract.UpdateProductLotStatus(&_Productlot.TransactOpts, _lotId)
 }
 
 // ProductlotProductLotCreatedIterator is returned from FilterProductLotCreated and is used to iterate over the raw logs and unpacked data for ProductLotCreated events raised by the Productlot contract.

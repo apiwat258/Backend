@@ -189,3 +189,47 @@ func (qrs *QRCodeService) ReadQRCodeFromCID(qrCodeCID string) (map[string]interf
 	return qrDataMap, nil
 
 }
+
+func (qrs *QRCodeService) GenerateQRCodeForProductLot(qrData string, lotID string) (string, error) {
+	fmt.Println("📌 Generating Product Lot QR Code for:", qrData)
+
+	// ✅ ตรวจสอบว่า IPFSService ถูกกำหนดค่าหรือไม่
+	if qrs.IPFSService == nil {
+		fmt.Println("❌ IPFS Service is not initialized")
+		return "", fmt.Errorf("IPFS Service is not initialized")
+	}
+
+	// ✅ สร้าง QR Code เป็น PNG โดยใช้ข้อมูล `qrData`
+	qrCode, err := goqrcode.Encode(qrData, goqrcode.Medium, 256)
+	if err != nil {
+		fmt.Println("❌ Failed to generate QR Code:", err)
+		return "", fmt.Errorf("Failed to generate QR Code: %v", err)
+	}
+
+	// ✅ ใช้ `lotID` เป็นชื่อไฟล์ QR Code
+	tempFilePath := fmt.Sprintf("/tmp/qrcode_%s.png", lotID)
+	err = os.WriteFile(tempFilePath, qrCode, 0644)
+	if err != nil {
+		fmt.Println("❌ Failed to save QR Code to file:", err)
+		return "", fmt.Errorf("Failed to save QR Code to file: %v", err)
+	}
+	defer os.Remove(tempFilePath)
+
+	// ✅ เปิดไฟล์ที่บันทึกไว้
+	file, err := os.Open(tempFilePath)
+	if err != nil {
+		fmt.Println("❌ Failed to open QR Code file:", err)
+		return "", fmt.Errorf("Failed to open QR Code file: %v", err)
+	}
+	defer file.Close()
+
+	// ✅ อัปโหลดไฟล์ QR Code ไปยัง IPFS
+	qrCodeCID, err := qrs.IPFSService.UploadFile(file)
+	if err != nil {
+		fmt.Println("❌ Failed to upload QR Code to IPFS:", err)
+		return "", fmt.Errorf("Failed to upload QR Code to IPFS: %v", err)
+	}
+
+	fmt.Println("✅ Product Lot QR Code uploaded to IPFS with CID:", qrCodeCID)
+	return qrCodeCID, nil
+}

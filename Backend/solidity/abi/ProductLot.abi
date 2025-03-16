@@ -153,6 +153,11 @@
         "internalType": "string",
         "name": "qualityAndNutritionCID",
         "type": "string"
+      },
+      {
+        "internalType": "enum ProductLot.ProductLotStatus",
+        "name": "status",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -165,6 +170,20 @@
     "outputs": [
       {
         "internalType": "contract RawMilk",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "trackingContract",
+    "outputs": [
+      {
+        "internalType": "contract Tracking",
         "name": "",
         "type": "address"
       }
@@ -276,6 +295,11 @@
             "internalType": "bytes32[]",
             "name": "milkTankIds",
             "type": "bytes32[]"
+          },
+          {
+            "internalType": "enum ProductLot.ProductLotStatus",
+            "name": "status",
+            "type": "uint8"
           }
         ],
         "internalType": "struct ProductLot.ProductLotInfo",
@@ -346,5 +370,31 @@
     "stateMutability": "view",
     "type": "function",
     "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_trackingContract",
+        "type": "address"
+      }
+    ],
+    "name": "setTrackingContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "updateProductLotStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ]

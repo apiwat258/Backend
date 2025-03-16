@@ -17,7 +17,21 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: user_role; Type: TYPE; Schema: public; Owner: postgres
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA public IS '';
+
+
+--
+-- Name: user_role; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.user_role AS ENUM (
@@ -29,10 +43,8 @@ CREATE TYPE public.user_role AS ENUM (
 );
 
 
-ALTER TYPE public.user_role OWNER TO postgres;
-
 --
--- Name: create_yearly_sequence(text); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: create_yearly_sequence(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.create_yearly_sequence(year_prefix text) RETURNS void
@@ -45,10 +57,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.create_yearly_sequence(year_prefix text) OWNER TO postgres;
-
 --
--- Name: generate_userid(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: generate_userid(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.generate_userid() RETURNS text
@@ -73,10 +83,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.generate_userid() OWNER TO postgres;
-
 --
--- Name: generate_userid(text); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: generate_userid(text); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.generate_userid(role_prefix text) RETURNS text
@@ -93,10 +101,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.generate_userid(role_prefix text) OWNER TO postgres;
-
 --
--- Name: update_timestamp(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_timestamp(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.update_timestamp() RETURNS trigger
@@ -109,13 +115,25 @@ END;
 $$;
 
 
-ALTER FUNCTION public.update_timestamp() OWNER TO postgres;
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
 
 --
--- Name: dairyfactory_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: categories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.dairyfactory_id_seq
+CREATE TABLE public.categories (
+    category_id bigint NOT NULL,
+    name text NOT NULL
+);
+
+
+--
+-- Name: categories_category_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.categories_category_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -123,18 +141,31 @@ CREATE SEQUENCE public.dairyfactory_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.dairyfactory_id_seq OWNER TO postgres;
+--
+-- Name: categories_category_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
 
-SET default_tablespace = '';
+ALTER SEQUENCE public.categories_category_id_seq OWNED BY public.categories.category_id;
 
-SET default_table_access_method = heap;
 
 --
--- Name: dairyfactory; Type: TABLE; Schema: public; Owner: postgres
+-- Name: factory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.factory_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: dairyfactory; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.dairyfactory (
-    factoryid character varying(255) DEFAULT nextval('public.dairyfactory_id_seq'::regclass) NOT NULL,
+    factoryid character varying(255) DEFAULT nextval('public.factory_id_seq'::regclass) NOT NULL,
     companyname text NOT NULL,
     address text NOT NULL,
     district text,
@@ -152,10 +183,20 @@ CREATE TABLE public.dairyfactory (
 );
 
 
-ALTER TABLE public.dairyfactory OWNER TO postgres;
+--
+-- Name: dairyfactory_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.dairyfactory_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
 
 --
--- Name: externalid; Type: TABLE; Schema: public; Owner: postgres
+-- Name: externalid; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.externalid (
@@ -175,10 +216,8 @@ CREATE TABLE public.externalid (
 );
 
 
-ALTER TABLE public.externalid OWNER TO postgres;
-
 --
--- Name: farmer_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: farmer_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.farmer_id_seq
@@ -189,10 +228,8 @@ CREATE SEQUENCE public.farmer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.farmer_id_seq OWNER TO postgres;
-
 --
--- Name: farmer; Type: TABLE; Schema: public; Owner: postgres
+-- Name: farmer; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.farmer (
@@ -210,15 +247,12 @@ CREATE TABLE public.farmer (
     location_link text,
     createdon timestamp with time zone,
     wallet_address text NOT NULL,
-    email text NOT NULL,
-    entityid text NOT NULL
+    email text NOT NULL
 );
 
 
-ALTER TABLE public.farmer OWNER TO postgres;
-
 --
--- Name: logistics_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: logistics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.logistics_id_seq
@@ -229,10 +263,8 @@ CREATE SEQUENCE public.logistics_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.logistics_id_seq OWNER TO postgres;
-
 --
--- Name: logisticsprovider; Type: TABLE; Schema: public; Owner: postgres
+-- Name: logisticsprovider; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.logisticsprovider (
@@ -254,10 +286,8 @@ CREATE TABLE public.logisticsprovider (
 );
 
 
-ALTER TABLE public.logisticsprovider OWNER TO postgres;
-
 --
--- Name: organiccertification; Type: TABLE; Schema: public; Owner: postgres
+-- Name: organiccertification; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.organiccertification (
@@ -273,10 +303,41 @@ CREATE TABLE public.organiccertification (
 );
 
 
-ALTER TABLE public.organiccertification OWNER TO postgres;
+--
+-- Name: product_lot_images; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_lot_images (
+    id bigint NOT NULL,
+    lot_id text NOT NULL,
+    image_c_id text NOT NULL,
+    created_at timestamp with time zone,
+    tracking_ids text NOT NULL,
+    person_in_charge text NOT NULL
+);
+
 
 --
--- Name: retailer_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: product_lot_images_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.product_lot_images_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: product_lot_images_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.product_lot_images_id_seq OWNED BY public.product_lot_images.id;
+
+
+--
+-- Name: retailer_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.retailer_id_seq
@@ -287,10 +348,8 @@ CREATE SEQUENCE public.retailer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.retailer_id_seq OWNER TO postgres;
-
 --
--- Name: retailer; Type: TABLE; Schema: public; Owner: postgres
+-- Name: retailer; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.retailer (
@@ -312,10 +371,40 @@ CREATE TABLE public.retailer (
 );
 
 
-ALTER TABLE public.retailer OWNER TO postgres;
+--
+-- Name: tracking_status; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tracking_status (
+    id integer NOT NULL,
+    tracking_id text NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
 
 --
--- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: tracking_status_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tracking_status_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tracking_status_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tracking_status_id_seq OWNED BY public.tracking_status.id;
+
+
+--
+-- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.user_id_seq
@@ -326,10 +415,8 @@ CREATE SEQUENCE public.user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.user_id_seq OWNER TO postgres;
-
 --
--- Name: user_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: user_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.user_seq
@@ -340,10 +427,8 @@ CREATE SEQUENCE public.user_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.user_seq OWNER TO postgres;
-
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users (
@@ -355,113 +440,43 @@ CREATE TABLE public.users (
     entityid text NOT NULL,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    telephone text,
+    profile_image bytea
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
-
 --
--- Data for Name: dairyfactory; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Name: categories category_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-COPY public.dairyfactory (factoryid, companyname, address, district, subdistrict, province, country, postcode, telephone, lineid, facebook, location_link, createdon, wallet_address, email) FROM stdin;
-\.
+ALTER TABLE ONLY public.categories ALTER COLUMN category_id SET DEFAULT nextval('public.categories_category_id_seq'::regclass);
 
 
 --
--- Data for Name: externalid; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Name: product_lot_images id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-COPY public.externalid (externalid, factoryid, logisticname, sendername, logisticshippingdate, logisticdeliverydate, logisticqualitycheck, logistictemp, retailersreceiptdate, retailerqualitycheck, retailertemp, retailername, createdon) FROM stdin;
-\.
-
-
---
--- Data for Name: farmer; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.farmer (farmerid, companyname, address, district, subdistrict, province, country, postcode, telephone, lineid, facebook, location_link, createdon, wallet_address, email, entityid) FROM stdin;
-\.
+ALTER TABLE ONLY public.product_lot_images ALTER COLUMN id SET DEFAULT nextval('public.product_lot_images_id_seq'::regclass);
 
 
 --
--- Data for Name: logisticsprovider; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Name: tracking_status id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-COPY public.logisticsprovider (logisticsid, companyname, address, district, subdistrict, province, country, postcode, telephone, lineid, facebook, location_link, createdon, wallet_address, email) FROM stdin;
-\.
-
-
---
--- Data for Name: organiccertification; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.organiccertification (certificationid, certificationtype, certificationcid, effective_date, issued_date, created_on, entityid, entitytype, blockchain_tx) FROM stdin;
-\.
+ALTER TABLE ONLY public.tracking_status ALTER COLUMN id SET DEFAULT nextval('public.tracking_status_id_seq'::regclass);
 
 
 --
--- Data for Name: retailer; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-COPY public.retailer (retailerid, companyname, address, district, subdistrict, province, country, postcode, telephone, lineid, facebook, location_link, createdon, wallet_address, email) FROM stdin;
-\.
-
-
---
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.users (userid, username, email, password, role, entityid, created_at, updated_at, deleted_at) FROM stdin;
-2500048	Apiwat Bunyasartpan	farm@test.com	$2a$14$qskTlxk/N1wPXaNIqeGFZ.2PZLKQqZ7GoSt9bH6FzmELptQt3Z0w6	pending	PENDING_ROLE	2025-02-26 13:23:50.617784+07	2025-02-26 13:23:50.617784+07	0001-01-01 00:00:00
-\.
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (category_id);
 
 
 --
--- Name: dairyfactory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.dairyfactory_id_seq', 24, true);
-
-
---
--- Name: farmer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.farmer_id_seq', 59, true);
-
-
---
--- Name: logistics_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.logistics_id_seq', 4, true);
-
-
---
--- Name: retailer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.retailer_id_seq', 3, true);
-
-
---
--- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.user_id_seq', 48, true);
-
-
---
--- Name: user_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.user_seq', 1, false);
-
-
---
--- Name: dairyfactory dairyfactory_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dairyfactory dairyfactory_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dairyfactory
@@ -469,7 +484,7 @@ ALTER TABLE ONLY public.dairyfactory
 
 
 --
--- Name: dairyfactory dairyfactory_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: dairyfactory dairyfactory_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.dairyfactory
@@ -477,7 +492,7 @@ ALTER TABLE ONLY public.dairyfactory
 
 
 --
--- Name: externalid externalid_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: externalid externalid_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.externalid
@@ -485,7 +500,7 @@ ALTER TABLE ONLY public.externalid
 
 
 --
--- Name: farmer farmer_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: farmer farmer_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.farmer
@@ -493,7 +508,7 @@ ALTER TABLE ONLY public.farmer
 
 
 --
--- Name: farmer farmer_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: farmer farmer_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.farmer
@@ -501,7 +516,7 @@ ALTER TABLE ONLY public.farmer
 
 
 --
--- Name: logisticsprovider logisticsprovider_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: logisticsprovider logisticsprovider_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.logisticsprovider
@@ -509,7 +524,7 @@ ALTER TABLE ONLY public.logisticsprovider
 
 
 --
--- Name: logisticsprovider logisticsprovider_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: logisticsprovider logisticsprovider_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.logisticsprovider
@@ -517,7 +532,7 @@ ALTER TABLE ONLY public.logisticsprovider
 
 
 --
--- Name: organiccertification organiccertification_certificationcid_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: organiccertification organiccertification_certificationcid_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.organiccertification
@@ -525,7 +540,7 @@ ALTER TABLE ONLY public.organiccertification
 
 
 --
--- Name: organiccertification organiccertification_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: organiccertification organiccertification_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.organiccertification
@@ -533,7 +548,7 @@ ALTER TABLE ONLY public.organiccertification
 
 
 --
--- Name: retailer retailer_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: retailer retailer_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.retailer
@@ -541,7 +556,7 @@ ALTER TABLE ONLY public.retailer
 
 
 --
--- Name: retailer retailer_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: retailer retailer_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.retailer
@@ -549,15 +564,31 @@ ALTER TABLE ONLY public.retailer
 
 
 --
--- Name: farmer uni_farmer_entityid; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tracking_status tracking_status_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.farmer
-    ADD CONSTRAINT uni_farmer_entityid UNIQUE (entityid);
+ALTER TABLE ONLY public.tracking_status
+    ADD CONSTRAINT tracking_status_pkey PRIMARY KEY (id);
 
 
 --
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: tracking_status tracking_status_tracking_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tracking_status
+    ADD CONSTRAINT tracking_status_tracking_id_key UNIQUE (tracking_id);
+
+
+--
+-- Name: categories uni_categories_name; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT uni_categories_name UNIQUE (name);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -565,7 +596,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -573,7 +604,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_username_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -581,7 +612,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users set_timestamp; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: users set_timestamp; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER set_timestamp BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
@@ -590,3 +621,4 @@ CREATE TRIGGER set_timestamp BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE 
 --
 -- PostgreSQL database dump complete
 --
+

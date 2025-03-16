@@ -9,8 +9,8 @@ import (
 
 // SetupRoutes sets up API routes
 func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController, plc *controllers.ProductLotController, tc *controllers.TrackingController) {
-	api := app.Group("/api/v1") // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
-	app.Get("/api/v1/tracking-details", tc.GetTrackingDetails)
+	api := app.Group("/api/v1")                              // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
+	api.Get("/tracking-details", tc.GetTrackingDetailsByLot) // ✅ ต้องอยู่ใต้ `api`
 
 	// ✅ Authentication Routes
 	auth := api.Group("/auth")

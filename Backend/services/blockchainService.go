@@ -947,6 +947,7 @@ type ProductLotInfo struct {
 	Grade                  bool
 	QualityAndNutritionCID string
 	MilkTankIDs            []string
+	Status                 uint8
 }
 
 func (b *BlockchainService) CreateProductLot(
@@ -1132,11 +1133,15 @@ func (b *BlockchainService) GetProductLotsByFactory(factoryAddress string) ([]ma
 			continue // ข้ามอันที่ดึงไม่ได้
 		}
 
+		// ✅ แปลงสถานะจาก `uint8` เป็น `string`
+		statusStr := strconv.Itoa(int(productLotData.Status))
+
 		// ✅ เพิ่มข้อมูลเข้าไปในผลลัพธ์
 		productLots = append(productLots, map[string]string{
 			"Product Lot No":   lotId,
 			"Product Name":     productData["productName"].(string),
 			"Person In Charge": productLotData.Inspector, // ✅ ดึงชื่อ Inspector
+			"Status":           statusStr,                // ✅ เพิ่มสถานะของ Product Lot
 		})
 	}
 
@@ -1245,23 +1250,45 @@ func (b *BlockchainService) GetTrackingByLotId(productLotId string) ([]string, [
 	return trackingIds, result.RetailerIds, result.QrCodeCIDs, nil
 }
 
-func (b *BlockchainService) GetAllTrackingIds() ([]string, error) {
+func (b *BlockchainService) GetAllTrackingIds() ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching All Tracking Events...")
 
-	fmt.Println("📡 Calling Smart Contract...")
-	result, err := b.trackingContract.GetAllTrackingIds(nil)
-	fmt.Println("✅ Smart Contract Call Completed!")
-
+	// ✅ ดึง Tracking IDs ทั้งหมดจาก Smart Contract
+	trackingIds, err := b.trackingContract.GetAllTrackingIds(nil)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch tracking events:", err)
 		return nil, fmt.Errorf("❌ Failed to fetch tracking events: %v", err)
 	}
 
 	// ✅ แปลง `[][32]byte` เป็น `[]string`
-	trackingIds := convertBytes32ArrayToStrings(result)
+	trackingIdStrings := convertBytes32ArrayToStrings(trackingIds)
 
-	fmt.Println("✅ All Tracking IDs Retrieved:", trackingIds)
-	return trackingIds, nil
+	// ✅ เตรียมผลลัพธ์
+	var trackingList []map[string]interface{}
+
+	// ✅ ดึงข้อมูลของแต่ละ Tracking ID จาก Smart Contract
+	for _, trackingId := range trackingIdStrings {
+		fmt.Println("📌 Fetching details for Tracking ID:", trackingId)
+
+		// ✅ ดึงข้อมูล Tracking Event จาก Smart Contract
+		trackingEvent, err := b.trackingContract.TrackingEvents(nil, common.HexToHash(trackingId))
+		if err != nil {
+			fmt.Println("❌ Failed to fetch Tracking Event:", trackingId, err)
+			continue
+		}
+
+		// ✅ ดึงค่า `status`
+		status := int(trackingEvent.Status)
+
+		// ✅ เพิ่มข้อมูลลงใน List (ไม่ต้องดึง `productLotId`)
+		trackingList = append(trackingList, map[string]interface{}{
+			"trackingId": trackingId,
+			"status":     status,
+		})
+	}
+
+	fmt.Println("✅ All Tracking IDs Retrieved:", trackingList)
+	return trackingList, nil
 }
 
 func (b *BlockchainService) UpdateLogisticsCheckpoint(

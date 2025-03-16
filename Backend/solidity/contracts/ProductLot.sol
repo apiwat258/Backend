@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "./UserRegistry.sol";
 import "./RawMilk.sol";
 import "./Product.sol";
+import "./Tracking.sol"; // ✅ Import Tracking.sol
 
 contract ProductLot {
     UserRegistry public userRegistry;
@@ -11,16 +12,18 @@ contract ProductLot {
     Product public productContract;
 
     struct ProductLotInfo {
-        bytes32 lotId;
-        bytes32 productId;
-        address factory;
-        string inspector;
-        uint256 inspectionDate;
-        bool grade; // true = ผ่าน, false = ไม่ผ่าน
-        string qualityAndNutritionCID;
-        bytes32[] milkTankIds;
-    }
+    bytes32 lotId;
+    bytes32 productId;
+    address factory;
+    string inspector;
+    uint256 inspectionDate;
+    bool grade;
+    string qualityAndNutritionCID;
+    bytes32[] milkTankIds;
+    ProductLotStatus status; // ✅ เพิ่มฟิลด์สถานะ
+}
 
+    enum ProductLotStatus { Created, InTransit, Received } // ✅ เพิ่มสถานะ
     mapping(bytes32 => ProductLotInfo) public productLots;
     bytes32[] public productLotIds;
 
@@ -68,15 +71,17 @@ contract ProductLot {
         }
 
         productLots[_lotId] = ProductLotInfo({
-            lotId: _lotId,
-            productId: _productId,
-            factory: msg.sender,
-            inspector: _inspector,
-            inspectionDate: block.timestamp,
-            grade: _grade,
-            qualityAndNutritionCID: _qualityAndNutritionCID,
-            milkTankIds: _milkTankIds
-        });
+    lotId: _lotId,
+    productId: _productId,
+    factory: msg.sender,
+    inspector: _inspector,
+    inspectionDate: block.timestamp,
+    grade: _grade,
+    qualityAndNutritionCID: _qualityAndNutritionCID,
+    milkTankIds: _milkTankIds,
+    status: ProductLotStatus.Created // ✅ เริ่มต้นเป็น Created
+});
+
 
         productLotIds.push(_lotId);
 
@@ -116,4 +121,43 @@ contract ProductLot {
         require(productLots[_lotId].lotId != bytes32(0), "Error: Product Lot does not exist");
         return productLots[_lotId].milkTankIds;
     }
+    Tracking public trackingContract; // ✅ Tracking Contract (เชื่อมภายหลัง)
+function setTrackingContract(address _trackingContract) public {
+    require(address(trackingContract) == address(0), "Tracking contract already set"); // ✅ ป้องกันการเปลี่ยน Tracking Contract
+    trackingContract = Tracking(_trackingContract);
+}
+function updateProductLotStatus(bytes32 _lotId) public {
+    require(productLots[_lotId].lotId != bytes32(0), "Error: Product Lot does not exist");
+    require(address(trackingContract) != address(0), "Tracking contract not set");
+
+    // ✅ รับค่าจาก getTrackingByLotId (เฉพาะ trackingIds เท่านั้น)
+    (bytes32[] memory trackingIds, , ) = trackingContract.getTrackingByLotId(_lotId);
+    require(trackingIds.length > 0, "Error: No tracking data found for this product lot");
+
+    bool allReceived = true;
+    bool hasInTransit = false;
+
+    for (uint i = 0; i < trackingIds.length; i++) {
+        // ✅ รับค่าจาก getTrackingById (เฉพาะ TrackingEvent เท่านั้น)
+        (Tracking.TrackingEvent memory trackingEvent, , ) = trackingContract.getTrackingById(trackingIds[i]);
+
+        if (trackingEvent.status == Tracking.TrackingStatus.InTransit) {
+            hasInTransit = true;
+        }
+        if (trackingEvent.status != Tracking.TrackingStatus.Received) {
+            allReceived = false;
+        }
+    }
+
+    if (hasInTransit) {
+        productLots[_lotId].status = ProductLotStatus.InTransit;
+        return;
+    }
+
+    if (allReceived) {
+        productLots[_lotId].status = ProductLotStatus.Received;
+    }
+}
+
+
 }

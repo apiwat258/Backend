@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"finalyearproject/Backend/database"
+	"finalyearproject/Backend/models"
 	"finalyearproject/Backend/services"
 )
 
@@ -58,6 +59,11 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		ShippingAddresses []struct {
 			RetailerID  string `json:"retailerId"`
 			CompanyName string `json:"companyName"`
+			FirstName   string `json:"firstName"`   // ✅ เพิ่ม
+			LastName    string `json:"lastName"`    // ✅ เพิ่ม
+			Email       string `json:"email"`       // ✅ เพิ่ม
+			AreaCode    string `json:"areaCode"`    // ✅ เพิ่ม
+			PhoneNumber string `json:"phoneNumber"` // ✅ เพิ่ม
 			Address     string `json:"address"`
 			Province    string `json:"province"`
 			District    string `json:"district"`
@@ -66,29 +72,14 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 			Location    string `json:"location"`
 		} `json:"shippingAddresses"`
 	}
-	// ✅ Debug: ตรวจสอบ JSON ที่ได้รับทั้งหมด
-	body := c.Body()
-	fmt.Println("📌 Debug - Raw Request Body:", string(body))
 
 	// ✅ แปลง JSON
-	if err := json.Unmarshal(body, &request); err != nil {
-		fmt.Println("❌ Error parsing request body:", err)
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
-	}
-
-	// ✅ Debug: แสดงค่า Shipping Addresses ที่รับเข้ามา
-	fmt.Println("📌 Debug - Parsed Shipping Addresses:", request.ShippingAddresses)
-
-	if len(request.ShippingAddresses) == 0 {
-		fmt.Println("❌ No Shipping Addresses Found!")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "No Shipping Addresses provided"})
-	}
-
 	if err := json.Unmarshal(c.Body(), &request); err != nil {
 		fmt.Println("❌ Error parsing request body:", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
+	// ✅ ตรวจสอบข้อมูลที่จำเป็น
 	if strings.TrimSpace(request.ProductID) == "" || len(request.MilkTankIDs) == 0 {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Product ID and at least one Milk Tank are required"})
 	}
@@ -127,21 +118,42 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		fmt.Println("❌ Blockchain transaction failed:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Blockchain transaction failed"})
 	}
-	fmt.Println("📌 Debug - Checking Shipping Addresses")
-	fmt.Println("   - Total Addresses:", len(request.ShippingAddresses))
 
-	if len(request.ShippingAddresses) == 0 {
-		fmt.Println("❌ No Shipping Addresses Found! Skipping Tracking Event creation.")
-		return c.Status(http.StatusCreated).JSON(fiber.Map{
-			"message": "Product Lot created, but no shipping addresses provided.",
-			"lotId":   lotId,
-			"txHash":  txHash,
-			"ipfsCID": qualityCID,
-		})
+	// ✅ สร้าง QR Code สำหรับ Product Lot (เฉพาะ Product Lot ID และ Factory ID)
+	qrDataProductLot := map[string]string{
+		"productLotId": lotId,
+		"factoryId":    factoryID,
+	}
+
+	// ✅ แปลงเป็น JSON
+	qrDataProductLotJSON, err := json.Marshal(qrDataProductLot)
+	if err != nil {
+		fmt.Println("❌ Failed to encode Product Lot QR data:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to encode Product Lot QR data"})
+	}
+
+	// ✅ อัปโหลด QR Code ไปที่ IPFS
+	// ✅ เรียกใช้ฟังก์ชันใหม่สำหรับสร้าง QR Code ของ Product Lot
+	qrImageProductLotCID, err := plc.QRService.GenerateQRCodeForProductLot(string(qrDataProductLotJSON), lotId)
+	if err != nil {
+		fmt.Println("❌ Failed to generate and upload Product Lot QR Code:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate and upload Product Lot QR Code"})
+	}
+
+	// ✅ บันทึก QR Code CID ลงในฐานข้อมูล
+	productLotImage := models.ProductLotImage{
+		LotID:    lotId,
+		ImageCID: qrImageProductLotCID,
+	}
+
+	if err := database.DB.Create(&productLotImage).Error; err != nil {
+		fmt.Println("❌ Failed to save QR Code CID to database:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save QR Code CID"})
 	}
 
 	// ✅ สร้าง Tracking Event สำหรับทุก Retailer
 	var trackingTxHashes []string
+	var trackingIDs []string // ✅ เก็บ Tracking IDs ก่อนบันทึกฐานข้อมูล
 	for _, shipping := range request.ShippingAddresses {
 		fmt.Println("📌 Debug - Processing Shipping Address:", shipping.RetailerID)
 
@@ -151,10 +163,10 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		}
 
 		trackingID := plc.GenerateTrackingID(lotId, shipping.RetailerID)
+		trackingIDs = append(trackingIDs, trackingID) // ✅ เก็บ Tracking IDs ก่อนบันทึกฐานข้อมูล
 		fmt.Println("📌 Debug - Generated Tracking ID:", trackingID)
 
-		// ✅ ค้นหา Factory Name จากตาราง `dairyfactory`
-		// ✅ ค้นหา Factory Name จากตาราง `dairyfactory`
+		// ✅ ค้นหา Factory Name
 		var factoryName string
 		err := database.DB.Table("dairyfactory").Where("factoryid = ?", factoryID).Select("companyname").Scan(&factoryName).Error
 		if err != nil || factoryName == "" {
@@ -162,13 +174,19 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve factory name"})
 		}
 
-		// ✅ เตรียมข้อมูล QR Code (เพิ่มข้อมูลให้ครบ)
+		// ✅ เตรียมข้อมูล QR Code
+		// ✅ เตรียมข้อมูล QR Code
 		qrData := map[string]interface{}{
 			"trackingId":   trackingID,
 			"productLotId": lotId,
 			"retailer": map[string]string{
 				"retailerId":  shipping.RetailerID,
 				"companyName": shipping.CompanyName,
+				"firstName":   shipping.FirstName,   // ✅ เพิ่ม
+				"lastName":    shipping.LastName,    // ✅ เพิ่ม
+				"email":       shipping.Email,       // ✅ เพิ่ม
+				"areaCode":    shipping.AreaCode,    // ✅ เพิ่ม
+				"phoneNumber": shipping.PhoneNumber, // ✅ เพิ่ม
 				"address":     shipping.Address,
 				"province":    shipping.Province,
 				"district":    shipping.District,
@@ -186,23 +204,19 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		qrDataJSON, err := json.Marshal(qrData)
 		if err != nil {
 			fmt.Println("❌ Failed to encode QR data:", err)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to encode QR data"})
+			continue
 		}
 
-		// ✅ สร้าง QR Code ใหม่ที่เก็บข้อมูลทั้งหมด
+		// ✅ สร้าง QR Code
 		qrImageCID, err := plc.QRService.GenerateQRCodeforFactory(string(qrDataJSON))
 		if err != nil {
 			fmt.Println("❌ Failed to generate and upload QR Code:", err)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate and upload QR Code"})
+			continue
 		}
 
 		fmt.Println("✅ Debug - QR Code CID:", qrImageCID)
-		if err != nil {
-			fmt.Println("❌ Failed to generate and upload QR Code:", err)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate and upload QR Code"})
-		}
-		fmt.Println("✅ Debug - QR Code CID:", qrImageCID)
 
+		// ✅ สร้าง Tracking Event บน Blockchain
 		txHashTracking, err := plc.BlockchainService.CreateTrackingEvent(
 			walletAddress,
 			trackingID,
@@ -212,22 +226,38 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		)
 		if err != nil {
 			fmt.Println("❌ Blockchain tracking event failed for Retailer:", shipping.RetailerID)
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Blockchain tracking event failed"})
+			continue
 		}
 
 		fmt.Println("✅ Tracking Event Created on Blockchain:", txHashTracking)
 		trackingTxHashes = append(trackingTxHashes, txHashTracking)
 	}
 
+	// ✅ บันทึก Tracking IDs และ Person In Charge ลงในฐานข้อมูล ProductLotImage (หลังจากวนลูปเสร็จ)
+	productLotImage = models.ProductLotImage{
+		LotID:          lotId,
+		ImageCID:       qrImageProductLotCID,
+		TrackingIDs:    strings.Join(trackingIDs, ","), // ✅ บันทึก Tracking IDs หลายค่า
+		PersonInCharge: inspectorName,                  // ✅ คนที่สร้าง Product Lot
+	}
+
+	if err := database.DB.Create(&productLotImage).Error; err != nil {
+		fmt.Println("❌ Failed to save Product Lot Image Data:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save Product Lot Image Data"})
+	}
+	fmt.Println("✅ Product Lot Image Data Saved:", productLotImage)
+
 	// ✅ ส่ง Response กลับไปให้ Frontend
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
-		"message":          "Product Lot and Tracking Events created successfully",
-		"lotId":            lotId,
-		"txHash":           txHash,
-		"ipfsCID":          qualityCID,
-		"inspector":        inspectorName,
-		"trackingTxHashes": trackingTxHashes, // ✅ คืนค่าทั้งหมดที่สร้างได้
+		"message":             "Product Lot and Tracking Events created successfully",
+		"lotId":               lotId,
+		"txHash":              txHash,
+		"ipfsCID":             qualityCID,
+		"productLotQRCodeCID": qrImageProductLotCID,
+		"inspector":           inspectorName,
+		"trackingTxHashes":    trackingTxHashes,
 	})
+
 }
 
 /*
@@ -435,7 +465,6 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking data"})
 	}
 
-	// ✅ ตรวจสอบว่ามี Tracking Events หรือไม่
 	var trackingDataArray []fiber.Map
 	for i := range trackingIds {
 		// ✅ ดึงข้อมูล QR Code Data
@@ -445,20 +474,30 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to decode QR Code"})
 		}
 
-		// ✅ ดึงภาพ QR Code จาก IPFS
-		qrCodeBase64, err := pc.IPFSService.GetImageBase64FromIPFS(qrCodeCIDs[i])
-		if err != nil {
-			fmt.Println("❌ Failed to fetch QR Code image:", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch QR Code image"})
-		}
+		// ✅ ไม่ต้องดึง QR Code Image ของ Tracking (เอาออก)
 
 		// ✅ เพิ่มข้อมูล Tracking เข้าไปในอาเรย์
 		trackingDataArray = append(trackingDataArray, fiber.Map{
 			"trackingId": trackingIds[i],
-			"qrCodeData": qrCodeData,
-			"qrCodeImg":  fmt.Sprintf("data:image/png;base64,%s", qrCodeBase64),
+			"qrCodeData": qrCodeData, // ✅ ยังต้องส่งข้อมูล QR Code Data ของ Tracking
 		})
 	}
+
+	// ✅ ดึง QR Code CID ของ Product Lot จากฐานข้อมูล
+	var productLotImage models.ProductLotImage
+	err = database.DB.Where("lot_id = ?", lotID).First(&productLotImage).Error
+	if err != nil {
+		fmt.Println("❌ Failed to fetch Product Lot QR Code CID from database:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch Product Lot QR Code"})
+	}
+
+	// ✅ ดึงรูปภาพ QR Code ของ Product Lot จาก IPFS
+	qrCodeBase64, err := pc.IPFSService.GetImageBase64FromIPFS(productLotImage.ImageCID)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch Product Lot QR Code image:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch Product Lot QR Code image"})
+	}
+
 	// ✅ ส่งค่าที่แก้ไขกลับไปที่ Frontend
 	response := fiber.Map{
 		"GeneralInfo": fiber.Map{
@@ -470,7 +509,7 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 			"quantityUnit": NutritionData["quantityUnit"],
 		},
 		"selectMilkTank": fiber.Map{
-			"tankIds":         milkTankIDs, // ✅ ใช้ตัวแปรที่ตรวจสอบแล้ว
+			"tankIds":         milkTankIDs,
 			"temp":            qualityData["temp"],
 			"tempUnit":        qualityData["tempUnit"],
 			"pH":              qualityData["pH"],
@@ -489,8 +528,8 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 			"inspector":      productLotData.Inspector,
 		},
 		"nutrition":         nutritionData,
-		"shippingAddresses": trackingDataArray, // ✅ เพิ่ม Tracking Data เข้าไป
-
+		"shippingAddresses": trackingDataArray,                                     // ✅ ยังส่ง Tracking Data แต่ไม่มีรูป QR
+		"qrCodeImg":         fmt.Sprintf("data:image/png;base64,%s", qrCodeBase64), // ✅ ใช้ Product Lot QR Code เท่านั้น
 	}
 
 	// ✅ ส่งข้อมูลให้ Frontend
@@ -527,6 +566,7 @@ func (plc *ProductLotController) GetFactoryProductLots(c *fiber.Ctx) error {
 		lotID := lot["Product Lot No"]
 		productName := lot["Product Name"]
 		personInCharge := lot["Person In Charge"]
+		status := lot["Status"] // ✅ ส่งค่า `Status` เป็นตัวเลข
 
 		// ✅ ถ้า searchQuery ว่าง → แสดงทั้งหมด, ถ้าไม่ว่าง → ค้นหาตาม Lot ID หรือ Product Name
 		if searchQuery == "" || strings.Contains(strings.ToLower(lotID), searchQuery) || strings.Contains(strings.ToLower(productName), searchQuery) {
@@ -534,6 +574,7 @@ func (plc *ProductLotController) GetFactoryProductLots(c *fiber.Ctx) error {
 				"productLotNo":   lotID,
 				"productName":    productName,
 				"personInCharge": personInCharge,
+				"status":         status, // ✅ ส่งเป็นตัวเลข
 				"moreInfoLink":   fmt.Sprintf("/Factory/ProductLot/Details?id=%s", lotID),
 			})
 		}
@@ -549,26 +590,54 @@ func (plc *ProductLotController) GetFactoryProductLots(c *fiber.Ctx) error {
 func (plc *ProductLotController) GetAllTrackingIds(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Get All Tracking IDs")
 
-	// ✅ ดึง Tracking IDs จาก Smart Contract
-	trackingIds, err := plc.BlockchainService.GetAllTrackingIds()
+	// ✅ ดึง Tracking IDs จาก Blockchain
+	trackingList, err := plc.BlockchainService.GetAllTrackingIds()
 	if err != nil {
 		fmt.Println("❌ Failed to fetch tracking IDs:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking IDs"})
 	}
 
-	// ✅ สร้างลิงก์สำหรับดูรายละเอียด Tracking แต่ละอัน
-	var trackingList []map[string]interface{}
-	for _, trackingId := range trackingIds {
-		trackingList = append(trackingList, map[string]interface{}{
-			"trackingId":   strings.TrimRight(trackingId, "\x00"),
-			"moreInfoLink": fmt.Sprintf("/Tracking/Details?id=%s", trackingId),
-		})
+	// ✅ ดึงข้อมูล `ProductLotId`, `PersonInCharge` และ `Status` จาก PostgreSQL
+	for i, tracking := range trackingList {
+		trackingId := tracking["trackingId"].(string)
+
+		// ✅ ค้นหา `ProductLotId`, `PersonInCharge` และ `Status` จาก Database
+		var productLotId, personInCharge string
+		var status int
+
+		err := database.DB.Table("product_lot_images").
+			Where("tracking_ids LIKE ?", "%"+trackingId+"%").
+			Select("lot_id, person_in_charge").
+			Row().Scan(&productLotId, &personInCharge)
+
+		// ✅ ดึง Status จากตาราง `tracking_status`
+		errStatus := database.DB.Table("tracking_status").
+			Where("tracking_id = ?", trackingId).
+			Select("status").
+			Row().Scan(&status)
+
+		// ✅ กำหนดค่าเริ่มต้น ถ้าไม่มีข้อมูล
+		if err != nil {
+			fmt.Println("❌ Failed to find Product Lot ID for Tracking ID:", trackingId)
+			productLotId = "Unknown"
+			personInCharge = "Unknown"
+		}
+		if errStatus != nil {
+			fmt.Println("❌ No status found for Tracking ID:", trackingId)
+			status = 0 // ✅ กำหนดค่าเริ่มต้นถ้าไม่มีข้อมูล
+		}
+
+		// ✅ เพิ่มข้อมูลเข้าไปใน Response
+		trackingList[i]["productLotId"] = productLotId
+		trackingList[i]["personInCharge"] = personInCharge
+		trackingList[i]["status"] = status // ✅ เพิ่มค่า `status` จากฐานข้อมูล
 	}
+
+	fmt.Println("✅ All Tracking IDs Retrieved:", trackingList)
 
 	// ✅ ส่ง Response กลับไปที่ Frontend
 	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"trackingList":       trackingList,
-		"addNewTrackingLink": "/Tracking/Create",
+		"trackingList": trackingList,
 	})
 }
 
@@ -712,6 +781,10 @@ func (plc *ProductLotController) UpdateLogisticsCheckpoint(c *fiber.Ctx) error {
 		fmt.Println("✅ Transaction Sent, Hash:", txHash)
 		txHashes = append(txHashes, txHash)
 	}
+	err := saveTrackingStatus(request.TrackingID, 1) // อัปเดตเป็นสถานะ 1 หลังจาก Blockchain สำเร็จ
+	if err != nil {
+		fmt.Println("❌ Failed to save tracking status:", err)
+	}
 
 	// ✅ ส่ง Response กลับไปที่ Frontend
 	return c.Status(http.StatusOK).JSON(fiber.Map{
@@ -719,6 +792,35 @@ func (plc *ProductLotController) UpdateLogisticsCheckpoint(c *fiber.Ctx) error {
 		"trackingId": request.TrackingID,
 		"txHashes":   txHashes,
 	})
+}
+func saveTrackingStatus(trackingID string, status int) error {
+	// ✅ ตรวจสอบว่า Tracking ID มีอยู่ในฐานข้อมูลหรือไม่
+	var existingID string
+	err := database.DB.Table("tracking_status").
+		Where("tracking_id = ?", trackingID).
+		Select("tracking_id").
+		Row().Scan(&existingID)
+
+	if err == nil {
+		// ✅ อัปเดตสถานะ ถ้า Tracking ID มีอยู่แล้ว
+		err = database.DB.Table("tracking_status").
+			Where("tracking_id = ?", trackingID).
+			Update("status", status).Error
+		if err != nil {
+			fmt.Println("❌ Failed to update tracking status:", err)
+			return err
+		}
+		fmt.Println("✅ Tracking status updated:", trackingID, "-> Status:", status)
+	} else {
+		// ✅ เพิ่มข้อมูลใหม่ ถ้า Tracking ID ไม่มีในฐานข้อมูล
+		err = database.DB.Exec("INSERT INTO tracking_status (tracking_id, status) VALUES (?, ?)", trackingID, status).Error
+		if err != nil {
+			fmt.Println("❌ Failed to insert tracking status:", err)
+			return err
+		}
+		fmt.Println("✅ New tracking status saved:", trackingID, "-> Status:", status)
+	}
+	return nil
 }
 
 func parseTimeStringToUnix(timeStr string) int64 {
@@ -872,65 +974,72 @@ func getStringFromMap(data map[string]interface{}, key string) string {
 func (plc *ProductLotController) GetRetailerTracking(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Get Tracking Data by Retailer ID")
 
-	// ✅ ดึงข้อมูลจาก JWT Token
 	role := c.Locals("role").(string)
-	retailerID, ok := c.Locals("entityID").(string) // ✅ ดึง `Retailer ID`
+	retailerID, ok := c.Locals("entityID").(string)
 	if !ok || retailerID == "" {
 		fmt.Println("❌ Retailer ID is missing in Context")
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized - Retailer ID is missing"})
 	}
 
-	// ✅ ตรวจสอบสิทธิ์ (เฉพาะ Retailer เท่านั้น)
 	if role != "retailer" {
 		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only retailers can view their tracking data"})
 	}
 
 	fmt.Println("✅ Retailer ID from Context:", retailerID)
 
-	// ✅ ดึง Tracking IDs ตาม Retailer ID จาก Blockchain
+	// ✅ ดึง Tracking IDs จาก Blockchain ตาม Retailer ID
 	trackingData, err := plc.BlockchainService.GetTrackingByRetailer(retailerID)
 	if err != nil {
-		fmt.Println("❌ Failed to fetch tracking data for retailer:", err)
+		fmt.Println("❌ Failed to fetch tracking data:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking data"})
 	}
 
-	// ✅ ตรวจสอบข้อมูลที่ได้รับ
 	if len(trackingData) == 0 {
-		fmt.Println("⚠️ No tracking data found for retailer:", retailerID)
 		return c.Status(http.StatusOK).JSON(fiber.Map{"trackingList": []map[string]interface{}{}})
 	}
 
-	// ✅ กรองข้อมูล - แปลง Tracking ID ให้ถูกต้อง
 	var trackingList []map[string]interface{}
+
 	for _, item := range trackingData {
 		trackingIDRaw, exists := item["trackingId"]
 		if !exists {
-			fmt.Println("⚠️ Skipping entry with missing tracking ID:", item)
 			continue
 		}
-
-		// ✅ ตัดอักขระ \x00 และแปลงเป็น string
 		trackingID, ok := trackingIDRaw.(string)
 		if !ok {
-			fmt.Println("❌ Invalid tracking ID format:", trackingIDRaw)
 			continue
 		}
 		trackingID = strings.TrimSpace(trackingID)
-
-		// ✅ ตรวจสอบว่า Tracking ID เป็นค่าว่างหรือไม่
 		if trackingID == "" {
-			fmt.Println("⚠️ Empty tracking ID found, skipping...")
 			continue
 		}
 
-		// ✅ สร้างโครงสร้าง Response
+		// ✅ 1. ตรวจสอบ TrackingStatus -> ต้องมี status == 1 หรือ 2
+		var status models.TrackingStatus
+		err := plc.DB.Where("tracking_id = ? AND (status = 1 OR status = 2)", trackingID).First(&status).Error
+		if err != nil {
+			fmt.Println("⚠️ Skipping TrackingID (status != 1 or 2):", trackingID)
+			continue // ข้ามถ้าไม่เจอหรือ status ไม่ใช่ 1 หรือ 2
+		}
+
+		// ✅ 2. ค้นหา ProductLotImage
+		var productLotImage models.ProductLotImage
+		err = plc.DB.Where("tracking_ids LIKE ?", "%"+trackingID+"%").First(&productLotImage).Error
+		if err != nil {
+			fmt.Println("⚠️ No ProductLotImage found for TrackingID:", trackingID)
+			continue
+		}
+
+		// ✅ 3. Append ข้อมูลลง trackingList
 		trackingList = append(trackingList, map[string]interface{}{
-			"trackingId":   trackingID,
-			"moreInfoLink": fmt.Sprintf("/Retailer/TrackingDetails?id=%s", trackingID),
+			"trackingId":     trackingID,
+			"productLotId":   productLotImage.LotID,
+			"personInCharge": productLotImage.PersonInCharge,
+			"status":         status.Status,
+			"moreInfoLink":   fmt.Sprintf("/Retailer/TrackingDetails?id=%s", trackingID),
 		})
 	}
 
-	// ✅ ส่ง Response กลับไปที่ Frontend
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"trackingList": trackingList,
 	})
@@ -939,17 +1048,14 @@ func (plc *ProductLotController) GetRetailerTracking(c *fiber.Ctx) error {
 func (plc *ProductLotController) RetailerReceiveProduct(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Retailer Receiving Product")
 
-	// ✅ ดึงข้อมูลจาก JWT Token
 	role := c.Locals("role").(string)
 	walletAddress := c.Locals("walletAddress").(string)
-	fmt.Println("📌 Debug - Wallet Address:", walletAddress)
-	entityId := c.Locals("entityID").(string) // ✅ ใช้ Entity ID ของ Retailer
-	// ✅ ตรวจสอบสิทธิ์
+	entityId := c.Locals("entityID").(string)
+
 	if role != "retailer" {
 		return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": "Access denied: Only retailers can receive products"})
 	}
 
-	// ✅ รับข้อมูล JSON ที่ส่งมา
 	var request struct {
 		TrackingId string `json:"trackingId"`
 		Input      struct {
@@ -985,18 +1091,15 @@ func (plc *ProductLotController) RetailerReceiveProduct(c *fiber.Ctx) error {
 		} `json:"input"`
 	}
 
-	// ✅ ตรวจสอบ JSON Request
 	if err := c.BodyParser(&request); err != nil {
 		fmt.Println("❌ Error parsing request body:", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	// ✅ ตรวจสอบค่าที่จำเป็น
 	if request.TrackingId == "" || request.Input.RecipientInfo.PersonInCharge == "" {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Missing required fields"})
 	}
 
-	// ✅ รวมข้อมูลอัปโหลดไป IPFS
 	productMetadata := map[string]interface{}{
 		"trackingId": request.TrackingId,
 		"recipientInfo": map[string]interface{}{
@@ -1019,14 +1122,14 @@ func (plc *ProductLotController) RetailerReceiveProduct(c *fiber.Ctx) error {
 		"abnormalType":    request.Input.Quantity.AbnormalType,
 	}
 
-	// ✅ อัปโหลดข้อมูลไปยัง IPFS (ใช้ `UploadDataToIPFS` แทน)
+	// ✅ Upload IPFS
 	qualityReportCID, err := plc.IPFSService.UploadDataToIPFS(productMetadata)
 	if err != nil {
 		fmt.Println("❌ Failed to upload to IPFS:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to upload quality report"})
 	}
 
-	// ✅ อัปเดตสถานะไปยัง Blockchain
+	// ✅ Blockchain
 	txHash, err := plc.BlockchainService.RetailerReceiveProduct(
 		walletAddress,
 		request.TrackingId,
@@ -1039,7 +1142,23 @@ func (plc *ProductLotController) RetailerReceiveProduct(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Blockchain transaction failed"})
 	}
 
-	// ✅ ส่ง Response กลับไปที่ Frontend
+	// ✅ Update Tracking Status to 2
+	updateStatus := models.TrackingStatus{
+		Status: 2, // ✅ Status 2: Received by Retailer
+	}
+
+	err = plc.DB.Model(&models.TrackingStatus{}).
+		Where("tracking_id = ?", request.TrackingId).
+		Updates(updateStatus).Error
+
+	if err != nil {
+		fmt.Println("❌ Failed to update tracking status:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update tracking status in database"})
+	}
+
+	fmt.Println("✅ Updated tracking status to 2 for TrackingID:", request.TrackingId)
+
+	// ✅ Response
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"message":          "Product received successfully",
 		"trackingId":       request.TrackingId,

@@ -103,7 +103,7 @@ contract Tracking {
     int256 _temperature,
     string memory _personInCharge,
     LogisticsCheckType _checkType,
-    string memory _receiverCID // ✅ เพิ่ม parameter
+    string memory _receiverCID
 ) public onlyLogistics {
     require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
 
@@ -116,31 +116,45 @@ contract Tracking {
         temperature: _temperature,
         personInCharge: _personInCharge,
         checkType: _checkType,
-        receiverCID: _receiverCID // ✅ บันทึกข้อมูลผู้รับสินค้า
+        receiverCID: _receiverCID
     }));
+
+    // ✅ อัปเดตสถานะเป็น InTransit ถ้าสถานะเดิมเป็น Pending
+    if (trackingEvents[_trackingId].status == TrackingStatus.Pending) {
+        trackingEvents[_trackingId].status = TrackingStatus.InTransit;
+        // ✅ อัปเดต Product Lot ให้เป็น InTransit
+        productLotContract.updateProductLotStatus(trackingEvents[_trackingId].productLotId);
+    }
 
     emit LogisticsUpdated(_trackingId, msg.sender, _checkType, _receiverCID);
 }
 
-    function retailerReceiveProduct(
-        bytes32 _trackingId,
-        string memory _retailerId,
-        string memory _qualityCID,
-        string memory _personInCharge
-    ) public onlyRetailer(_retailerId) {
-        require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
-        require(keccak256(abi.encodePacked(trackingEvents[_trackingId].retailerId)) == keccak256(abi.encodePacked(_retailerId)), "Error: Only assigned retailer can receive");
 
-        trackingEvents[_trackingId].status = TrackingStatus.Received;
-        retailerConfirmations[_trackingId] = RetailerConfirmation({
-            trackingId: _trackingId,
-            retailerId: _retailerId,
-            receivedTime: block.timestamp,
-            qualityCID: _qualityCID,
-            personInCharge: _personInCharge
-        });
-        emit RetailerReceived(_trackingId, _retailerId, _qualityCID);
-    }
+
+    function retailerReceiveProduct(
+    bytes32 _trackingId,
+    string memory _retailerId,
+    string memory _qualityCID,
+    string memory _personInCharge
+) public onlyRetailer(_retailerId) {
+    require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
+    require(keccak256(abi.encodePacked(trackingEvents[_trackingId].retailerId)) == keccak256(abi.encodePacked(_retailerId)), "Error: Only assigned retailer can receive");
+
+    trackingEvents[_trackingId].status = TrackingStatus.Received;
+    retailerConfirmations[_trackingId] = RetailerConfirmation({
+        trackingId: _trackingId,
+        retailerId: _retailerId,
+        receivedTime: block.timestamp,
+        qualityCID: _qualityCID,
+        personInCharge: _personInCharge
+    });
+
+    // ✅ อัปเดตสถานะของ Product Lot ถ้าทุก Tracking ถูก "Received"
+    productLotContract.updateProductLotStatus(trackingEvents[_trackingId].productLotId);
+
+    emit RetailerReceived(_trackingId, _retailerId, _qualityCID);
+}
+
 
     function getTrackingById(bytes32 _trackingId) public view returns (TrackingEvent memory, LogisticsCheckpoint[] memory, RetailerConfirmation memory) {
         require(trackingEvents[_trackingId].trackingId != bytes32(0), "Error: Tracking ID does not exist");
@@ -180,6 +194,47 @@ function getTrackingByLotId(bytes32 _productLotId)
 
     return (resultTrackingIds, retailerIds, qrCodeCIDs);
 }
+function getOngoingShipmentsByLogistics() 
+    public view onlyLogistics 
+    returns (bytes32[] memory trackingIds, string[] memory personInChargeList) 
+{
+    uint count = 0;
+
+    // ✅ นับจำนวน Tracking ที่อยู่ในสถานะ InTransit และอัปเดตล่าสุดโดยผู้เรียก
+    for (uint i = 0; i < allTrackingIds.length; i++) {
+        bytes32 trackingId = allTrackingIds[i];
+
+        if (
+            trackingEvents[trackingId].status == TrackingStatus.InTransit && 
+            logisticsCheckpoints[trackingId].length > 0 &&
+            logisticsCheckpoints[trackingId][logisticsCheckpoints[trackingId].length - 1].logisticsProvider == msg.sender
+        ) {
+            count++;
+        }
+    }
+
+    // ✅ สร้างอาร์เรย์สำหรับเก็บผลลัพธ์
+    trackingIds = new bytes32[](count);
+    personInChargeList = new string[](count);
+    uint index = 0;
+
+    for (uint i = 0; i < allTrackingIds.length; i++) {
+        bytes32 trackingId = allTrackingIds[i];
+
+        if (
+            trackingEvents[trackingId].status == TrackingStatus.InTransit && 
+            logisticsCheckpoints[trackingId].length > 0 &&
+            logisticsCheckpoints[trackingId][logisticsCheckpoints[trackingId].length - 1].logisticsProvider == msg.sender
+        ) {
+            trackingIds[index] = trackingId;
+            personInChargeList[index] = logisticsCheckpoints[trackingId][logisticsCheckpoints[trackingId].length - 1].personInCharge;
+            index++;
+        }
+    }
+
+    return (trackingIds, personInChargeList);
+}
+
 function getAllTrackingIds() public view returns (bytes32[] memory) {
     return allTrackingIds;
 }

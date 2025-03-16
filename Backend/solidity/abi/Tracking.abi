@@ -607,6 +607,25 @@
   },
   {
     "inputs": [],
+    "name": "getOngoingShipmentsByLogistics",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "trackingIds",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "personInChargeList",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
     "name": "getAllTrackingIds",
     "outputs": [
       {
