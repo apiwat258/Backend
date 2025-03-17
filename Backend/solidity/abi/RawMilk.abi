@@ -115,6 +115,25 @@
       {
         "indexed": true,
         "internalType": "bytes32",
+        "name": "milkTankId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum RawMilk.MilkStatus",
+        "name": "newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "MilkStatusUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
         "name": "tankId",
         "type": "bytes32"
       },
@@ -288,6 +307,19 @@
     "stateMutability": "view",
     "type": "function",
     "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_milkTankId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "markMilkTankAsUsed",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [

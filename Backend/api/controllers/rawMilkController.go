@@ -42,29 +42,22 @@ func NewRawMilkController(
 	}
 }
 
-// ✅ ฟังก์ชันสร้าง Tank ID (FarmID + วันที่ + Running Number)
-func (rmc *RawMilkController) generateTankID(farmID string) string {
-	rmc.Mutex.Lock()
-	defer rmc.Mutex.Unlock()
-
-	// ✅ ดึงวันที่ปัจจุบันในรูปแบบ YYYYMMDD
+// ✅ สร้าง Tank ID โดยดึง FarmID จาก Token โดยตรง
+func (rmc *RawMilkController) GenerateTankID(c *fiber.Ctx) error {
+	farmID := c.Locals("entityID").(string)
 	currentDate := time.Now().Format("20060102")
-
-	// ✅ คีย์สำหรับเก็บ Running Number (FarmID + วันที่)
 	key := farmID + "_" + currentDate
 
-	// ✅ ถ้าไม่มีข้อมูลเก่า หรือเป็นวันใหม่ ให้รีเซ็ตเลขลำดับ
-	if _, exists := rmc.MilkTankCounter[key]; !exists {
-		rmc.MilkTankCounter[key] = 1
-	} else {
-		rmc.MilkTankCounter[key]++
-	}
+	rmc.Mutex.Lock()
+	rmc.MilkTankCounter[key]++
+	count := rmc.MilkTankCounter[key]
+	rmc.Mutex.Unlock()
 
-	// ✅ สร้าง Tank ID => FarmID + วันที่ + Running Number (3 หลัก)
-	tankID := fmt.Sprintf("%s-%s-%03d", farmID, currentDate, rmc.MilkTankCounter[key])
+	tankID := fmt.Sprintf("%s-%s-%03d", farmID, currentDate, count)
 
-	fmt.Println("✅ Generated Tank ID:", tankID)
-	return tankID
+	return c.Status(200).JSON(fiber.Map{
+		"tankId": tankID,
+	})
 }
 
 func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
@@ -72,7 +65,6 @@ func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 
 	// ✅ ดึงข้อมูลจาก JWT Token
 	role := c.Locals("role").(string)
-	farmID := c.Locals("entityID").(string)
 	walletAddress := c.Locals("walletAddress").(string)
 
 	// ✅ ตรวจสอบสิทธิ์
@@ -82,7 +74,7 @@ func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 
 	// ✅ รับข้อมูล JSON ที่ส่งมา
 	var request struct {
-		MilkTankInfo    json.RawMessage `json:"milkTankInfo"` // ✅ เก็บข้อมูล MilkTankInfo แบบดิบ (Raw JSON)
+		MilkTankInfo    json.RawMessage `json:"milkTankInfo"`
 		ShippingAddress struct {
 			CompanyName string `json:"companyName"`
 			FirstName   string `json:"firstName"`
@@ -107,6 +99,7 @@ func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 
 	// ✅ แปลง MilkTankInfo ที่เป็น Raw JSON ให้อยู่ใน Struct
 	var milkTankInfo struct {
+		TankID          string `json:"TankId"`
 		FarmName        string `json:"farmName"`
 		PersonInCharge  string `json:"personInCharge"`
 		Quantity        string `json:"quantity"`
@@ -154,8 +147,7 @@ func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Factory not found"})
 	}
 
-	// ✅ สร้าง `tankId`
-	tankId := rmc.generateTankID(farmID)
+	tankId := milkTankInfo.TankID
 
 	// ✅ แปลงค่าที่เป็น string → uint64
 	quantity, _ := strconv.ParseUint(milkTankInfo.Quantity, 10, 64)

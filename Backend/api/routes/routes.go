@@ -11,6 +11,9 @@ import (
 func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *controllers.ProductController, plc *controllers.ProductLotController, tc *controllers.TrackingController) {
 	api := app.Group("/api/v1")                              // ใช้ Prefix "/api/v1" สำหรับ API ทั้งหมด
 	api.Get("/tracking-details", tc.GetTrackingDetailsByLot) // ✅ ต้องอยู่ใต้ `api`
+	api.Get("/ping", func(c *fiber.Ctx) error {
+		return c.SendString("Pong")
+	})
 
 	// ✅ Authentication Routes
 	auth := api.Group("/auth")
@@ -22,7 +25,7 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	auth.Get("/get-role", controllers.GetUserRole)
 	auth.Get("/user-info", middleware.AuthMiddleware(), controllers.GetUserInfo)
 	auth.Put("/update-user", middleware.AuthMiddleware(), controllers.UpdateUserInfo)
-	api.Post("/refresh-token", controllers.RefreshTokenHandler)
+	auth.Post("/refresh-token", controllers.RefreshTokenHandler)
 
 	protected := api.Group("/protected", middleware.AuthMiddleware())
 	protected.Get("/route", controllers.ProtectedRoute)
@@ -63,6 +66,7 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	milk.Get("/list", rmc.GetFarmRawMilkTanks)
 	milk.Get("/details/:tankId", rmc.GetRawMilkTankDetails)
 	milk.Get("/qrcode/:tankId", rmc.GetQRCodeByTankID)
+	milk.Get("/generate-tank-id", rmc.GenerateTankID)
 
 	// ✅ Milk Tank Routes สำหรับโรงงาน
 	factoryMilk := api.Group("/factory/milk", middleware.AuthMiddleware())
@@ -89,5 +93,8 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	tracking.Get("/retailer", plc.GetRetailerTracking)                              // ✅ ดึง Tracking IDs ตาม Retailer ID
 	tracking.Post("/retailer/receive", plc.RetailerReceiveProduct)                  // ✅ Retailer รับสินค้า
 	tracking.Get("/retailer/received", plc.GetRetailerReceivedProduct)              // ✅ ดึงข้อมูลสินค้าที่ Retailer รับแล้ว
+	tracking.Get("/logistics/waiting-pickup", plc.GetLogisticsWaitingForPickup)     // ✅ หน้ารอรับของโลจิส
+	tracking.Get("/logistics/ongoing", plc.GetOngoingShipmentsByLogistics)          // ✅ หน้าสินค้าระหว่างจัดส่งของโลจิส
+	tracking.Get("/retailer/intransit", plc.GetRetailerInTransitTracking)           // ✅ หน้ารอรับของ Retailer (InTransit)
 
 }

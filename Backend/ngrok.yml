@@ -1,0 +1,8 @@
+version: "2"
+authtoken: 2uLd1Ihs9ayzxk7TddXfAHi46MV_3hPqi5uWBsM1RHufgP1eh
+
+tunnels:
+  backend:
+    addr: 8080
+    proto: http
+    hostname: backend-rawmilksupplychain.ngrok.app

@@ -51,7 +51,7 @@ type RawMilkMilkTankWithHistory struct {
 
 // RawmilkMetaData contains all meta data concerning the Rawmilk contract.
 var RawmilkMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"}],\"name\":\"DebugLog\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"oldQualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"newQualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"oldPersonInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"newPersonInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MilkQualityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"}],\"name\":\"MilkQualityVerified\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MilkTankCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"}],\"name\":\"MilkTankUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"milkHistory\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"milkTanks\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"tankIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_approved\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"}],\"name\":\"verifyMilkQuality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTank\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"structRawMilk.MilkHistory[]\",\"name\":\"history\",\"type\":\"tuple[]\"}],\"internalType\":\"structRawMilk.MilkTankWithHistory\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_farmer\",\"type\":\"address\"}],\"name\":\"getMilkTanksByFarmer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"structRawMilk.MilkHistory[][]\",\"name\":\"\",\"type\":\"tuple[][]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"structRawMilk.MilkHistory[][]\",\"name\":\"\",\"type\":\"tuple[][]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"}],\"name\":\"DebugLog\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"oldQualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"newQualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"oldPersonInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"newPersonInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MilkQualityUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"}],\"name\":\"MilkQualityVerified\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"milkTankId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"newStatus\",\"type\":\"uint8\"}],\"name\":\"MilkStatusUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"MilkTankCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"}],\"name\":\"MilkTankUpdated\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"milkHistory\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"milkTanks\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"tankIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_milkTankId\",\"type\":\"bytes32\"}],\"name\":\"markMilkTankAsUsed\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_qrCodeCID\",\"type\":\"string\"}],\"name\":\"createMilkTank\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"},{\"internalType\":\"bool\",\"name\":\"_approved\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"_personInCharge\",\"type\":\"string\"}],\"name\":\"verifyMilkQuality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_tankId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTank\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"tankId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"farmer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"factoryId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qrCodeCID\",\"type\":\"string\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"structRawMilk.MilkHistory[]\",\"name\":\"history\",\"type\":\"tuple[]\"}],\"internalType\":\"structRawMilk.MilkTankWithHistory\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_farmer\",\"type\":\"address\"}],\"name\":\"getMilkTanksByFarmer\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"structRawMilk.MilkHistory[][]\",\"name\":\"\",\"type\":\"tuple[][]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_factoryId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"},{\"components\":[{\"internalType\":\"string\",\"name\":\"personInCharge\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"qualityReportCID\",\"type\":\"string\"},{\"internalType\":\"enumRawMilk.MilkStatus\",\"name\":\"status\",\"type\":\"uint8\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"internalType\":\"structRawMilk.MilkHistory[][]\",\"name\":\"\",\"type\":\"tuple[][]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
 }
 
 // RawmilkABI is the input ABI used to generate the binding from.
@@ -503,6 +503,27 @@ func (_Rawmilk *RawmilkTransactorSession) CreateMilkTank(_tankId [32]byte, _fact
 	return _Rawmilk.Contract.CreateMilkTank(&_Rawmilk.TransactOpts, _tankId, _factoryId, _personInCharge, _qualityReportCID, _qrCodeCID)
 }
 
+// MarkMilkTankAsUsed is a paid mutator transaction binding the contract method 0xfca6bf53.
+//
+// Solidity: function markMilkTankAsUsed(bytes32 _milkTankId) returns()
+func (_Rawmilk *RawmilkTransactor) MarkMilkTankAsUsed(opts *bind.TransactOpts, _milkTankId [32]byte) (*types.Transaction, error) {
+	return _Rawmilk.contract.Transact(opts, "markMilkTankAsUsed", _milkTankId)
+}
+
+// MarkMilkTankAsUsed is a paid mutator transaction binding the contract method 0xfca6bf53.
+//
+// Solidity: function markMilkTankAsUsed(bytes32 _milkTankId) returns()
+func (_Rawmilk *RawmilkSession) MarkMilkTankAsUsed(_milkTankId [32]byte) (*types.Transaction, error) {
+	return _Rawmilk.Contract.MarkMilkTankAsUsed(&_Rawmilk.TransactOpts, _milkTankId)
+}
+
+// MarkMilkTankAsUsed is a paid mutator transaction binding the contract method 0xfca6bf53.
+//
+// Solidity: function markMilkTankAsUsed(bytes32 _milkTankId) returns()
+func (_Rawmilk *RawmilkTransactorSession) MarkMilkTankAsUsed(_milkTankId [32]byte) (*types.Transaction, error) {
+	return _Rawmilk.Contract.MarkMilkTankAsUsed(&_Rawmilk.TransactOpts, _milkTankId)
+}
+
 // VerifyMilkQuality is a paid mutator transaction binding the contract method 0xef993abd.
 //
 // Solidity: function verifyMilkQuality(bytes32 _tankId, bool _approved, string _qualityReportCID, string _personInCharge) returns()
@@ -950,6 +971,151 @@ func (_Rawmilk *RawmilkFilterer) WatchMilkQualityVerified(opts *bind.WatchOpts, 
 func (_Rawmilk *RawmilkFilterer) ParseMilkQualityVerified(log types.Log) (*RawmilkMilkQualityVerified, error) {
 	event := new(RawmilkMilkQualityVerified)
 	if err := _Rawmilk.contract.UnpackLog(event, "MilkQualityVerified", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// RawmilkMilkStatusUpdatedIterator is returned from FilterMilkStatusUpdated and is used to iterate over the raw logs and unpacked data for MilkStatusUpdated events raised by the Rawmilk contract.
+type RawmilkMilkStatusUpdatedIterator struct {
+	Event *RawmilkMilkStatusUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *RawmilkMilkStatusUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(RawmilkMilkStatusUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(RawmilkMilkStatusUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *RawmilkMilkStatusUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *RawmilkMilkStatusUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// RawmilkMilkStatusUpdated represents a MilkStatusUpdated event raised by the Rawmilk contract.
+type RawmilkMilkStatusUpdated struct {
+	MilkTankId [32]byte
+	NewStatus  uint8
+	Raw        types.Log // Blockchain specific contextual infos
+}
+
+// FilterMilkStatusUpdated is a free log retrieval operation binding the contract event 0x5b9950fb49ea9a7cc29c1824c64b36982e9d43dde547c7d8907ca5c463c805c9.
+//
+// Solidity: event MilkStatusUpdated(bytes32 indexed milkTankId, uint8 newStatus)
+func (_Rawmilk *RawmilkFilterer) FilterMilkStatusUpdated(opts *bind.FilterOpts, milkTankId [][32]byte) (*RawmilkMilkStatusUpdatedIterator, error) {
+
+	var milkTankIdRule []interface{}
+	for _, milkTankIdItem := range milkTankId {
+		milkTankIdRule = append(milkTankIdRule, milkTankIdItem)
+	}
+
+	logs, sub, err := _Rawmilk.contract.FilterLogs(opts, "MilkStatusUpdated", milkTankIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &RawmilkMilkStatusUpdatedIterator{contract: _Rawmilk.contract, event: "MilkStatusUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchMilkStatusUpdated is a free log subscription operation binding the contract event 0x5b9950fb49ea9a7cc29c1824c64b36982e9d43dde547c7d8907ca5c463c805c9.
+//
+// Solidity: event MilkStatusUpdated(bytes32 indexed milkTankId, uint8 newStatus)
+func (_Rawmilk *RawmilkFilterer) WatchMilkStatusUpdated(opts *bind.WatchOpts, sink chan<- *RawmilkMilkStatusUpdated, milkTankId [][32]byte) (event.Subscription, error) {
+
+	var milkTankIdRule []interface{}
+	for _, milkTankIdItem := range milkTankId {
+		milkTankIdRule = append(milkTankIdRule, milkTankIdItem)
+	}
+
+	logs, sub, err := _Rawmilk.contract.WatchLogs(opts, "MilkStatusUpdated", milkTankIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(RawmilkMilkStatusUpdated)
+				if err := _Rawmilk.contract.UnpackLog(event, "MilkStatusUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseMilkStatusUpdated is a log parse operation binding the contract event 0x5b9950fb49ea9a7cc29c1824c64b36982e9d43dde547c7d8907ca5c463c805c9.
+//
+// Solidity: event MilkStatusUpdated(bytes32 indexed milkTankId, uint8 newStatus)
+func (_Rawmilk *RawmilkFilterer) ParseMilkStatusUpdated(log types.Log) (*RawmilkMilkStatusUpdated, error) {
+	event := new(RawmilkMilkStatusUpdated)
+	if err := _Rawmilk.contract.UnpackLog(event, "MilkStatusUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

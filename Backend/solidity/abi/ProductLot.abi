@@ -76,6 +76,25 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "lotId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum ProductLot.ProductLotStatus",
+        "name": "newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "ProductLotStatusUpdated",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "productContract",
     "outputs": [
@@ -396,5 +415,43 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "enum ProductLot.ProductLotStatus",
+        "name": "_status",
+        "type": "uint8"
+      }
+    ],
+    "name": "forceUpdateStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_lotId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getProductLotStatus",
+    "outputs": [
+      {
+        "internalType": "enum ProductLot.ProductLotStatus",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
   }
 ]

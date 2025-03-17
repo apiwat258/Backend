@@ -323,7 +323,7 @@
                 }
               ]
             },
-            "name": "validator_revert_t_enum$_UserRole_$2471",
+            "name": "validator_revert_t_enum$_UserRole_$3081",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -377,7 +377,7 @@
                       }
                     ],
                     "functionName": {
-                      "name": "validator_revert_t_enum$_UserRole_$2471",
+                      "name": "validator_revert_t_enum$_UserRole_$3081",
                       "nodeType": "YulIdentifier",
                       "src": "565:39:7"
                     },
@@ -389,7 +389,7 @@
                 }
               ]
             },
-            "name": "abi_decode_t_enum$_UserRole_$2471",
+            "name": "abi_decode_t_enum$_UserRole_$3081",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -539,7 +539,7 @@
                           }
                         ],
                         "functionName": {
-                          "name": "abi_decode_t_enum$_UserRole_$2471",
+                          "name": "abi_decode_t_enum$_UserRole_$3081",
                           "nodeType": "YulIdentifier",
                           "src": "895:33:7"
                         },
@@ -558,7 +558,7 @@
                 }
               ]
             },
-            "name": "abi_decode_tuple_t_enum$_UserRole_$2471",
+            "name": "abi_decode_tuple_t_enum$_UserRole_$3081",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -1448,7 +1448,7 @@
                 }
               ]
             },
-            "name": "validator_assert_t_enum$_UserRole_$2471",
+            "name": "validator_assert_t_enum$_UserRole_$3081",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -1491,7 +1491,7 @@
                       }
                     ],
                     "functionName": {
-                      "name": "validator_assert_t_enum$_UserRole_$2471",
+                      "name": "validator_assert_t_enum$_UserRole_$3081",
                       "nodeType": "YulIdentifier",
                       "src": "2648:39:7"
                     },
@@ -1503,7 +1503,7 @@
                 }
               ]
             },
-            "name": "cleanup_t_enum$_UserRole_$2471",
+            "name": "cleanup_t_enum$_UserRole_$3081",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -1540,7 +1540,7 @@
                       }
                     ],
                     "functionName": {
-                      "name": "cleanup_t_enum$_UserRole_$2471",
+                      "name": "cleanup_t_enum$_UserRole_$3081",
                       "nodeType": "YulIdentifier",
                       "src": "2800:30:7"
                     },
@@ -1557,7 +1557,7 @@
                 }
               ]
             },
-            "name": "convert_t_enum$_UserRole_$2471_to_t_uint8",
+            "name": "convert_t_enum$_UserRole_$3081_to_t_uint8",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -1599,7 +1599,7 @@
                           }
                         ],
                         "functionName": {
-                          "name": "convert_t_enum$_UserRole_$2471_to_t_uint8",
+                          "name": "convert_t_enum$_UserRole_$3081_to_t_uint8",
                           "nodeType": "YulIdentifier",
                           "src": "2947:41:7"
                         },
@@ -1620,7 +1620,7 @@
                 }
               ]
             },
-            "name": "abi_encode_t_enum$_UserRole_$2471_to_t_uint8_fromStack",
+            "name": "abi_encode_t_enum$_UserRole_$3081_to_t_uint8_fromStack",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -1710,7 +1710,7 @@
                       }
                     ],
                     "functionName": {
-                      "name": "abi_encode_t_enum$_UserRole_$2471_to_t_uint8_fromStack",
+                      "name": "abi_encode_t_enum$_UserRole_$3081_to_t_uint8_fromStack",
                       "nodeType": "YulIdentifier",
                       "src": "3163:54:7"
                     },
@@ -1722,7 +1722,7 @@
                 }
               ]
             },
-            "name": "abi_encode_tuple_t_enum$_UserRole_$2471__to_t_uint8__fromStack_reversed",
+            "name": "abi_encode_tuple_t_enum$_UserRole_$3081__to_t_uint8__fromStack_reversed",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -1924,7 +1924,7 @@
                       }
                     ],
                     "functionName": {
-                      "name": "abi_encode_t_enum$_UserRole_$2471_to_t_uint8_fromStack",
+                      "name": "abi_encode_t_enum$_UserRole_$3081_to_t_uint8_fromStack",
                       "nodeType": "YulIdentifier",
                       "src": "3668:54:7"
                     },
@@ -1979,7 +1979,7 @@
                 }
               ]
             },
-            "name": "abi_encode_tuple_t_address_t_enum$_UserRole_$2471_t_bool__to_t_address_t_uint8_t_bool__fromStack_reversed",
+            "name": "abi_encode_tuple_t_address_t_enum$_UserRole_$3081_t_bool__to_t_address_t_uint8_t_bool__fromStack_reversed",
             "nodeType": "YulFunctionDefinition",
             "parameters": [
               {
@@ -2765,7 +2765,7 @@
           }
         ]
       },
-      "contents": "{\n\n    function allocate_unbounded() -> memPtr {\n        memPtr := mload(64)\n    }\n\n    function revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() {\n        revert(0, 0)\n    }\n\n    function revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() {\n        revert(0, 0)\n    }\n\n    function validator_revert_t_enum$_UserRole_$2471(value) {\n        if iszero(lt(value, 5)) { revert(0, 0) }\n    }\n\n    function abi_decode_t_enum$_UserRole_$2471(offset, end) -> value {\n        value := calldataload(offset)\n        validator_revert_t_enum$_UserRole_$2471(value)\n    }\n\n    function abi_decode_tuple_t_enum$_UserRole_$2471(headStart, dataEnd) -> value0 {\n        if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }\n\n        {\n\n            let offset := 0\n\n            value0 := abi_decode_t_enum$_UserRole_$2471(add(headStart, offset), dataEnd)\n        }\n\n    }\n\n    function cleanup_t_uint160(value) -> cleaned {\n        cleaned := and(value, 0xffffffffffffffffffffffffffffffffffffffff)\n    }\n\n    function cleanup_t_address(value) -> cleaned {\n        cleaned := cleanup_t_uint160(value)\n    }\n\n    function validator_revert_t_address(value) {\n        if iszero(eq(value, cleanup_t_address(value))) { revert(0, 0) }\n    }\n\n    function abi_decode_t_address(offset, end) -> value {\n        value := calldataload(offset)\n        validator_revert_t_address(value)\n    }\n\n    function abi_decode_tuple_t_address(headStart, dataEnd) -> value0 {\n        if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }\n\n        {\n\n            let offset := 0\n\n            value0 := abi_decode_t_address(add(headStart, offset), dataEnd)\n        }\n\n    }\n\n    function cleanup_t_bool(value) -> cleaned {\n        cleaned := iszero(iszero(value))\n    }\n\n    function abi_encode_t_bool_to_t_bool_fromStack(value, pos) {\n        mstore(pos, cleanup_t_bool(value))\n    }\n\n    function abi_encode_tuple_t_bool__to_t_bool__fromStack_reversed(headStart , value0) -> tail {\n        tail := add(headStart, 32)\n\n        abi_encode_t_bool_to_t_bool_fromStack(value0,  add(headStart, 0))\n\n    }\n\n    function panic_error_0x21() {\n        mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)\n        mstore(4, 0x21)\n        revert(0, 0x24)\n    }\n\n    function validator_assert_t_enum$_UserRole_$2471(value) {\n        if iszero(lt(value, 5)) { panic_error_0x21() }\n    }\n\n    function cleanup_t_enum$_UserRole_$2471(value) -> cleaned {\n        cleaned := value validator_assert_t_enum$_UserRole_$2471(value)\n    }\n\n    function convert_t_enum$_UserRole_$2471_to_t_uint8(value) -> converted {\n        converted := cleanup_t_enum$_UserRole_$2471(value)\n    }\n\n    function abi_encode_t_enum$_UserRole_$2471_to_t_uint8_fromStack(value, pos) {\n        mstore(pos, convert_t_enum$_UserRole_$2471_to_t_uint8(value))\n    }\n\n    function abi_encode_tuple_t_enum$_UserRole_$2471__to_t_uint8__fromStack_reversed(headStart , value0) -> tail {\n        tail := add(headStart, 32)\n\n        abi_encode_t_enum$_UserRole_$2471_to_t_uint8_fromStack(value0,  add(headStart, 0))\n\n    }\n\n    function abi_encode_t_address_to_t_address_fromStack(value, pos) {\n        mstore(pos, cleanup_t_address(value))\n    }\n\n    function abi_encode_tuple_t_address_t_enum$_UserRole_$2471_t_bool__to_t_address_t_uint8_t_bool__fromStack_reversed(headStart , value2, value1, value0) -> tail {\n        tail := add(headStart, 96)\n\n        abi_encode_t_address_to_t_address_fromStack(value0,  add(headStart, 0))\n\n        abi_encode_t_enum$_UserRole_$2471_to_t_uint8_fromStack(value1,  add(headStart, 32))\n\n        abi_encode_t_bool_to_t_bool_fromStack(value2,  add(headStart, 64))\n\n    }\n\n    function array_storeLengthForEncoding_t_string_memory_ptr_fromStack(pos, length) -> updated_pos {\n        mstore(pos, length)\n        updated_pos := add(pos, 0x20)\n    }\n\n    function store_literal_in_memory_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204(memPtr) {\n\n        mstore(add(memPtr, 0), \"Error: User already registered\")\n\n    }\n\n    function abi_encode_t_stringliteral_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204_to_t_string_memory_ptr_fromStack(pos) -> end {\n        pos := array_storeLengthForEncoding_t_string_memory_ptr_fromStack(pos, 30)\n        store_literal_in_memory_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204(pos)\n        end := add(pos, 32)\n    }\n\n    function abi_encode_tuple_t_stringliteral_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204__to_t_string_memory_ptr__fromStack_reversed(headStart ) -> tail {\n        tail := add(headStart, 32)\n\n        mstore(add(headStart, 0), sub(tail, headStart))\n        tail := abi_encode_t_stringliteral_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204_to_t_string_memory_ptr_fromStack( tail)\n\n    }\n\n    function store_literal_in_memory_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b(memPtr) {\n\n        mstore(add(memPtr, 0), \"Error: Invalid role\")\n\n    }\n\n    function abi_encode_t_stringliteral_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b_to_t_string_memory_ptr_fromStack(pos) -> end {\n        pos := array_storeLengthForEncoding_t_string_memory_ptr_fromStack(pos, 19)\n        store_literal_in_memory_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b(pos)\n        end := add(pos, 32)\n    }\n\n    function abi_encode_tuple_t_stringliteral_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b__to_t_string_memory_ptr__fromStack_reversed(headStart ) -> tail {\n        tail := add(headStart, 32)\n\n        mstore(add(headStart, 0), sub(tail, headStart))\n        tail := abi_encode_t_stringliteral_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b_to_t_string_memory_ptr_fromStack( tail)\n\n    }\n\n}\n",
+      "contents": "{\n\n    function allocate_unbounded() -> memPtr {\n        memPtr := mload(64)\n    }\n\n    function revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() {\n        revert(0, 0)\n    }\n\n    function revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() {\n        revert(0, 0)\n    }\n\n    function validator_revert_t_enum$_UserRole_$3081(value) {\n        if iszero(lt(value, 5)) { revert(0, 0) }\n    }\n\n    function abi_decode_t_enum$_UserRole_$3081(offset, end) -> value {\n        value := calldataload(offset)\n        validator_revert_t_enum$_UserRole_$3081(value)\n    }\n\n    function abi_decode_tuple_t_enum$_UserRole_$3081(headStart, dataEnd) -> value0 {\n        if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }\n\n        {\n\n            let offset := 0\n\n            value0 := abi_decode_t_enum$_UserRole_$3081(add(headStart, offset), dataEnd)\n        }\n\n    }\n\n    function cleanup_t_uint160(value) -> cleaned {\n        cleaned := and(value, 0xffffffffffffffffffffffffffffffffffffffff)\n    }\n\n    function cleanup_t_address(value) -> cleaned {\n        cleaned := cleanup_t_uint160(value)\n    }\n\n    function validator_revert_t_address(value) {\n        if iszero(eq(value, cleanup_t_address(value))) { revert(0, 0) }\n    }\n\n    function abi_decode_t_address(offset, end) -> value {\n        value := calldataload(offset)\n        validator_revert_t_address(value)\n    }\n\n    function abi_decode_tuple_t_address(headStart, dataEnd) -> value0 {\n        if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }\n\n        {\n\n            let offset := 0\n\n            value0 := abi_decode_t_address(add(headStart, offset), dataEnd)\n        }\n\n    }\n\n    function cleanup_t_bool(value) -> cleaned {\n        cleaned := iszero(iszero(value))\n    }\n\n    function abi_encode_t_bool_to_t_bool_fromStack(value, pos) {\n        mstore(pos, cleanup_t_bool(value))\n    }\n\n    function abi_encode_tuple_t_bool__to_t_bool__fromStack_reversed(headStart , value0) -> tail {\n        tail := add(headStart, 32)\n\n        abi_encode_t_bool_to_t_bool_fromStack(value0,  add(headStart, 0))\n\n    }\n\n    function panic_error_0x21() {\n        mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)\n        mstore(4, 0x21)\n        revert(0, 0x24)\n    }\n\n    function validator_assert_t_enum$_UserRole_$3081(value) {\n        if iszero(lt(value, 5)) { panic_error_0x21() }\n    }\n\n    function cleanup_t_enum$_UserRole_$3081(value) -> cleaned {\n        cleaned := value validator_assert_t_enum$_UserRole_$3081(value)\n    }\n\n    function convert_t_enum$_UserRole_$3081_to_t_uint8(value) -> converted {\n        converted := cleanup_t_enum$_UserRole_$3081(value)\n    }\n\n    function abi_encode_t_enum$_UserRole_$3081_to_t_uint8_fromStack(value, pos) {\n        mstore(pos, convert_t_enum$_UserRole_$3081_to_t_uint8(value))\n    }\n\n    function abi_encode_tuple_t_enum$_UserRole_$3081__to_t_uint8__fromStack_reversed(headStart , value0) -> tail {\n        tail := add(headStart, 32)\n\n        abi_encode_t_enum$_UserRole_$3081_to_t_uint8_fromStack(value0,  add(headStart, 0))\n\n    }\n\n    function abi_encode_t_address_to_t_address_fromStack(value, pos) {\n        mstore(pos, cleanup_t_address(value))\n    }\n\n    function abi_encode_tuple_t_address_t_enum$_UserRole_$3081_t_bool__to_t_address_t_uint8_t_bool__fromStack_reversed(headStart , value2, value1, value0) -> tail {\n        tail := add(headStart, 96)\n\n        abi_encode_t_address_to_t_address_fromStack(value0,  add(headStart, 0))\n\n        abi_encode_t_enum$_UserRole_$3081_to_t_uint8_fromStack(value1,  add(headStart, 32))\n\n        abi_encode_t_bool_to_t_bool_fromStack(value2,  add(headStart, 64))\n\n    }\n\n    function array_storeLengthForEncoding_t_string_memory_ptr_fromStack(pos, length) -> updated_pos {\n        mstore(pos, length)\n        updated_pos := add(pos, 0x20)\n    }\n\n    function store_literal_in_memory_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204(memPtr) {\n\n        mstore(add(memPtr, 0), \"Error: User already registered\")\n\n    }\n\n    function abi_encode_t_stringliteral_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204_to_t_string_memory_ptr_fromStack(pos) -> end {\n        pos := array_storeLengthForEncoding_t_string_memory_ptr_fromStack(pos, 30)\n        store_literal_in_memory_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204(pos)\n        end := add(pos, 32)\n    }\n\n    function abi_encode_tuple_t_stringliteral_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204__to_t_string_memory_ptr__fromStack_reversed(headStart ) -> tail {\n        tail := add(headStart, 32)\n\n        mstore(add(headStart, 0), sub(tail, headStart))\n        tail := abi_encode_t_stringliteral_c990d06906cfc00f1891dc80e2215dab9b5a42b61df3abfc9f10ba999dfb0204_to_t_string_memory_ptr_fromStack( tail)\n\n    }\n\n    function store_literal_in_memory_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b(memPtr) {\n\n        mstore(add(memPtr, 0), \"Error: Invalid role\")\n\n    }\n\n    function abi_encode_t_stringliteral_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b_to_t_string_memory_ptr_fromStack(pos) -> end {\n        pos := array_storeLengthForEncoding_t_string_memory_ptr_fromStack(pos, 19)\n        store_literal_in_memory_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b(pos)\n        end := add(pos, 32)\n    }\n\n    function abi_encode_tuple_t_stringliteral_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b__to_t_string_memory_ptr__fromStack_reversed(headStart ) -> tail {\n        tail := add(headStart, 32)\n\n        mstore(add(headStart, 0), sub(tail, headStart))\n        tail := abi_encode_t_stringliteral_90f04d2c82da5fcf2e469af96439f395022d081414be8003790827d1fd29199b_to_t_string_memory_ptr_fromStack( tail)\n\n    }\n\n}\n",
       "id": 7,
       "language": "Yul",
       "name": "#utility.yul"
@@ -2774,20 +2774,20 @@
   "sourceMap": "58:1282:6:-:0;;;;;;;;;;;;;;;;;;;",
   "deployedSourceMap": "58:1282:6:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;510:389;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;1025:119;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;1228:110;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;319:37;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;;;;;;;;:::i;:::-;;;;;;;;510:389;606:5;572:39;;:5;:17;578:10;572:17;;;;;;;;;;;;;;;:30;;;;;;;;;;;;:39;;;564:82;;;;;;;;;;;;:::i;:::-;;;;;;;;;672:13;664:21;;;;;;;;:::i;:::-;;:4;:21;;;;;;;;:::i;:::-;;;656:53;;;;;;;;;;;;:::i;:::-;;;;;;;;;740:104;;;;;;;;767:10;740:104;;;;;;797:4;740:104;;;;;;;;:::i;:::-;;;;;;829:4;740:104;;;;;720:5;:17;726:10;720:17;;;;;;;;;;;;;;;:124;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::i;:::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;875:10;860:32;;;887:4;860:32;;;;;;:::i;:::-;;;;;;;;510:389;:::o;1025:119::-;1088:4;1111:5;:13;1117:6;1111:13;;;;;;;;;;;;;;;:26;;;;;;;;;;;;1104:33;;1025:119;;;:::o;1228:110::-;1286:8;1313:5;:13;1319:6;1313:13;;;;;;;;;;;;;;;:18;;;;;;;;;;;;1306:25;;1228:110;;;:::o;319:37::-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o;88:117:7:-;197:1;194;187:12;334:112;420:1;413:5;410:12;400:40;;436:1;433;426:12;400:40;334:112;:::o;452:165::-;511:5;549:6;536:20;527:29;;565:46;605:5;565:46;:::i;:::-;452:165;;;;:::o;623:355::-;695:6;744:2;732:9;723:7;719:23;715:32;712:119;;;750:79;;:::i;:::-;712:119;870:1;895:66;953:7;944:6;933:9;929:22;895:66;:::i;:::-;885:76;;841:130;623:355;;;;:::o;984:126::-;1021:7;1061:42;1054:5;1050:54;1039:65;;984:126;;;:::o;1116:96::-;1153:7;1182:24;1200:5;1182:24;:::i;:::-;1171:35;;1116:96;;;:::o;1218:122::-;1291:24;1309:5;1291:24;:::i;:::-;1284:5;1281:35;1271:63;;1330:1;1327;1320:12;1271:63;1218:122;:::o;1346:139::-;1392:5;1430:6;1417:20;1408:29;;1446:33;1473:5;1446:33;:::i;:::-;1346:139;;;;:::o;1491:329::-;1550:6;1599:2;1587:9;1578:7;1574:23;1570:32;1567:119;;;1605:79;;:::i;:::-;1567:119;1725:1;1750:53;1795:7;1786:6;1775:9;1771:22;1750:53;:::i;:::-;1740:63;;1696:117;1491:329;;;;:::o;1826:90::-;1860:7;1903:5;1896:13;1889:21;1878:32;;1826:90;;;:::o;1922:109::-;2003:21;2018:5;2003:21;:::i;:::-;1998:3;1991:34;1922:109;;:::o;2037:210::-;2124:4;2162:2;2151:9;2147:18;2139:26;;2175:65;2237:1;2226:9;2222:17;2213:6;2175:65;:::i;:::-;2037:210;;;;:::o;2253:180::-;2301:77;2298:1;2291:88;2398:4;2395:1;2388:15;2422:4;2419:1;2412:15;2439:118;2525:1;2518:5;2515:12;2505:46;;2531:18;;:::i;:::-;2505:46;2439:118;:::o;2563:137::-;2613:7;2642:5;2631:16;;2648:46;2688:5;2648:46;:::i;:::-;2563:137;;;:::o;2706:::-;2767:9;2800:37;2831:5;2800:37;:::i;:::-;2787:50;;2706:137;;;:::o;2849:153::-;2947:48;2989:5;2947:48;:::i;:::-;2942:3;2935:61;2849:153;;:::o;3008:244::-;3112:4;3150:2;3139:9;3135:18;3127:26;;3163:82;3242:1;3231:9;3227:17;3218:6;3163:82;:::i;:::-;3008:244;;;;:::o;3258:118::-;3345:24;3363:5;3345:24;:::i;:::-;3340:3;3333:37;3258:118;;:::o;3382:452::-;3536:4;3574:2;3563:9;3559:18;3551:26;;3587:71;3655:1;3644:9;3640:17;3631:6;3587:71;:::i;:::-;3668:83;3747:2;3736:9;3732:18;3723:6;3668:83;:::i;:::-;3761:66;3823:2;3812:9;3808:18;3799:6;3761:66;:::i;:::-;3382:452;;;;;;:::o;3840:169::-;3924:11;3958:6;3953:3;3946:19;3998:4;3993:3;3989:14;3974:29;;3840:169;;;;:::o;4015:180::-;4155:32;4151:1;4143:6;4139:14;4132:56;4015:180;:::o;4201:366::-;4343:3;4364:67;4428:2;4423:3;4364:67;:::i;:::-;4357:74;;4440:93;4529:3;4440:93;:::i;:::-;4558:2;4553:3;4549:12;4542:19;;4201:366;;;:::o;4573:419::-;4739:4;4777:2;4766:9;4762:18;4754:26;;4826:9;4820:4;4816:20;4812:1;4801:9;4797:17;4790:47;4854:131;4980:4;4854:131;:::i;:::-;4846:139;;4573:419;;;:::o;4998:169::-;5138:21;5134:1;5126:6;5122:14;5115:45;4998:169;:::o;5173:366::-;5315:3;5336:67;5400:2;5395:3;5336:67;:::i;:::-;5329:74;;5412:93;5501:3;5412:93;:::i;:::-;5530:2;5525:3;5521:12;5514:19;;5173:366;;;:::o;5545:419::-;5711:4;5749:2;5738:9;5734:18;5726:26;;5798:9;5792:4;5788:20;5784:1;5773:9;5769:17;5762:47;5826:131;5952:4;5826:131;:::i;:::-;5818:139;;5545:419;;;:::o",
   "source": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.19;\n\ncontract UserRegistry {\n    enum UserRole { None, Farmer, Factory, Logistics, Retailer } // ✅ กำหนดประเภทของผู้ใช้\n\n    struct User {\n        address wallet;\n        UserRole role;\n        bool isRegistered;\n    }\n\n    mapping(address => User) public users;\n\n    event UserRegistered(address indexed wallet, UserRole role);\n\n    // ✅ ฟังก์ชันลงทะเบียนผู้ใช้\n    function registerUser(UserRole role) public {\n        require(users[msg.sender].isRegistered == false, \"Error: User already registered\");\n        require(role != UserRole.None, \"Error: Invalid role\");\n\n        users[msg.sender] = User({\n            wallet: msg.sender,\n            role: role,\n            isRegistered: true\n        });\n\n        emit UserRegistered(msg.sender, role);\n    }\n\n    // ✅ ตรวจสอบว่าผู้ใช้ลงทะเบียนแล้วหรือไม่\n    function isUserRegistered(address wallet) public view returns (bool) {\n        return users[wallet].isRegistered;\n    }\n\n    // ✅ ตรวจสอบสิทธิ์ของผู้ใช้\n    function getUserRole(address wallet) public view returns (UserRole) {\n        return users[wallet].role;\n    }\n}\n",
-  "sourcePath": "/home/apiwat/Documents/Backend/Backend/solidity/contracts/UserRegistry.sol",
+  "sourcePath": "/home/kmitl-ivo/Documents/Back/Backend/solidity/contracts/UserRegistry.sol",
   "ast": {
     "absolutePath": "project:/contracts/UserRegistry.sol",
     "exportedSymbols": {
       "UserRegistry": [
-        2563
+        3173
       ]
     },
-    "id": 2564,
+    "id": 3174,
     "license": "MIT",
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2465,
+        "id": 3075,
         "literals": [
           "solidity",
           "^",
@@ -2804,9 +2804,9 @@
         "contractDependencies": [],
         "contractKind": "contract",
         "fullyImplemented": true,
-        "id": 2563,
+        "id": 3173,
         "linearizedBaseContracts": [
-          2563
+          3173
         ],
         "name": "UserRegistry",
         "nameLocation": "67:12:6",
@@ -2814,38 +2814,38 @@
         "nodes": [
           {
             "canonicalName": "UserRegistry.UserRole",
-            "id": 2471,
+            "id": 3081,
             "members": [
               {
-                "id": 2466,
+                "id": 3076,
                 "name": "None",
                 "nameLocation": "102:4:6",
                 "nodeType": "EnumValue",
                 "src": "102:4:6"
               },
               {
-                "id": 2467,
+                "id": 3077,
                 "name": "Farmer",
                 "nameLocation": "108:6:6",
                 "nodeType": "EnumValue",
                 "src": "108:6:6"
               },
               {
-                "id": 2468,
+                "id": 3078,
                 "name": "Factory",
                 "nameLocation": "116:7:6",
                 "nodeType": "EnumValue",
                 "src": "116:7:6"
               },
               {
-                "id": 2469,
+                "id": 3079,
                 "name": "Logistics",
                 "nameLocation": "125:9:6",
                 "nodeType": "EnumValue",
                 "src": "125:9:6"
               },
               {
-                "id": 2470,
+                "id": 3080,
                 "name": "Retailer",
                 "nameLocation": "136:8:6",
                 "nodeType": "EnumValue",
@@ -2859,16 +2859,16 @@
           },
           {
             "canonicalName": "UserRegistry.User",
-            "id": 2479,
+            "id": 3089,
             "members": [
               {
                 "constant": false,
-                "id": 2473,
+                "id": 3083,
                 "mutability": "mutable",
                 "name": "wallet",
                 "nameLocation": "250:6:6",
                 "nodeType": "VariableDeclaration",
-                "scope": 2479,
+                "scope": 3089,
                 "src": "242:14:6",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -2877,7 +2877,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 2472,
+                  "id": 3082,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "242:7:6",
@@ -2891,36 +2891,36 @@
               },
               {
                 "constant": false,
-                "id": 2476,
+                "id": 3086,
                 "mutability": "mutable",
                 "name": "role",
                 "nameLocation": "275:4:6",
                 "nodeType": "VariableDeclaration",
-                "scope": 2479,
+                "scope": 3089,
                 "src": "266:13:6",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_enum$_UserRole_$2471",
+                  "typeIdentifier": "t_enum$_UserRole_$3081",
                   "typeString": "enum UserRegistry.UserRole"
                 },
                 "typeName": {
-                  "id": 2475,
+                  "id": 3085,
                   "nodeType": "UserDefinedTypeName",
                   "pathNode": {
-                    "id": 2474,
+                    "id": 3084,
                     "name": "UserRole",
                     "nameLocations": [
                       "266:8:6"
                     ],
                     "nodeType": "IdentifierPath",
-                    "referencedDeclaration": 2471,
+                    "referencedDeclaration": 3081,
                     "src": "266:8:6"
                   },
-                  "referencedDeclaration": 2471,
+                  "referencedDeclaration": 3081,
                   "src": "266:8:6",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_UserRole_$2471",
+                    "typeIdentifier": "t_enum$_UserRole_$3081",
                     "typeString": "enum UserRegistry.UserRole"
                   }
                 },
@@ -2928,12 +2928,12 @@
               },
               {
                 "constant": false,
-                "id": 2478,
+                "id": 3088,
                 "mutability": "mutable",
                 "name": "isRegistered",
                 "nameLocation": "294:12:6",
                 "nodeType": "VariableDeclaration",
-                "scope": 2479,
+                "scope": 3089,
                 "src": "289:17:6",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -2942,7 +2942,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 2477,
+                  "id": 3087,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "289:4:6",
@@ -2957,32 +2957,32 @@
             "name": "User",
             "nameLocation": "227:4:6",
             "nodeType": "StructDefinition",
-            "scope": 2563,
+            "scope": 3173,
             "src": "220:93:6",
             "visibility": "public"
           },
           {
             "constant": false,
             "functionSelector": "a87430ba",
-            "id": 2484,
+            "id": 3094,
             "mutability": "mutable",
             "name": "users",
             "nameLocation": "351:5:6",
             "nodeType": "VariableDeclaration",
-            "scope": 2563,
+            "scope": 3173,
             "src": "319:37:6",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$2479_storage_$",
+              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$3089_storage_$",
               "typeString": "mapping(address => struct UserRegistry.User)"
             },
             "typeName": {
-              "id": 2483,
+              "id": 3093,
               "keyName": "",
               "keyNameLocation": "-1:-1:-1",
               "keyType": {
-                "id": 2480,
+                "id": 3090,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "327:7:6",
@@ -2994,28 +2994,28 @@
               "nodeType": "Mapping",
               "src": "319:24:6",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$2479_storage_$",
+                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$3089_storage_$",
                 "typeString": "mapping(address => struct UserRegistry.User)"
               },
               "valueName": "",
               "valueNameLocation": "-1:-1:-1",
               "valueType": {
-                "id": 2482,
+                "id": 3092,
                 "nodeType": "UserDefinedTypeName",
                 "pathNode": {
-                  "id": 2481,
+                  "id": 3091,
                   "name": "User",
                   "nameLocations": [
                     "338:4:6"
                   ],
                   "nodeType": "IdentifierPath",
-                  "referencedDeclaration": 2479,
+                  "referencedDeclaration": 3089,
                   "src": "338:4:6"
                 },
-                "referencedDeclaration": 2479,
+                "referencedDeclaration": 3089,
                 "src": "338:4:6",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_User_$2479_storage_ptr",
+                  "typeIdentifier": "t_struct$_User_$3089_storage_ptr",
                   "typeString": "struct UserRegistry.User"
                 }
               }
@@ -3025,23 +3025,23 @@
           {
             "anonymous": false,
             "eventSelector": "8e18574f8a7333e6a87112742a55853a643e2f0550f4e1a3a2c3f1bb2994441d",
-            "id": 2491,
+            "id": 3101,
             "name": "UserRegistered",
             "nameLocation": "369:14:6",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 2490,
+              "id": 3100,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2486,
+                  "id": 3096,
                   "indexed": true,
                   "mutability": "mutable",
                   "name": "wallet",
                   "nameLocation": "400:6:6",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2491,
+                  "scope": 3101,
                   "src": "384:22:6",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3050,7 +3050,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2485,
+                    "id": 3095,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "384:7:6",
@@ -3064,37 +3064,37 @@
                 },
                 {
                   "constant": false,
-                  "id": 2489,
+                  "id": 3099,
                   "indexed": false,
                   "mutability": "mutable",
                   "name": "role",
                   "nameLocation": "417:4:6",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2491,
+                  "scope": 3101,
                   "src": "408:13:6",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_UserRole_$2471",
+                    "typeIdentifier": "t_enum$_UserRole_$3081",
                     "typeString": "enum UserRegistry.UserRole"
                   },
                   "typeName": {
-                    "id": 2488,
+                    "id": 3098,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 2487,
+                      "id": 3097,
                       "name": "UserRole",
                       "nameLocations": [
                         "408:8:6"
                       ],
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 2471,
+                      "referencedDeclaration": 3081,
                       "src": "408:8:6"
                     },
-                    "referencedDeclaration": 2471,
+                    "referencedDeclaration": 3081,
                     "src": "408:8:6",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_enum$_UserRole_$2471",
+                      "typeIdentifier": "t_enum$_UserRole_$3081",
                       "typeString": "enum UserRegistry.UserRole"
                     }
                   },
@@ -3107,7 +3107,7 @@
           },
           {
             "body": {
-              "id": 2534,
+              "id": 3144,
               "nodeType": "Block",
               "src": "554:345:6",
               "statements": [
@@ -3119,7 +3119,7 @@
                           "typeIdentifier": "t_bool",
                           "typeString": "bool"
                         },
-                        "id": 2504,
+                        "id": 3114,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3127,21 +3127,21 @@
                         "leftExpression": {
                           "expression": {
                             "baseExpression": {
-                              "id": 2498,
+                              "id": 3108,
                               "name": "users",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 2484,
+                              "referencedDeclaration": 3094,
                               "src": "572:5:6",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$2479_storage_$",
+                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$3089_storage_$",
                                 "typeString": "mapping(address => struct UserRegistry.User storage ref)"
                               }
                             },
-                            "id": 2501,
+                            "id": 3111,
                             "indexExpression": {
                               "expression": {
-                                "id": 2499,
+                                "id": 3109,
                                 "name": "msg",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
@@ -3152,7 +3152,7 @@
                                   "typeString": "msg"
                                 }
                               },
-                              "id": 2500,
+                              "id": 3110,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": false,
@@ -3173,11 +3173,11 @@
                             "nodeType": "IndexAccess",
                             "src": "572:17:6",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_struct$_User_$2479_storage",
+                              "typeIdentifier": "t_struct$_User_$3089_storage",
                               "typeString": "struct UserRegistry.User storage ref"
                             }
                           },
-                          "id": 2502,
+                          "id": 3112,
                           "isConstant": false,
                           "isLValue": true,
                           "isPure": false,
@@ -3185,7 +3185,7 @@
                           "memberLocation": "590:12:6",
                           "memberName": "isRegistered",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 2478,
+                          "referencedDeclaration": 3088,
                           "src": "572:30:6",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bool",
@@ -3196,7 +3196,7 @@
                         "operator": "==",
                         "rightExpression": {
                           "hexValue": "66616c7365",
-                          "id": 2503,
+                          "id": 3113,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3218,7 +3218,7 @@
                       },
                       {
                         "hexValue": "4572726f723a205573657220616c72656164792072656769737465726564",
-                        "id": 2505,
+                        "id": 3115,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3244,7 +3244,7 @@
                           "typeString": "literal_string \"Error: User already registered\""
                         }
                       ],
-                      "id": 2497,
+                      "id": 3107,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
@@ -3258,7 +3258,7 @@
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 2506,
+                    "id": 3116,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3274,7 +3274,7 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 2507,
+                  "id": 3117,
                   "nodeType": "ExpressionStatement",
                   "src": "564:82:6"
                 },
@@ -3283,23 +3283,23 @@
                     "arguments": [
                       {
                         "commonType": {
-                          "typeIdentifier": "t_enum$_UserRole_$2471",
+                          "typeIdentifier": "t_enum$_UserRole_$3081",
                           "typeString": "enum UserRegistry.UserRole"
                         },
-                        "id": 2512,
+                        "id": 3122,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
-                          "id": 2509,
+                          "id": 3119,
                           "name": "role",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 2494,
+                          "referencedDeclaration": 3104,
                           "src": "664:4:6",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_enum$_UserRole_$2471",
+                            "typeIdentifier": "t_enum$_UserRole_$3081",
                             "typeString": "enum UserRegistry.UserRole"
                           }
                         },
@@ -3307,18 +3307,18 @@
                         "operator": "!=",
                         "rightExpression": {
                           "expression": {
-                            "id": 2510,
+                            "id": 3120,
                             "name": "UserRole",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 2471,
+                            "referencedDeclaration": 3081,
                             "src": "672:8:6",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_enum$_UserRole_$2471_$",
+                              "typeIdentifier": "t_type$_t_enum$_UserRole_$3081_$",
                               "typeString": "type(enum UserRegistry.UserRole)"
                             }
                           },
-                          "id": 2511,
+                          "id": 3121,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3326,10 +3326,10 @@
                           "memberLocation": "681:4:6",
                           "memberName": "None",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 2466,
+                          "referencedDeclaration": 3076,
                           "src": "672:13:6",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_enum$_UserRole_$2471",
+                            "typeIdentifier": "t_enum$_UserRole_$3081",
                             "typeString": "enum UserRegistry.UserRole"
                           }
                         },
@@ -3341,7 +3341,7 @@
                       },
                       {
                         "hexValue": "4572726f723a20496e76616c696420726f6c65",
-                        "id": 2513,
+                        "id": 3123,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3367,7 +3367,7 @@
                           "typeString": "literal_string \"Error: Invalid role\""
                         }
                       ],
-                      "id": 2508,
+                      "id": 3118,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
@@ -3381,7 +3381,7 @@
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 2514,
+                    "id": 3124,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3397,34 +3397,34 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 2515,
+                  "id": 3125,
                   "nodeType": "ExpressionStatement",
                   "src": "656:53:6"
                 },
                 {
                   "expression": {
-                    "id": 2526,
+                    "id": 3136,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "baseExpression": {
-                        "id": 2516,
+                        "id": 3126,
                         "name": "users",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2484,
+                        "referencedDeclaration": 3094,
                         "src": "720:5:6",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$2479_storage_$",
+                          "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$3089_storage_$",
                           "typeString": "mapping(address => struct UserRegistry.User storage ref)"
                         }
                       },
-                      "id": 2519,
+                      "id": 3129,
                       "indexExpression": {
                         "expression": {
-                          "id": 2517,
+                          "id": 3127,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
@@ -3435,7 +3435,7 @@
                             "typeString": "msg"
                           }
                         },
-                        "id": 2518,
+                        "id": 3128,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3456,7 +3456,7 @@
                       "nodeType": "IndexAccess",
                       "src": "720:17:6",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_User_$2479_storage",
+                        "typeIdentifier": "t_struct$_User_$3089_storage",
                         "typeString": "struct UserRegistry.User storage ref"
                       }
                     },
@@ -3466,7 +3466,7 @@
                       "arguments": [
                         {
                           "expression": {
-                            "id": 2521,
+                            "id": 3131,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
@@ -3477,7 +3477,7 @@
                               "typeString": "msg"
                             }
                           },
-                          "id": 2522,
+                          "id": 3132,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -3492,20 +3492,20 @@
                           }
                         },
                         {
-                          "id": 2523,
+                          "id": 3133,
                           "name": "role",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 2494,
+                          "referencedDeclaration": 3104,
                           "src": "797:4:6",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_enum$_UserRole_$2471",
+                            "typeIdentifier": "t_enum$_UserRole_$3081",
                             "typeString": "enum UserRegistry.UserRole"
                           }
                         },
                         {
                           "hexValue": "74727565",
-                          "id": 2524,
+                          "id": 3134,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3527,7 +3527,7 @@
                             "typeString": "address"
                           },
                           {
-                            "typeIdentifier": "t_enum$_UserRole_$2471",
+                            "typeIdentifier": "t_enum$_UserRole_$3081",
                             "typeString": "enum UserRegistry.UserRole"
                           },
                           {
@@ -3535,18 +3535,18 @@
                             "typeString": "bool"
                           }
                         ],
-                        "id": 2520,
+                        "id": 3130,
                         "name": "User",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2479,
+                        "referencedDeclaration": 3089,
                         "src": "740:4:6",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_struct$_User_$2479_storage_ptr_$",
+                          "typeIdentifier": "t_type$_t_struct$_User_$3089_storage_ptr_$",
                           "typeString": "type(struct UserRegistry.User storage pointer)"
                         }
                       },
-                      "id": 2525,
+                      "id": 3135,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3566,17 +3566,17 @@
                       "src": "740:104:6",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_User_$2479_memory_ptr",
+                        "typeIdentifier": "t_struct$_User_$3089_memory_ptr",
                         "typeString": "struct UserRegistry.User memory"
                       }
                     },
                     "src": "720:124:6",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_User_$2479_storage",
+                      "typeIdentifier": "t_struct$_User_$3089_storage",
                       "typeString": "struct UserRegistry.User storage ref"
                     }
                   },
-                  "id": 2527,
+                  "id": 3137,
                   "nodeType": "ExpressionStatement",
                   "src": "720:124:6"
                 },
@@ -3585,7 +3585,7 @@
                     "arguments": [
                       {
                         "expression": {
-                          "id": 2529,
+                          "id": 3139,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
@@ -3596,7 +3596,7 @@
                             "typeString": "msg"
                           }
                         },
-                        "id": 2530,
+                        "id": 3140,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3611,14 +3611,14 @@
                         }
                       },
                       {
-                        "id": 2531,
+                        "id": 3141,
                         "name": "role",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2494,
+                        "referencedDeclaration": 3104,
                         "src": "887:4:6",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_enum$_UserRole_$2471",
+                          "typeIdentifier": "t_enum$_UserRole_$3081",
                           "typeString": "enum UserRegistry.UserRole"
                         }
                       }
@@ -3630,22 +3630,22 @@
                           "typeString": "address"
                         },
                         {
-                          "typeIdentifier": "t_enum$_UserRole_$2471",
+                          "typeIdentifier": "t_enum$_UserRole_$3081",
                           "typeString": "enum UserRegistry.UserRole"
                         }
                       ],
-                      "id": 2528,
+                      "id": 3138,
                       "name": "UserRegistered",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 2491,
+                      "referencedDeclaration": 3101,
                       "src": "860:14:6",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_enum$_UserRole_$2471_$returns$__$",
+                        "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_enum$_UserRole_$3081_$returns$__$",
                         "typeString": "function (address,enum UserRegistry.UserRole)"
                       }
                     },
-                    "id": 2532,
+                    "id": 3142,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3661,14 +3661,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 2533,
+                  "id": 3143,
                   "nodeType": "EmitStatement",
                   "src": "855:37:6"
                 }
               ]
             },
             "functionSelector": "02b8c8cd",
-            "id": 2535,
+            "id": 3145,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -3676,41 +3676,41 @@
             "nameLocation": "519:12:6",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 2495,
+              "id": 3105,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2494,
+                  "id": 3104,
                   "mutability": "mutable",
                   "name": "role",
                   "nameLocation": "541:4:6",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2535,
+                  "scope": 3145,
                   "src": "532:13:6",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_UserRole_$2471",
+                    "typeIdentifier": "t_enum$_UserRole_$3081",
                     "typeString": "enum UserRegistry.UserRole"
                   },
                   "typeName": {
-                    "id": 2493,
+                    "id": 3103,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 2492,
+                      "id": 3102,
                       "name": "UserRole",
                       "nameLocations": [
                         "532:8:6"
                       ],
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 2471,
+                      "referencedDeclaration": 3081,
                       "src": "532:8:6"
                     },
-                    "referencedDeclaration": 2471,
+                    "referencedDeclaration": 3081,
                     "src": "532:8:6",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_enum$_UserRole_$2471",
+                      "typeIdentifier": "t_enum$_UserRole_$3081",
                       "typeString": "enum UserRegistry.UserRole"
                     }
                   },
@@ -3720,12 +3720,12 @@
               "src": "531:15:6"
             },
             "returnParameters": {
-              "id": 2496,
+              "id": 3106,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "554:0:6"
             },
-            "scope": 2563,
+            "scope": 3173,
             "src": "510:389:6",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -3733,7 +3733,7 @@
           },
           {
             "body": {
-              "id": 2547,
+              "id": 3157,
               "nodeType": "Block",
               "src": "1094:50:6",
               "statements": [
@@ -3741,24 +3741,24 @@
                   "expression": {
                     "expression": {
                       "baseExpression": {
-                        "id": 2542,
+                        "id": 3152,
                         "name": "users",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2484,
+                        "referencedDeclaration": 3094,
                         "src": "1111:5:6",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$2479_storage_$",
+                          "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$3089_storage_$",
                           "typeString": "mapping(address => struct UserRegistry.User storage ref)"
                         }
                       },
-                      "id": 2544,
+                      "id": 3154,
                       "indexExpression": {
-                        "id": 2543,
+                        "id": 3153,
                         "name": "wallet",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2537,
+                        "referencedDeclaration": 3147,
                         "src": "1117:6:6",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -3772,11 +3772,11 @@
                       "nodeType": "IndexAccess",
                       "src": "1111:13:6",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_User_$2479_storage",
+                        "typeIdentifier": "t_struct$_User_$3089_storage",
                         "typeString": "struct UserRegistry.User storage ref"
                       }
                     },
-                    "id": 2545,
+                    "id": 3155,
                     "isConstant": false,
                     "isLValue": true,
                     "isPure": false,
@@ -3784,22 +3784,22 @@
                     "memberLocation": "1125:12:6",
                     "memberName": "isRegistered",
                     "nodeType": "MemberAccess",
-                    "referencedDeclaration": 2478,
+                    "referencedDeclaration": 3088,
                     "src": "1111:26:6",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
                     }
                   },
-                  "functionReturnParameters": 2541,
-                  "id": 2546,
+                  "functionReturnParameters": 3151,
+                  "id": 3156,
                   "nodeType": "Return",
                   "src": "1104:33:6"
                 }
               ]
             },
             "functionSelector": "163f7522",
-            "id": 2548,
+            "id": 3158,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -3807,17 +3807,17 @@
             "nameLocation": "1034:16:6",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 2538,
+              "id": 3148,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2537,
+                  "id": 3147,
                   "mutability": "mutable",
                   "name": "wallet",
                   "nameLocation": "1059:6:6",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2548,
+                  "scope": 3158,
                   "src": "1051:14:6",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3826,7 +3826,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2536,
+                    "id": 3146,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1051:7:6",
@@ -3842,17 +3842,17 @@
               "src": "1050:16:6"
             },
             "returnParameters": {
-              "id": 2541,
+              "id": 3151,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2540,
+                  "id": 3150,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2548,
+                  "scope": 3158,
                   "src": "1088:4:6",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3861,7 +3861,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 2539,
+                    "id": 3149,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1088:4:6",
@@ -3875,7 +3875,7 @@
               ],
               "src": "1087:6:6"
             },
-            "scope": 2563,
+            "scope": 3173,
             "src": "1025:119:6",
             "stateMutability": "view",
             "virtual": false,
@@ -3883,7 +3883,7 @@
           },
           {
             "body": {
-              "id": 2561,
+              "id": 3171,
               "nodeType": "Block",
               "src": "1296:42:6",
               "statements": [
@@ -3891,24 +3891,24 @@
                   "expression": {
                     "expression": {
                       "baseExpression": {
-                        "id": 2556,
+                        "id": 3166,
                         "name": "users",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2484,
+                        "referencedDeclaration": 3094,
                         "src": "1313:5:6",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$2479_storage_$",
+                          "typeIdentifier": "t_mapping$_t_address_$_t_struct$_User_$3089_storage_$",
                           "typeString": "mapping(address => struct UserRegistry.User storage ref)"
                         }
                       },
-                      "id": 2558,
+                      "id": 3168,
                       "indexExpression": {
-                        "id": 2557,
+                        "id": 3167,
                         "name": "wallet",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2550,
+                        "referencedDeclaration": 3160,
                         "src": "1319:6:6",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -3922,11 +3922,11 @@
                       "nodeType": "IndexAccess",
                       "src": "1313:13:6",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_User_$2479_storage",
+                        "typeIdentifier": "t_struct$_User_$3089_storage",
                         "typeString": "struct UserRegistry.User storage ref"
                       }
                     },
-                    "id": 2559,
+                    "id": 3169,
                     "isConstant": false,
                     "isLValue": true,
                     "isPure": false,
@@ -3934,22 +3934,22 @@
                     "memberLocation": "1327:4:6",
                     "memberName": "role",
                     "nodeType": "MemberAccess",
-                    "referencedDeclaration": 2476,
+                    "referencedDeclaration": 3086,
                     "src": "1313:18:6",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_enum$_UserRole_$2471",
+                      "typeIdentifier": "t_enum$_UserRole_$3081",
                       "typeString": "enum UserRegistry.UserRole"
                     }
                   },
-                  "functionReturnParameters": 2555,
-                  "id": 2560,
+                  "functionReturnParameters": 3165,
+                  "id": 3170,
                   "nodeType": "Return",
                   "src": "1306:25:6"
                 }
               ]
             },
             "functionSelector": "27820851",
-            "id": 2562,
+            "id": 3172,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -3957,17 +3957,17 @@
             "nameLocation": "1237:11:6",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 2551,
+              "id": 3161,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2550,
+                  "id": 3160,
                   "mutability": "mutable",
                   "name": "wallet",
                   "nameLocation": "1257:6:6",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2562,
+                  "scope": 3172,
                   "src": "1249:14:6",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3976,7 +3976,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2549,
+                    "id": 3159,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1249:7:6",
@@ -3992,41 +3992,41 @@
               "src": "1248:16:6"
             },
             "returnParameters": {
-              "id": 2555,
+              "id": 3165,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2554,
+                  "id": 3164,
                   "mutability": "mutable",
                   "name": "",
                   "nameLocation": "-1:-1:-1",
                   "nodeType": "VariableDeclaration",
-                  "scope": 2562,
+                  "scope": 3172,
                   "src": "1286:8:6",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_enum$_UserRole_$2471",
+                    "typeIdentifier": "t_enum$_UserRole_$3081",
                     "typeString": "enum UserRegistry.UserRole"
                   },
                   "typeName": {
-                    "id": 2553,
+                    "id": 3163,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 2552,
+                      "id": 3162,
                       "name": "UserRole",
                       "nameLocations": [
                         "1286:8:6"
                       ],
                       "nodeType": "IdentifierPath",
-                      "referencedDeclaration": 2471,
+                      "referencedDeclaration": 3081,
                       "src": "1286:8:6"
                     },
-                    "referencedDeclaration": 2471,
+                    "referencedDeclaration": 3081,
                     "src": "1286:8:6",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_enum$_UserRole_$2471",
+                      "typeIdentifier": "t_enum$_UserRole_$3081",
                       "typeString": "enum UserRegistry.UserRole"
                     }
                   },
@@ -4035,14 +4035,14 @@
               ],
               "src": "1285:10:6"
             },
-            "scope": 2563,
+            "scope": 3173,
             "src": "1228:110:6",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "public"
           }
         ],
-        "scope": 2564,
+        "scope": 3174,
         "src": "58:1282:6",
         "usedErrors": []
       }
@@ -4057,12 +4057,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xb717CC136da35f3117C9c21128183aAF006ed05f",
-      "transactionHash": "0xc42d24802bf203145fbb4fe2f1e052bc38a1f8ce7fee17af390231062951b15a"
+      "address": "0x24F0b07D38cd5E37948F307d9b3a72183388f802",
+      "transactionHash": "0x802d149f44db6f68f306e070aa81f61360e8a2afa1973a94f83b5831d23ed2ae"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-03-15T18:31:45.936Z",
+  "updatedAt": "2025-03-17T17:40:07.275Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

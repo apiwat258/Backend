@@ -44,7 +44,7 @@ type ProductLotProductLotInfo struct {
 
 // ProductlotMetaData contains all meta data concerning the Productlot contract.
 var ProductlotMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_rawMilkContract\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_productContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"ProductLotCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"productContract\",\"outputs\":[{\"internalType\":\"contractProduct\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"productLotIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"productLots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"rawMilkContract\",\"outputs\":[{\"internalType\":\"contractRawMilk\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"trackingContract\",\"outputs\":[{\"internalType\":\"contractTracking\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_inspector\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"_grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"_milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"createProductLot\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getProductLot\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structProductLot.ProductLotInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"isProductLotExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"}],\"name\":\"getProductLotsByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByProductLot\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_trackingContract\",\"type\":\"address\"}],\"name\":\"setTrackingContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"updateProductLotStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_userRegistry\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_rawMilkContract\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_productContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"ProductLotCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"newStatus\",\"type\":\"uint8\"}],\"name\":\"ProductLotStatusUpdated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"productContract\",\"outputs\":[{\"internalType\":\"contractProduct\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"productLotIds\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"productLots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"rawMilkContract\",\"outputs\":[{\"internalType\":\"contractRawMilk\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"trackingContract\",\"outputs\":[{\"internalType\":\"contractTracking\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"userRegistry\",\"outputs\":[{\"internalType\":\"contractUserRegistry\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_productId\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"_inspector\",\"type\":\"string\"},{\"internalType\":\"bool\",\"name\":\"_grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"_qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"_milkTankIds\",\"type\":\"bytes32[]\"}],\"name\":\"createProductLot\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getProductLot\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"lotId\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"factory\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"inspector\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"inspectionDate\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"grade\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"qualityAndNutritionCID\",\"type\":\"string\"},{\"internalType\":\"bytes32[]\",\"name\":\"milkTankIds\",\"type\":\"bytes32[]\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"structProductLot.ProductLotInfo\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"isProductLotExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"}],\"name\":\"getProductLotsByFactory\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getMilkTanksByProductLot\",\"outputs\":[{\"internalType\":\"bytes32[]\",\"name\":\"\",\"type\":\"bytes32[]\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_trackingContract\",\"type\":\"address\"}],\"name\":\"setTrackingContract\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"updateProductLotStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"},{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"_status\",\"type\":\"uint8\"}],\"name\":\"forceUpdateStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_lotId\",\"type\":\"bytes32\"}],\"name\":\"getProductLotStatus\",\"outputs\":[{\"internalType\":\"enumProductLot.ProductLotStatus\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true}]",
 }
 
 // ProductlotABI is the input ABI used to generate the binding from.
@@ -253,6 +253,37 @@ func (_Productlot *ProductlotSession) GetProductLot(_lotId [32]byte) (ProductLot
 // Solidity: function getProductLot(bytes32 _lotId) view returns((bytes32,bytes32,address,string,uint256,bool,string,bytes32[],uint8))
 func (_Productlot *ProductlotCallerSession) GetProductLot(_lotId [32]byte) (ProductLotProductLotInfo, error) {
 	return _Productlot.Contract.GetProductLot(&_Productlot.CallOpts, _lotId)
+}
+
+// GetProductLotStatus is a free data retrieval call binding the contract method 0x465974cc.
+//
+// Solidity: function getProductLotStatus(bytes32 _lotId) view returns(uint8)
+func (_Productlot *ProductlotCaller) GetProductLotStatus(opts *bind.CallOpts, _lotId [32]byte) (uint8, error) {
+	var out []interface{}
+	err := _Productlot.contract.Call(opts, &out, "getProductLotStatus", _lotId)
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// GetProductLotStatus is a free data retrieval call binding the contract method 0x465974cc.
+//
+// Solidity: function getProductLotStatus(bytes32 _lotId) view returns(uint8)
+func (_Productlot *ProductlotSession) GetProductLotStatus(_lotId [32]byte) (uint8, error) {
+	return _Productlot.Contract.GetProductLotStatus(&_Productlot.CallOpts, _lotId)
+}
+
+// GetProductLotStatus is a free data retrieval call binding the contract method 0x465974cc.
+//
+// Solidity: function getProductLotStatus(bytes32 _lotId) view returns(uint8)
+func (_Productlot *ProductlotCallerSession) GetProductLotStatus(_lotId [32]byte) (uint8, error) {
+	return _Productlot.Contract.GetProductLotStatus(&_Productlot.CallOpts, _lotId)
 }
 
 // GetProductLotsByFactory is a free data retrieval call binding the contract method 0x01b2a86f.
@@ -568,6 +599,27 @@ func (_Productlot *ProductlotTransactorSession) CreateProductLot(_lotId [32]byte
 	return _Productlot.Contract.CreateProductLot(&_Productlot.TransactOpts, _lotId, _productId, _inspector, _grade, _qualityAndNutritionCID, _milkTankIds)
 }
 
+// ForceUpdateStatus is a paid mutator transaction binding the contract method 0xc8abc9d5.
+//
+// Solidity: function forceUpdateStatus(bytes32 _lotId, uint8 _status) returns()
+func (_Productlot *ProductlotTransactor) ForceUpdateStatus(opts *bind.TransactOpts, _lotId [32]byte, _status uint8) (*types.Transaction, error) {
+	return _Productlot.contract.Transact(opts, "forceUpdateStatus", _lotId, _status)
+}
+
+// ForceUpdateStatus is a paid mutator transaction binding the contract method 0xc8abc9d5.
+//
+// Solidity: function forceUpdateStatus(bytes32 _lotId, uint8 _status) returns()
+func (_Productlot *ProductlotSession) ForceUpdateStatus(_lotId [32]byte, _status uint8) (*types.Transaction, error) {
+	return _Productlot.Contract.ForceUpdateStatus(&_Productlot.TransactOpts, _lotId, _status)
+}
+
+// ForceUpdateStatus is a paid mutator transaction binding the contract method 0xc8abc9d5.
+//
+// Solidity: function forceUpdateStatus(bytes32 _lotId, uint8 _status) returns()
+func (_Productlot *ProductlotTransactorSession) ForceUpdateStatus(_lotId [32]byte, _status uint8) (*types.Transaction, error) {
+	return _Productlot.Contract.ForceUpdateStatus(&_Productlot.TransactOpts, _lotId, _status)
+}
+
 // SetTrackingContract is a paid mutator transaction binding the contract method 0x42dc43b0.
 //
 // Solidity: function setTrackingContract(address _trackingContract) returns()
@@ -771,6 +823,151 @@ func (_Productlot *ProductlotFilterer) WatchProductLotCreated(opts *bind.WatchOp
 func (_Productlot *ProductlotFilterer) ParseProductLotCreated(log types.Log) (*ProductlotProductLotCreated, error) {
 	event := new(ProductlotProductLotCreated)
 	if err := _Productlot.contract.UnpackLog(event, "ProductLotCreated", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ProductlotProductLotStatusUpdatedIterator is returned from FilterProductLotStatusUpdated and is used to iterate over the raw logs and unpacked data for ProductLotStatusUpdated events raised by the Productlot contract.
+type ProductlotProductLotStatusUpdatedIterator struct {
+	Event *ProductlotProductLotStatusUpdated // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ProductlotProductLotStatusUpdatedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ProductlotProductLotStatusUpdated)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ProductlotProductLotStatusUpdated)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ProductlotProductLotStatusUpdatedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ProductlotProductLotStatusUpdatedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ProductlotProductLotStatusUpdated represents a ProductLotStatusUpdated event raised by the Productlot contract.
+type ProductlotProductLotStatusUpdated struct {
+	LotId     [32]byte
+	NewStatus uint8
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+// FilterProductLotStatusUpdated is a free log retrieval operation binding the contract event 0x67445c4284ac93b3afc509a165087a97f9b9b3b5d706287650aa21b1e6fc124e.
+//
+// Solidity: event ProductLotStatusUpdated(bytes32 indexed lotId, uint8 newStatus)
+func (_Productlot *ProductlotFilterer) FilterProductLotStatusUpdated(opts *bind.FilterOpts, lotId [][32]byte) (*ProductlotProductLotStatusUpdatedIterator, error) {
+
+	var lotIdRule []interface{}
+	for _, lotIdItem := range lotId {
+		lotIdRule = append(lotIdRule, lotIdItem)
+	}
+
+	logs, sub, err := _Productlot.contract.FilterLogs(opts, "ProductLotStatusUpdated", lotIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return &ProductlotProductLotStatusUpdatedIterator{contract: _Productlot.contract, event: "ProductLotStatusUpdated", logs: logs, sub: sub}, nil
+}
+
+// WatchProductLotStatusUpdated is a free log subscription operation binding the contract event 0x67445c4284ac93b3afc509a165087a97f9b9b3b5d706287650aa21b1e6fc124e.
+//
+// Solidity: event ProductLotStatusUpdated(bytes32 indexed lotId, uint8 newStatus)
+func (_Productlot *ProductlotFilterer) WatchProductLotStatusUpdated(opts *bind.WatchOpts, sink chan<- *ProductlotProductLotStatusUpdated, lotId [][32]byte) (event.Subscription, error) {
+
+	var lotIdRule []interface{}
+	for _, lotIdItem := range lotId {
+		lotIdRule = append(lotIdRule, lotIdItem)
+	}
+
+	logs, sub, err := _Productlot.contract.WatchLogs(opts, "ProductLotStatusUpdated", lotIdRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ProductlotProductLotStatusUpdated)
+				if err := _Productlot.contract.UnpackLog(event, "ProductLotStatusUpdated", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseProductLotStatusUpdated is a log parse operation binding the contract event 0x67445c4284ac93b3afc509a165087a97f9b9b3b5d706287650aa21b1e6fc124e.
+//
+// Solidity: event ProductLotStatusUpdated(bytes32 indexed lotId, uint8 newStatus)
+func (_Productlot *ProductlotFilterer) ParseProductLotStatusUpdated(log types.Log) (*ProductlotProductLotStatusUpdated, error) {
+	event := new(ProductlotProductLotStatusUpdated)
+	if err := _Productlot.contract.UnpackLog(event, "ProductLotStatusUpdated", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "./UserRegistry.sol";  
 
 contract RawMilk {
-    enum MilkStatus { Pending, Approved, Rejected }
+enum MilkStatus { Pending, Approved, Rejected, Used }
 
     struct MilkTank {
         bytes32 tankId;
@@ -52,6 +52,7 @@ contract RawMilk {
 
     // ✅ Event สำหรับการอัปเดตแท็งก์นม
     event MilkTankUpdated(bytes32 indexed tankId);
+    event MilkStatusUpdated(bytes32 indexed milkTankId, MilkStatus newStatus);
 
     // ✅ Event สำหรับการตรวจสอบคุณภาพนม
     event MilkQualityUpdated(
@@ -87,7 +88,14 @@ contract RawMilk {
         userRegistry = UserRegistry(_userRegistry);
     }
 
+function markMilkTankAsUsed(bytes32 _milkTankId) public onlyFactory {
+    require(milkTanks[_milkTankId].tankId != bytes32(0), "Milk tank does not exist");
+    require(milkTanks[_milkTankId].status == MilkStatus.Approved, "Milk tank must be approved first");
 
+    milkTanks[_milkTankId].status = MilkStatus.Used;
+
+    emit MilkStatusUpdated(_milkTankId, MilkStatus.Used);
+}
 
     // ✅ ฟังก์ชันสร้างแท็งก์นม
 function createMilkTank(

@@ -288,6 +288,14 @@ function getLogisticsCheckpointsByTrackingId(bytes32 _trackingId)
 
     return (beforeCheckpoints, duringCheckpoints, afterCheckpoints);
 }
+function getLastLogisticsProvider(bytes32 _trackingId) public view returns (address) {
+    require(trackingEvents[_trackingId].trackingId != bytes32(0), "Tracking ID does not exist");
+
+    uint checkpointCount = logisticsCheckpoints[_trackingId].length;
+    require(checkpointCount > 0, "No checkpoints found for this tracking");
+
+    return logisticsCheckpoints[_trackingId][checkpointCount - 1].logisticsProvider;
+}
 
 
 }

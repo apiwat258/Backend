@@ -1250,44 +1250,57 @@ func (b *BlockchainService) GetTrackingByLotId(productLotId string) ([]string, [
 	return trackingIds, result.RetailerIds, result.QrCodeCIDs, nil
 }
 
-func (b *BlockchainService) GetAllTrackingIds() ([]map[string]interface{}, error) {
+func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching All Tracking Events...")
 
-	// ✅ ดึง Tracking IDs ทั้งหมดจาก Smart Contract
 	trackingIds, err := b.trackingContract.GetAllTrackingIds(nil)
 	if err != nil {
-		fmt.Println("❌ Failed to fetch tracking events:", err)
 		return nil, fmt.Errorf("❌ Failed to fetch tracking events: %v", err)
 	}
 
-	// ✅ แปลง `[][32]byte` เป็น `[]string`
 	trackingIdStrings := convertBytes32ArrayToStrings(trackingIds)
-
-	// ✅ เตรียมผลลัพธ์
 	var trackingList []map[string]interface{}
 
-	// ✅ ดึงข้อมูลของแต่ละ Tracking ID จาก Smart Contract
 	for _, trackingId := range trackingIdStrings {
-		fmt.Println("📌 Fetching details for Tracking ID:", trackingId)
-
-		// ✅ ดึงข้อมูล Tracking Event จาก Smart Contract
-		trackingEvent, err := b.trackingContract.TrackingEvents(nil, common.HexToHash(trackingId))
-		if err != nil {
-			fmt.Println("❌ Failed to fetch Tracking Event:", trackingId, err)
-			continue
-		}
-
-		// ✅ ดึงค่า `status`
+		// ✅ ดึง Tracking Event
+		trackingEvent, _ := b.trackingContract.TrackingEvents(nil, common.HexToHash(trackingId))
 		status := int(trackingEvent.Status)
 
-		// ✅ เพิ่มข้อมูลลงใน List (ไม่ต้องดึง `productLotId`)
+		personInCharge := ""
+		walletAddress := ""
+		sameLogistics := false // ✅ Flag สำหรับ Controller เช็ค
+
+		// ✅ ถ้า Pending → ดึง Inspector
+		if status == 0 {
+			productLotDetails, _ := b.productLotContract.GetProductLot(nil, trackingEvent.ProductLotId)
+			personInCharge = productLotDetails.Inspector
+		}
+
+		// ✅ ถ้า InTransit → ดึง Checkpoint ล่าสุด (After)
+		if status == 1 {
+			checkpoints, _ := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, common.HexToHash(trackingId))
+			if len(checkpoints.AfterCheckpoints) > 0 {
+				latest := checkpoints.AfterCheckpoints[len(checkpoints.AfterCheckpoints)-1]
+				personInCharge = latest.PersonInCharge
+				walletAddress = latest.LogisticsProvider.Hex()
+
+				// ✅ เปรียบเทียบ Wallet
+				if walletAddress == currentWallet {
+					sameLogistics = true
+				}
+			}
+		}
+
+		// ✅ เพิ่มข้อมูลลงใน Response
 		trackingList = append(trackingList, map[string]interface{}{
-			"trackingId": trackingId,
-			"status":     status,
+			"trackingId":             trackingId,
+			"status":                 status,
+			"personInChargePrevious": personInCharge,
+			"walletAddressPrevious":  walletAddress,
+			"sameLogistics":          sameLogistics,
 		})
 	}
 
-	fmt.Println("✅ All Tracking IDs Retrieved:", trackingList)
 	return trackingList, nil
 }
 
@@ -1595,4 +1608,97 @@ func (b *BlockchainService) GetProductLotByTrackingId(trackingId string) (string
 
 	fmt.Println("✅ Product Lot ID:", productLotId)
 	return productLotId, nil
+}
+
+// ///ฟังชัช่นเพิ่ม
+// /ฟังชั่นนี้ยังใช้ไม่ได้เพายังไม่อัปเดต
+func (b *BlockchainService) GetOngoingShipmentsByLogistics(walletAddress string) ([]map[string]interface{}, error) {
+	fmt.Println("📌 Fetching Ongoing Shipments for Logistics Wallet:", walletAddress)
+
+	// ✅ Call Smart Contract function
+	result, err := b.trackingContract.GetOngoingShipmentsByLogistics(nil)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch ongoing shipments:", err)
+		return nil, fmt.Errorf("❌ Failed to fetch ongoing shipments: %v", err)
+	}
+
+	trackingIds := result.TrackingIds
+	personInChargeList := result.PersonInChargeList
+
+	trackingIdStrings := convertBytes32ArrayToStrings(trackingIds)
+
+	var shipmentList []map[string]interface{}
+
+	for i, trackingId := range trackingIdStrings {
+		shipmentList = append(shipmentList, map[string]interface{}{
+			"trackingId":     trackingId,
+			"personInCharge": personInChargeList[i],
+			"walletAddress":  walletAddress, // ✅ เพิ่ม Wallet Address เดียวกับ msg.sender
+		})
+	}
+
+	fmt.Println("✅ Ongoing Shipments Retrieved:", shipmentList)
+	return shipmentList, nil
+}
+
+func (b *BlockchainService) GetLastLogisticsProvider(trackingID string) (string, error) {
+	fmt.Println("📌 Fetching Last Logistics Provider for TrackingID:", trackingID)
+
+	trackingIdBytes := common.HexToHash(trackingID)
+	providerAddress, err := b.trackingContract.GetLastLogisticsProvider(nil, trackingIdBytes)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch last logistics provider:", err)
+		return "", err
+	}
+
+	return providerAddress.Hex(), nil
+}
+
+func (b *BlockchainService) GetRetailerInTransitTracking(retailerID string) ([]map[string]interface{}, error) {
+	fmt.Println("📌 Fetching InTransit Tracking Events for retailer:", retailerID)
+
+	trackingIDs, err := b.trackingContract.GetTrackingByRetailer(nil, retailerID)
+	if err != nil {
+		return nil, err
+	}
+
+	var trackingList []map[string]interface{}
+
+	for _, id := range trackingIDs {
+		trackingIDStr := string(bytes.Trim(id[:], "\x00"))
+
+		trackingEvent, checkpoints, _, err := b.trackingContract.GetTrackingById(nil, id)
+		if err != nil {
+			continue
+		}
+
+		if int(trackingEvent.Status) != 1 { // ต้อง InTransit เท่านั้น
+			continue
+		}
+
+		personInCharge := ""
+		if len(checkpoints) > 0 {
+			for i := len(checkpoints) - 1; i >= 0; i-- {
+				if checkpoints[i].CheckType == 2 { // After
+					personInCharge = checkpoints[i].PersonInCharge
+					break
+				}
+			}
+		}
+
+		// ✅ ดึง Last Logistics Provider
+		lastProvider, err := b.GetLastLogisticsProvider(trackingIDStr)
+		if err != nil {
+			lastProvider = "Unknown"
+		}
+
+		trackingList = append(trackingList, map[string]interface{}{
+			"trackingId":          trackingIDStr,
+			"personInCharge":      personInCharge,
+			"lastLogisticsWallet": lastProvider,
+			"status":              1,
+		})
+	}
+
+	return trackingList, nil
 }

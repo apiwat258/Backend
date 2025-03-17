@@ -52,14 +52,41 @@ func RefreshTokenHandler(c *fiber.Ctx) error {
 
 	// ✅ ค้นหาผู้ใช้จาก Database
 	var user models.User
-	result := database.DB.Where("user_id = ?", claims.UserID).First(&user)
+	result := database.DB.Where("userid = ?", claims.UserID).First(&user)
 	if result.Error != nil {
 		fmt.Println("❌ [RefreshToken] User not found:", claims.UserID)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
 
-	// ✅ สร้าง Token ใหม่ที่มี Entity ID ล่าสุด
-	//newToken, err := middleware.GenerateToken(user.UserID, user.Email, user.Role, user.EntityID)
+	// ✅ ดึง walletAddress ตาม Role
+	var walletAddress string
+	switch user.Role {
+	case "farmer":
+		var farmer models.Farmer
+		if err := database.DB.Where("farmerid = ?", user.EntityID).First(&farmer).Error; err == nil {
+			walletAddress = farmer.WalletAddress
+		}
+	case "factory":
+		var factory models.Factory
+		if err := database.DB.Where("factoryid = ?", user.EntityID).First(&factory).Error; err == nil {
+			walletAddress = factory.WalletAddress
+		}
+	case "logistics":
+		var logistics models.Logistics
+		if err := database.DB.Where("logisticsid = ?", user.EntityID).First(&logistics).Error; err == nil {
+			walletAddress = logistics.WalletAddress
+		}
+	case "retailer":
+		var retailer models.Retailer
+		if err := database.DB.Where("retailerid = ?", user.EntityID).First(&retailer).Error; err == nil {
+			walletAddress = retailer.WalletAddress
+		}
+	}
+
+	fmt.Println("✅ [RefreshToken] Generating new token - Role:", user.Role, "EntityID:", user.EntityID, "Wallet:", walletAddress)
+
+	// ✅ สร้าง Token ใหม่
+	newToken, err := middleware.GenerateToken(user.UserID, user.Email, user.Role, user.EntityID, walletAddress)
 	if err != nil {
 		fmt.Println("❌ [RefreshToken] Failed to generate token:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
@@ -67,16 +94,22 @@ func RefreshTokenHandler(c *fiber.Ctx) error {
 
 	// ✅ อัปเดต Cookie
 	c.Cookie(&fiber.Cookie{
-		Name: "auth_token",
-		//Value:    newToken,
-		Path:     "/",
+		Name:     "auth_token",
+		Value:    newToken,
+		Expires:  time.Now().Add(24 * time.Hour),
 		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "None",
+		Path:     "/",
 	})
 
-	// ✅ ส่ง Token ใหม่กลับไปให้ User
+	// ✅ ส่ง Token ใหม่กลับไปให้ Frontend
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Token refreshed successfully",
-		//"token":   newToken,
+		"message":       "Token refreshed successfully",
+		"token":         newToken,
+		"role":          user.Role,
+		"entityID":      user.EntityID,
+		"walletAddress": walletAddress,
 	})
 }
 
