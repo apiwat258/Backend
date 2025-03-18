@@ -19759,12 +19759,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x309896EA6A7563B864c35Af8A489D5C6E437819d",
-      "transactionHash": "0x304645c3dc0b4b0db8b6695829649840632aa1ab5545c1086a057ffaa894a8d6"
+      "address": "0x06f273626B89214B7ED169270Cf368B5fCA23434",
+      "transactionHash": "0xfdeb0c852ac4b95451eaab2bd185fce0430e605605a10d48d8957159372755c5"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-03-17T17:40:07.282Z",
+  "updatedAt": "2025-03-18T10:11:07.593Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

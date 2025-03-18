@@ -598,28 +598,31 @@ func (b *BlockchainService) GetMilkTanksByFarmer(farmerAddress string) ([]map[st
 	for i, id := range tankIDs {
 		tankIdStr := string(bytes.Trim(id[:], "\x00"))
 
-		// ✅ ใช้ข้อมูลจากประวัติล่าสุด
-		latestEntry := histories[i][len(histories[i])-1]
+		// ✅ personInCharge = จากฟาร์ม (entry แรกสุด)
+		farmPersonInCharge := histories[i][0].PersonInCharge
 
-		// ✅ หาค่า OLDPERSONINCHARGE (ประวัติรองสุดท้าย ถ้ามี)
-		var oldPersonInCharge string
+		// ✅ oldPersonInCharge = จากโรงงาน (entry ที่สอง ถ้ามี)
+		var factoryPersonInCharge string
 		if len(histories[i]) > 1 {
-			oldPersonInCharge = histories[i][len(histories[i])-2].PersonInCharge
+			factoryPersonInCharge = histories[i][1].PersonInCharge
 		} else {
-			oldPersonInCharge = latestEntry.PersonInCharge // ถ้าไม่มีข้อมูลเก่า ให้ใช้ค่าปัจจุบัน
+			factoryPersonInCharge = "" // ยังไม่มีโรงงานรับ
 		}
+
+		// ✅ status = ล่าสุด (entry สุดท้าย)
+		latestStatus := uint8(histories[i][len(histories[i])-1].Status)
 
 		milkTank := map[string]interface{}{
 			"tankId":            tankIdStr,
-			"personInCharge":    latestEntry.PersonInCharge,
-			"oldPersonInCharge": oldPersonInCharge,
-			"status":            uint8(latestEntry.Status),
+			"personInCharge":    farmPersonInCharge,
+			"oldPersonInCharge": factoryPersonInCharge,
+			"status":            latestStatus,
 		}
 
 		milkTanks = append(milkTanks, milkTank)
 	}
 
-	fmt.Println("✅ Fetched milk tanks for farmer (All statuses):", farmerAddress, milkTanks)
+	fmt.Println("✅ Fetched milk tanks for farmer (Farm & Factory PIC + Latest Status):", farmerAddress, milkTanks)
 	return milkTanks, nil
 }
 
@@ -690,20 +693,32 @@ func (b *BlockchainService) GetMilkTanksByFactory(factoryID string) ([]map[strin
 	for i, id := range tankIDs {
 		tankIdStr := string(bytes.Trim(id[:], "\x00"))
 
-		// ✅ ใช้ข้อมูลจากประวัติล่าสุด (อันสุดท้ายใน Array)
-		latestEntry := histories[i][len(histories[i])-1]
+		// ✅ ดึง personInCharge ของฟาร์ม (entry แรก)
+		farmPersonInCharge := histories[i][0].PersonInCharge
 
-		// ✅ สร้าง JSON Response ที่มี `tankId`, `personInCharge`, `status` (ทุกสถานะ)
+		// ✅ ดึง oldPersonInCharge ของโรงงาน (entry ที่สอง ถ้ามี)
+		var factoryPersonInCharge string
+		if len(histories[i]) > 1 {
+			factoryPersonInCharge = histories[i][1].PersonInCharge
+		} else {
+			factoryPersonInCharge = "" // ยังไม่มีโรงงานรับ
+		}
+
+		// ✅ ดึง status ล่าสุด (entry สุดท้าย)
+		latestStatus := uint8(histories[i][len(histories[i])-1].Status)
+
+		// ✅ สร้าง JSON Response
 		milkTank := map[string]interface{}{
-			"tankId":         tankIdStr,
-			"personInCharge": latestEntry.PersonInCharge,
-			"status":         uint8(latestEntry.Status),
+			"tankId":            tankIdStr,
+			"personInCharge":    farmPersonInCharge,
+			"oldPersonInCharge": factoryPersonInCharge,
+			"status":            latestStatus,
 		}
 
 		milkTanks = append(milkTanks, milkTank)
 	}
 
-	fmt.Println("✅ Fetched all milk tanks for factory:", factoryID, milkTanks)
+	fmt.Println("✅ Fetched milk tanks for factory (Farm & Factory PIC + Latest Status):", factoryID, milkTanks)
 	return milkTanks, nil
 }
 
@@ -1253,54 +1268,83 @@ func (b *BlockchainService) GetTrackingByLotId(productLotId string) ([]string, [
 func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching All Tracking Events...")
 
+	// ✅ 1. ดึง Tracking IDs ทั้งหมด
 	trackingIds, err := b.trackingContract.GetAllTrackingIds(nil)
 	if err != nil {
 		return nil, fmt.Errorf("❌ Failed to fetch tracking events: %v", err)
 	}
 
+	// ✅ 2. แปลง Tracking IDs → []string
 	trackingIdStrings := convertBytes32ArrayToStrings(trackingIds)
 	var trackingList []map[string]interface{}
 
+	// ✅ 3. วนลูป Tracking IDs
 	for _, trackingId := range trackingIdStrings {
-		// ✅ ดึง Tracking Event
-		trackingEvent, _ := b.trackingContract.TrackingEvents(nil, common.HexToHash(trackingId))
+		fmt.Println("📌 Processing Tracking ID:", trackingId)
+
+		// ✅ 4. ดึง ProductLotId จาก TrackingID (ใช้ฟังก์ชันที่ดึง Clean)
+		productLotId, err := b.GetProductLotByTrackingId(trackingId)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch Product Lot ID:", err)
+			continue
+		}
+		// ✅ 5. ตัด null bytes ออก
+		productLotIdClean := strings.TrimLeft(productLotId, "\x00")
+		fmt.Println("✅ Clean ProductLotId:", productLotIdClean)
+
+		// ✅ 6. ดึง Tracking Event เพื่อดู Status
+		trackingEvent, err := b.trackingContract.TrackingEvents(nil, common.HexToHash(trackingId))
+		if err != nil {
+			fmt.Println("❌ Failed to fetch Tracking Event:", err)
+			continue
+		}
 		status := int(trackingEvent.Status)
 
 		personInCharge := ""
 		walletAddress := ""
-		sameLogistics := false // ✅ Flag สำหรับ Controller เช็ค
+		sameLogistics := false
 
-		// ✅ ถ้า Pending → ดึง Inspector
+		// ✅ 7. ถ้า Pending → ดึง Inspector จาก ProductLot
 		if status == 0 {
-			productLotDetails, _ := b.productLotContract.GetProductLot(nil, trackingEvent.ProductLotId)
-			personInCharge = productLotDetails.Inspector
+			// ✅ Encode ใหม่ด้วย Clean ProductLotId
+			productLotIdBytes := common.BytesToHash([]byte(productLotIdClean))
+			productLotDetails, err := b.productLotContract.GetProductLot(nil, productLotIdBytes)
+			if err != nil {
+				fmt.Println("❌ Failed to fetch Product Lot Details:", err)
+			} else {
+				personInCharge = productLotDetails.Inspector
+				fmt.Println("✅ Inspector Name:", productLotDetails.Inspector)
+			}
 		}
 
-		// ✅ ถ้า InTransit → ดึง Checkpoint ล่าสุด (After)
+		// ✅ 8. ถ้า InTransit → ดู Checkpoint ล่าสุด
 		if status == 1 {
-			checkpoints, _ := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, common.HexToHash(trackingId))
-			if len(checkpoints.AfterCheckpoints) > 0 {
+			checkpoints, err := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, common.HexToHash(trackingId))
+			if err != nil {
+				fmt.Println("❌ Failed to fetch Checkpoints:", err)
+			} else if len(checkpoints.AfterCheckpoints) > 0 {
 				latest := checkpoints.AfterCheckpoints[len(checkpoints.AfterCheckpoints)-1]
 				personInCharge = latest.PersonInCharge
 				walletAddress = latest.LogisticsProvider.Hex()
 
-				// ✅ เปรียบเทียบ Wallet
 				if walletAddress == currentWallet {
 					sameLogistics = true
 				}
 			}
 		}
 
-		// ✅ เพิ่มข้อมูลลงใน Response
+		// ✅ 9. เพิ่มลงผลลัพธ์
 		trackingList = append(trackingList, map[string]interface{}{
 			"trackingId":             trackingId,
 			"status":                 status,
+			"productLotId":           productLotIdClean, // ✅ Clean เรียบร้อย
 			"personInChargePrevious": personInCharge,
 			"walletAddressPrevious":  walletAddress,
 			"sameLogistics":          sameLogistics,
 		})
 	}
 
+	fmt.Println("✅ All Tracking Events Processed:", trackingList)
 	return trackingList, nil
 }
 

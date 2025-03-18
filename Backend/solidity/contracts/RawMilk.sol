@@ -88,14 +88,36 @@ enum MilkStatus { Pending, Approved, Rejected, Used }
         userRegistry = UserRegistry(_userRegistry);
     }
 
-function markMilkTankAsUsed(bytes32 _milkTankId) public onlyFactory {
+
+address public productLotContract; // เพิ่ม
+
+function setProductLotContract(address _productLotContract) public {
+    require(productLotContract == address(0), "ProductLot Contract already set");
+    productLotContract = _productLotContract;
+}
+
+modifier onlyProductLot() {
+    require(msg.sender == productLotContract, "Access denied: Only ProductLot Contract allowed");
+    _;
+}
+
+function markMilkTankAsUsed(bytes32 _milkTankId) public onlyProductLot {
     require(milkTanks[_milkTankId].tankId != bytes32(0), "Milk tank does not exist");
     require(milkTanks[_milkTankId].status == MilkStatus.Approved, "Milk tank must be approved first");
 
     milkTanks[_milkTankId].status = MilkStatus.Used;
 
+    // ✅ เพิ่มบันทึกลงประวัติ
+    milkHistory[_milkTankId].push(MilkHistory({
+        personInCharge: milkTanks[_milkTankId].personInCharge,
+        qualityReportCID: milkTanks[_milkTankId].qualityReportCID,
+        status: MilkStatus.Used,
+        timestamp: block.timestamp
+    }));
+
     emit MilkStatusUpdated(_milkTankId, MilkStatus.Used);
 }
+
 
     // ✅ ฟังก์ชันสร้างแท็งก์นม
 function createMilkTank(

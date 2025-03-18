@@ -53,6 +53,10 @@ contract ProductLot {
         rawMilkContract = RawMilk(_rawMilkContract);
         productContract = Product(_productContract);
     }
+    function setRawMilkContract(address _rawMilkContract) public {
+    rawMilkContract = RawMilk(_rawMilkContract);
+}
+
 
     function createProductLot(
         bytes32 _lotId,

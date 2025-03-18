@@ -1310,6 +1310,17 @@ func (plc *ProductLotController) GetLogisticsWaitingForPickup(c *fiber.Ctx) erro
 		status := tracking["status"].(int)
 		personInCharge := tracking["personInChargePrevious"].(string)
 		walletPrevious := tracking["walletAddressPrevious"].(string)
+		trackingID := tracking["trackingId"].(string)
+
+		// ✅ ดึง ProductLotId จาก Smart Contract
+		productLotId, err := plc.BlockchainService.GetProductLotByTrackingId(trackingID)
+		if err != nil {
+			fmt.Println("⚠️ Failed to fetch ProductLotId for TrackingID:", trackingID)
+			productLotId = "" // ถ้าดึงไม่เจอ → ใส่เป็นค่าว่าง
+		}
+
+		// ✅ เพิ่ม ProductLotId เข้าใน tracking map
+		tracking["productLotId"] = productLotId
 
 		// ✅ Logic สำหรับ Pending (ยังอยู่กับโรงงาน)
 		if status == 0 {
@@ -1350,6 +1361,23 @@ func (plc *ProductLotController) GetOngoingShipmentsByLogistics(c *fiber.Ctx) er
 		fmt.Println("❌ Failed to fetch ongoing shipments:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch ongoing shipments"})
 	}
+
+	// ✅ วนลูปเพิ่ม ProductLotId
+	for i, shipment := range shipmentList {
+		trackingID := shipment["trackingId"].(string)
+
+		// ✅ ดึง ProductLotId
+		productLotId, err := plc.BlockchainService.GetProductLotByTrackingId(trackingID)
+		if err != nil {
+			fmt.Println("⚠️ Failed to fetch ProductLotId for TrackingID:", trackingID)
+			productLotId = "" // ถ้าดึงไม่เจอ → ใส่ค่าว่าง
+		}
+
+		// ✅ เพิ่มเข้าไปใน shipment map
+		shipmentList[i]["productLotId"] = productLotId
+	}
+
+	fmt.Println("✅ Ongoing Shipments with ProductLotId:", shipmentList)
 
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"ongoingShipments": shipmentList,

@@ -42,5 +42,9 @@ module.exports = async function (deployer, network, accounts) {
   await productLotInstance.setTrackingContract(trackingInstance.address);
   console.log("✅ ProductLot Contract linked with Tracking Contract");
 
+  // ✅ 8. เชื่อม `ProductLot Contract` กับ `RawMilk Contract`
+  await rawMilkInstance.setProductLotContract(productLotInstance.address);
+  console.log("✅ RawMilk Contract linked with ProductLot Contract");
+
   console.log("🎉 Deployment completed successfully!");
 };
