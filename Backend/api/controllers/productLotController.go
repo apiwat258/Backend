@@ -38,6 +38,7 @@ func NewProductLotController(db *gorm.DB, blockchainService *services.Blockchain
 // ✅ ฟังก์ชันสร้าง Product Lot พร้อม Tracking Event
 func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Create Product Lot")
+	fmt.Println("📥 Incoming Request Body:", string(c.Body()))
 
 	// ✅ ดึงข้อมูลจาก JWT Token
 	role := c.Locals("role").(string)
@@ -78,6 +79,7 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		fmt.Println("❌ Error parsing request body:", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
+	fmt.Printf("✅ Parsed Request Struct: %+v\n", request)
 
 	// ✅ ตรวจสอบข้อมูลที่จำเป็น
 	if strings.TrimSpace(request.ProductID) == "" || len(request.MilkTankIDs) == 0 {
@@ -192,17 +194,9 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 			"retailer": map[string]string{
 				"retailerId":  shipping.RetailerID,
 				"companyName": shipping.CompanyName,
-				"firstName":   shipping.FirstName,   // ✅ เพิ่ม
-				"lastName":    shipping.LastName,    // ✅ เพิ่ม
-				"email":       shipping.Email,       // ✅ เพิ่ม
-				"areaCode":    shipping.AreaCode,    // ✅ เพิ่ม
-				"phoneNumber": shipping.PhoneNumber, // ✅ เพิ่ม
-				"address":     shipping.Address,
-				"province":    shipping.Province,
-				"district":    shipping.District,
-				"subDistrict": shipping.SubDistrict,
+				"firstName":   shipping.FirstName,
+				"lastName":    shipping.LastName,
 				"postalCode":  shipping.PostalCode,
-				"location":    shipping.Location,
 			},
 			"factory": map[string]string{
 				"factoryId":   factoryID,
@@ -258,8 +252,7 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 
 	fmt.Println("✅ Product Lot Image Data Updated:", lotId)
 
-	// ✅ ส่ง Response กลับไปให้ Frontend
-	return c.Status(http.StatusCreated).JSON(fiber.Map{
+	response := fiber.Map{
 		"message":             "Product Lot and Tracking Events created successfully",
 		"lotId":               lotId,
 		"txHash":              txHash,
@@ -267,7 +260,9 @@ func (plc *ProductLotController) CreateProductLot(c *fiber.Ctx) error {
 		"productLotQRCodeCID": qrImageProductLotCID,
 		"inspector":           inspectorName,
 		"trackingTxHashes":    trackingTxHashes,
-	})
+	}
+	fmt.Printf("📤 Response Body: %+v\n", response)
+	return c.Status(http.StatusCreated).JSON(response)
 
 }
 
@@ -478,19 +473,40 @@ func (pc *ProductLotController) GetProductLotDetails(c *fiber.Ctx) error {
 
 	var trackingDataArray []fiber.Map
 	for i := range trackingIds {
-		// ✅ ดึงข้อมูล QR Code Data
+		// ✅ อ่าน QR Code Data
 		qrCodeData, err := pc.QRService.ReadQRCodeFromCID(qrCodeCIDs[i])
 		if err != nil {
 			fmt.Println("❌ Failed to decode QR Code from CID:", qrCodeCIDs[i])
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to decode QR Code"})
 		}
 
-		// ✅ ไม่ต้องดึง QR Code Image ของ Tracking (เอาออก)
+		// ✅ ดึง retailerId จาก QR Code
+		retailerInfo := qrCodeData["retailer"].(map[string]interface{})
+		retailerId := retailerInfo["retailerId"].(string)
 
-		// ✅ เพิ่มข้อมูล Tracking เข้าไปในอาเรย์
+		// ✅ Query Retailer Info จาก DB
+		var retailer models.Retailer
+		if err := database.DB.Where("retailerid = ?", retailerId).First(&retailer).Error; err != nil {
+			fmt.Println("❌ Retailer not found:", retailerId)
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Retailer not found"})
+		}
+
+		// ✅ เพิ่มข้อมูลจาก DB เข้าไปใน qrCodeData.retailer
+		retailerInfo["email"] = retailer.Email
+		retailerInfo["telephone"] = retailer.Telephone
+		retailerInfo["address"] = retailer.Address
+		retailerInfo["province"] = retailer.Province
+		retailerInfo["district"] = retailer.District
+		retailerInfo["subDistrict"] = retailer.SubDistrict
+		retailerInfo["location"] = retailer.LocationLink
+
+		// ✅ อัปเดตกลับเข้า qrCodeData
+		qrCodeData["retailer"] = retailerInfo
+
+		// ✅ เพิ่มเข้า trackingDataArray ตามฟอร์มเดิม
 		trackingDataArray = append(trackingDataArray, fiber.Map{
 			"trackingId": trackingIds[i],
-			"qrCodeData": qrCodeData, // ✅ ยังต้องส่งข้อมูล QR Code Data ของ Tracking
+			"qrCodeData": qrCodeData,
 		})
 	}
 
@@ -598,9 +614,18 @@ func (plc *ProductLotController) GetFactoryProductLots(c *fiber.Ctx) error {
 	})
 }
 
+func CleanLotIDByKeyword(input string, keyword string) string {
+	index := strings.Index(input, keyword)
+	if index != -1 {
+		return input[index:] // ตัดก่อนหน้า keyword ทิ้ง
+	}
+	return input // ถ้าไม่เจอ LOT ก็คืนค่าเดิม
+}
+
 func (plc *ProductLotController) GetAllTrackingIds(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Get All Tracking IDs")
 	walletAddress := c.Locals("walletAddress").(string)
+
 	// ✅ ดึง Tracking IDs จาก Blockchain
 	trackingList, err := plc.BlockchainService.GetAllTrackingIds(walletAddress)
 	if err != nil {
@@ -608,11 +633,10 @@ func (plc *ProductLotController) GetAllTrackingIds(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking IDs"})
 	}
 
-	// ✅ ดึงข้อมูล `ProductLotId`, `PersonInCharge` และ `Status` จาก PostgreSQL
+	// ✅ Loop ดึงข้อมูล DB
 	for i, tracking := range trackingList {
-		trackingId := tracking["trackingId"].(string)
+		trackingId := tracking.TrackingId
 
-		// ✅ ค้นหา `ProductLotId`, `PersonInCharge` และ `Status` จาก Database
 		var productLotId, personInCharge string
 		var status int
 
@@ -621,32 +645,32 @@ func (plc *ProductLotController) GetAllTrackingIds(c *fiber.Ctx) error {
 			Select("lot_id, person_in_charge").
 			Row().Scan(&productLotId, &personInCharge)
 
-		// ✅ ดึง Status จากตาราง `tracking_status`
 		errStatus := database.DB.Table("tracking_status").
 			Where("tracking_id = ?", trackingId).
 			Select("status").
 			Row().Scan(&status)
 
-		// ✅ กำหนดค่าเริ่มต้น ถ้าไม่มีข้อมูล
+		cleanLotID := CleanLotIDByKeyword(productLotId, "LOT")
+
 		if err != nil {
 			fmt.Println("❌ Failed to find Product Lot ID for Tracking ID:", trackingId)
-			productLotId = "Unknown"
+			cleanLotID = "Unknown"
 			personInCharge = "Unknown"
 		}
 		if errStatus != nil {
 			fmt.Println("❌ No status found for Tracking ID:", trackingId)
-			status = 0 // ✅ กำหนดค่าเริ่มต้นถ้าไม่มีข้อมูล
+			status = 0
 		}
 
-		// ✅ เพิ่มข้อมูลเข้าไปใน Response
-		trackingList[i]["productLotId"] = productLotId
-		trackingList[i]["personInCharge"] = personInCharge
-		trackingList[i]["status"] = status // ✅ เพิ่มค่า `status` จากฐานข้อมูล
+		// ✅ Update กลับเข้า struct
+		trackingList[i].ProductLotId = cleanLotID
+		trackingList[i].PersonInChargePrevious = personInCharge
+		trackingList[i].Status = status
 	}
 
 	fmt.Println("✅ All Tracking IDs Retrieved:", trackingList)
 
-	// ✅ ส่ง Response กลับไปที่ Frontend
+	// ✅ ส่ง Response กลับ
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"trackingList": trackingList,
 	})
@@ -1304,13 +1328,14 @@ func (plc *ProductLotController) GetLogisticsWaitingForPickup(c *fiber.Ctx) erro
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking IDs"})
 	}
 
+	// ✅ เตรียม List สำหรับ Response
 	var filteredList []map[string]interface{}
 
 	for _, tracking := range trackingList {
-		status := tracking["status"].(int)
-		personInCharge := tracking["personInChargePrevious"].(string)
-		walletPrevious := tracking["walletAddressPrevious"].(string)
-		trackingID := tracking["trackingId"].(string)
+		status := tracking.Status
+		personInCharge := tracking.PersonInChargePrevious
+		walletPrevious := tracking.WalletAddressPrevious
+		trackingID := tracking.TrackingId
 
 		// ✅ ดึง ProductLotId จาก Smart Contract
 		productLotId, err := plc.BlockchainService.GetProductLotByTrackingId(trackingID)
@@ -1319,25 +1344,31 @@ func (plc *ProductLotController) GetLogisticsWaitingForPickup(c *fiber.Ctx) erro
 			productLotId = "" // ถ้าดึงไม่เจอ → ใส่เป็นค่าว่าง
 		}
 
-		// ✅ เพิ่ม ProductLotId เข้าใน tracking map
-		tracking["productLotId"] = productLotId
+		// ✅ เตรียม map สำหรับส่งกลับ
+		trackingMap := map[string]interface{}{
+			"trackingId":             trackingID,
+			"status":                 status,
+			"productLotId":           productLotId,
+			"personInChargePrevious": personInCharge,
+			"walletAddressPrevious":  walletPrevious,
+			"sameLogistics":          tracking.SameLogistics,
+		}
 
 		// ✅ Logic สำหรับ Pending (ยังอยู่กับโรงงาน)
 		if status == 0 {
-			filteredList = append(filteredList, tracking)
+			filteredList = append(filteredList, trackingMap)
 			continue
 		}
 
 		// ✅ Logic สำหรับ InTransit → เช็ค Wallet Address ว่าเป็นคนเดียวกับที่เรียกหรือไม่
 		if status == 1 && walletPrevious == walletAddress {
-			// ✅ เช็คชื่อใน DB ว่าตรงกับ PersonInCharge หรือไม่
 			if personInCharge == inspectorName {
-				// ✅ ข้าม ไม่ต้องแสดง (เพราะเป็นคนเดียวกัน)
+				// ✅ ข้าม ไม่ต้องแสดง
 				continue
 			} else {
-				// ✅ เพิ่มสถานะพิเศษ (เช่น SpecialMatch)
-				tracking["status"] = "SpecialMatch"
-				filteredList = append(filteredList, tracking)
+				// ✅ เพิ่มสถานะพิเศษ
+				trackingMap["status"] = "SpecialMatch"
+				filteredList = append(filteredList, trackingMap)
 			}
 		}
 	}

@@ -62,6 +62,7 @@ func (rmc *RawMilkController) GenerateTankID(c *fiber.Ctx) error {
 
 func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Create Milk Tank")
+	fmt.Println("📥 Incoming Request Body:", string(c.Body()))
 
 	// ✅ ดึงข้อมูลจาก JWT Token
 	role := c.Locals("role").(string)
@@ -130,6 +131,7 @@ func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 		fmt.Println("❌ Error parsing MilkTankInfo:", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid MilkTankInfo data"})
 	}
+	fmt.Printf("✅ Parsed Request Struct: %+v\n", request)
 
 	// ✅ Debug Log เพื่อตรวจสอบค่าที่ได้รับ
 	fmt.Printf("📌 Debug - Full MilkTankInfo Struct: %+v\n", milkTankInfo)
@@ -205,13 +207,15 @@ func (rmc *RawMilkController) CreateMilkTank(c *fiber.Ctx) error {
 	}
 
 	// ✅ ส่ง Response
-	return c.Status(http.StatusCreated).JSON(fiber.Map{
+	response := fiber.Map{
 		"message":          "Milk tank created successfully",
 		"tankId":           tankId,
 		"txHash":           txHash,
 		"qrCodeCID":        qrCodeCID,
 		"qualityReportCID": qualityReportCID,
-	})
+	}
+	fmt.Printf("📤 Response Body: %+v\n", response)
+	return c.Status(http.StatusCreated).JSON(response)
 }
 
 func (rmc *RawMilkController) GetFarmRawMilkTanks(c *fiber.Ctx) error {

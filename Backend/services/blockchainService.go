@@ -983,18 +983,17 @@ func (b *BlockchainService) CreateProductLot(
 		return "", err
 	}
 
-	// ✅ ดึง Private Key ของ Wallet ของโรงงาน
+	// ✅ ดึง Private Key
 	privateKeyHex, err := b.getPrivateKeyForAddress(userWallet)
 	if err != nil {
 		return "", fmt.Errorf("❌ Failed to get private key: %v", err)
 	}
-
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
 		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
 	}
 
-	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของโรงงาน
+	// ✅ Auth
 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
 	if err != nil {
 		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
@@ -1003,28 +1002,28 @@ func (b *BlockchainService) CreateProductLot(
 	auth.GasLimit = uint64(3000000)
 	auth.GasPrice = big.NewInt(20000000000)
 
-	// ✅ แปลง `lotId` และ `productId` เป็น `bytes32`
-	lotIdBytes := common.BytesToHash([]byte(lotId))
+	// ✅ กลับมาใช้ common.BytesToHash → แบบเก่า!
+	lotIdBytes := StringToBytes32(lotId)
 	productIdBytes := common.BytesToHash([]byte(productId))
 
-	// ✅ แปลง `milkTankIds` เป็น `[][32]byte`
+	// ✅ Milk Tanks
 	var milkTankBytes [][32]byte
 	for _, tankId := range milkTankIds {
-		tankBytes := common.BytesToHash([]byte(tankId)) // ✅ ใช้วิธีเดียวกับตอนสร้าง Milk Tank
+		tankBytes := common.BytesToHash([]byte(tankId)) // แบบเดิม
 		milkTankBytes = append(milkTankBytes, tankBytes)
 	}
 
-	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	// ✅ Debug
 	fmt.Println("📌 Debug - Sending to Blockchain:")
 	fmt.Println("   - Lot ID (Bytes32):", lotIdBytes)
 	fmt.Println("   - Product ID (Bytes32):", productIdBytes)
 	fmt.Println("   - Inspector:", inspector)
-	fmt.Println("   - Inspection Date:", time.Now().Unix()) // ใช้ timestamp ปัจจุบัน
+	fmt.Println("   - Inspection Date:", time.Now().Unix())
 	fmt.Println("   - Grade:", grade)
 	fmt.Println("   - Quality & Nutrition CID:", qualityAndNutritionCID)
 	fmt.Println("   - Milk Tanks:", milkTankBytes)
 
-	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	// ✅ ส่งธุรกรรม
 	tx, err := b.productLotContract.CreateProductLot(
 		auth,
 		lotIdBytes,
@@ -1040,12 +1039,11 @@ func (b *BlockchainService) CreateProductLot(
 
 	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
 
-	// ✅ รอให้ Transaction ถูกบันทึก
+	// ✅ รอ
 	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
 	if err != nil {
 		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
 	}
-
 	if receipt.Status == types.ReceiptStatusFailed {
 		return "", errors.New("❌ Transaction failed")
 	}
@@ -1088,7 +1086,7 @@ func (b *BlockchainService) GetProductLotByLotID(lotId string) (*ProductLotInfo,
 	fmt.Println("📌 Fetching Product Lot for Lot ID:", lotId)
 
 	// ✅ แปลง `lotId` เป็น `bytes32`
-	lotIdBytes := common.BytesToHash([]byte(lotId))
+	lotIdBytes := StringToBytes32(lotId)
 
 	// ✅ เรียก Smart Contract เพื่อนำข้อมูล Product Lot ออกมา
 	productLotData, err := b.productLotContract.GetProductLot(nil, lotIdBytes)
@@ -1175,6 +1173,12 @@ func convertBytes32ArrayToStrings(arr [][32]byte) []string {
 
 // //////////////////////////////////////////////////////////// Tracking Event /////////////////////////////////////////////////////////
 // CreateTrackingEvent - สร้างแทรคกิ้งอีเว้นต์
+func StringToBytes32(s string) [32]byte {
+	var b [32]byte
+	copy(b[:], s)
+	return b
+}
+
 func (b *BlockchainService) CreateTrackingEvent(
 	userWallet string,
 	trackingId string,
@@ -1196,7 +1200,7 @@ func (b *BlockchainService) CreateTrackingEvent(
 		return "", fmt.Errorf("❌ Failed to parse private key: %v", err)
 	}
 
-	// ✅ สร้าง Transaction Auth โดยใช้ Private Key ของโรงงาน
+	// ✅ สร้าง Auth
 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, getChainID())
 	if err != nil {
 		return "", fmt.Errorf("❌ Failed to create transactor: %v", err)
@@ -1205,18 +1209,18 @@ func (b *BlockchainService) CreateTrackingEvent(
 	auth.GasLimit = uint64(3000000)
 	auth.GasPrice = big.NewInt(20000000000)
 
-	// ✅ แปลง `trackingId` และ `productLotId` เป็น `bytes32`
-	trackingIdBytes := common.BytesToHash([]byte(trackingId))
-	productLotIdBytes := common.BytesToHash([]byte(productLotId))
+	// ✅ กลับไปใช้ BytesToHash (แบบเดิม)
+	trackingIdBytes := StringToBytes32(trackingId)
+	productLotIdBytes := StringToBytes32(productLotId)
 
-	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
+	// ✅ Debug Log
 	fmt.Println("📌 Debug - Sending to Blockchain:")
 	fmt.Println("   - Tracking ID (Bytes32):", trackingIdBytes)
 	fmt.Println("   - Product Lot ID (Bytes32):", productLotIdBytes)
 	fmt.Println("   - Retailer ID:", retailerId)
 	fmt.Println("   - QR Code CID:", qrCodeCID)
 
-	// ✅ ส่งธุรกรรมไปที่ Smart Contract
+	// ✅ ส่งธุรกรรม
 	tx, err := b.trackingContract.CreateTrackingEvent(
 		auth,
 		trackingIdBytes,
@@ -1230,7 +1234,7 @@ func (b *BlockchainService) CreateTrackingEvent(
 
 	fmt.Println("✅ Transaction Sent:", tx.Hash().Hex())
 
-	// ✅ รอให้ Transaction ถูกบันทึก
+	// ✅ รอ Confirm
 	receipt, err := bind.WaitMined(context.Background(), b.client, tx)
 	if err != nil {
 		return "", fmt.Errorf("❌ Transaction not mined: %v", err)
@@ -1248,7 +1252,7 @@ func (b *BlockchainService) GetTrackingByLotId(productLotId string) ([]string, [
 	fmt.Println("📌 Fetching Tracking Events for Product Lot ID:", productLotId)
 
 	// ✅ แปลง `productLotId` เป็น `bytes32`
-	productLotIdBytes := common.BytesToHash([]byte(productLotId))
+	productLotIdBytes := StringToBytes32(productLotId)
 	fmt.Println("✅ Converted ProductLotId to Bytes32:", productLotIdBytes)
 
 	fmt.Println("📡 Calling Smart Contract...")
@@ -1265,35 +1269,40 @@ func (b *BlockchainService) GetTrackingByLotId(productLotId string) ([]string, [
 	return trackingIds, result.RetailerIds, result.QrCodeCIDs, nil
 }
 
-func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]map[string]interface{}, error) {
+type TrackingResponse struct {
+	TrackingId             string `json:"trackingId"`
+	Status                 int    `json:"status"`
+	ProductLotId           string `json:"productLotId"`
+	PersonInChargePrevious string `json:"personInChargePrevious"`
+	WalletAddressPrevious  string `json:"walletAddressPrevious"`
+	SameLogistics          bool   `json:"sameLogistics"`
+}
+
+func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]TrackingResponse, error) {
 	fmt.Println("📌 Fetching All Tracking Events...")
 
-	// ✅ 1. ดึง Tracking IDs ทั้งหมด
+	// ✅ Get all Tracking IDs
 	trackingIds, err := b.trackingContract.GetAllTrackingIds(nil)
 	if err != nil {
 		return nil, fmt.Errorf("❌ Failed to fetch tracking events: %v", err)
 	}
 
-	// ✅ 2. แปลง Tracking IDs → []string
 	trackingIdStrings := convertBytes32ArrayToStrings(trackingIds)
-	var trackingList []map[string]interface{}
+	var trackingList []TrackingResponse
 
-	// ✅ 3. วนลูป Tracking IDs
 	for _, trackingId := range trackingIdStrings {
 		fmt.Println("📌 Processing Tracking ID:", trackingId)
 
-		// ✅ 4. ดึง ProductLotId จาก TrackingID (ใช้ฟังก์ชันที่ดึง Clean)
+		// ✅ ดึง ProductLotId
 		productLotId, err := b.GetProductLotByTrackingId(trackingId)
 		if err != nil {
 			fmt.Println("❌ Failed to fetch Product Lot ID:", err)
 			continue
 		}
-		// ✅ 5. ตัด null bytes ออก
-		productLotIdClean := strings.TrimLeft(productLotId, "\x00")
-		fmt.Println("✅ Clean ProductLotId:", productLotIdClean)
+		fmt.Println("✅ Clean ProductLotId:", productLotId)
 
-		// ✅ 6. ดึง Tracking Event เพื่อดู Status
-		trackingEvent, err := b.trackingContract.TrackingEvents(nil, common.HexToHash(trackingId))
+		// ✅ ดึง Tracking Event (ใช้ StringToBytes32)
+		trackingEvent, err := b.trackingContract.TrackingEvents(nil, StringToBytes32(trackingId))
 		if err != nil {
 			fmt.Println("❌ Failed to fetch Tracking Event:", err)
 			continue
@@ -1304,10 +1313,8 @@ func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]map[strin
 		walletAddress := ""
 		sameLogistics := false
 
-		// ✅ 7. ถ้า Pending → ดึง Inspector จาก ProductLot
 		if status == 0 {
-			// ✅ Encode ใหม่ด้วย Clean ProductLotId
-			productLotIdBytes := common.BytesToHash([]byte(productLotIdClean))
+			productLotIdBytes := StringToBytes32(productLotId)
 			productLotDetails, err := b.productLotContract.GetProductLot(nil, productLotIdBytes)
 			if err != nil {
 				fmt.Println("❌ Failed to fetch Product Lot Details:", err)
@@ -1317,9 +1324,8 @@ func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]map[strin
 			}
 		}
 
-		// ✅ 8. ถ้า InTransit → ดู Checkpoint ล่าสุด
 		if status == 1 {
-			checkpoints, err := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, common.HexToHash(trackingId))
+			checkpoints, err := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, StringToBytes32(trackingId))
 			if err != nil {
 				fmt.Println("❌ Failed to fetch Checkpoints:", err)
 			} else if len(checkpoints.AfterCheckpoints) > 0 {
@@ -1333,14 +1339,13 @@ func (b *BlockchainService) GetAllTrackingIds(currentWallet string) ([]map[strin
 			}
 		}
 
-		// ✅ 9. เพิ่มลงผลลัพธ์
-		trackingList = append(trackingList, map[string]interface{}{
-			"trackingId":             trackingId,
-			"status":                 status,
-			"productLotId":           productLotIdClean, // ✅ Clean เรียบร้อย
-			"personInChargePrevious": personInCharge,
-			"walletAddressPrevious":  walletAddress,
-			"sameLogistics":          sameLogistics,
+		trackingList = append(trackingList, TrackingResponse{
+			TrackingId:             trackingId,
+			Status:                 status,
+			ProductLotId:           productLotId,
+			PersonInChargePrevious: personInCharge,
+			WalletAddressPrevious:  walletAddress,
+			SameLogistics:          sameLogistics,
 		})
 	}
 
@@ -1629,11 +1634,18 @@ func (b *BlockchainService) GetRetailerConfirmation(trackingId string) (map[stri
 	return retailerData, nil
 }
 
+func Bytes32ToString(b [32]byte) string {
+	n := bytes.IndexByte(b[:], 0) // หาตำแหน่ง Null byte แรก
+	if n == -1 {
+		n = len(b)
+	}
+	return string(b[:n])
+}
 func (b *BlockchainService) GetProductLotByTrackingId(trackingId string) (string, error) {
 	fmt.Println("📌 Fetching Product Lot for Tracking ID:", trackingId)
 
-	// ✅ แปลง Tracking ID เป็น bytes32
-	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	// ✅ ใช้ StringToBytes32
+	trackingIdBytes := StringToBytes32(trackingId)
 
 	// ✅ ดึงข้อมูลจาก Smart Contract
 	trackingEvent, _, _, err := b.trackingContract.GetTrackingById(nil, trackingIdBytes)
@@ -1642,19 +1654,19 @@ func (b *BlockchainService) GetProductLotByTrackingId(trackingId string) (string
 		return "", fmt.Errorf("Failed to fetch product lot by tracking ID: %v", err)
 	}
 
-	// ✅ ตรวจสอบว่า Tracking Event มีอยู่จริง
+	// ✅ ตรวจสอบ
 	if trackingEvent.TrackingId == [32]byte{} {
+		fmt.Println("⚠️ No tracking event found for Tracking ID:", trackingId)
 		return "", fmt.Errorf("No tracking event found for Tracking ID: %s", trackingId)
 	}
 
-	// ✅ แปลงข้อมูล ProductLotId เป็น string
-	productLotId := string(trackingEvent.ProductLotId[:])
+	// ✅ Clean Null Bytes
+	productLotId := Bytes32ToString(trackingEvent.ProductLotId)
+	fmt.Println("✅ Clean Product Lot ID:", productLotId)
 
-	fmt.Println("✅ Product Lot ID:", productLotId)
 	return productLotId, nil
 }
 
-// ///ฟังชัช่นเพิ่ม
 // /ฟังชั่นนี้ยังใช้ไม่ได้เพายังไม่อัปเดต
 func (b *BlockchainService) GetOngoingShipmentsByLogistics(walletAddress string) ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching Ongoing Shipments for Logistics Wallet:", walletAddress)

@@ -51,7 +51,7 @@ func main() {
 	database.Connect()
 
 	// ✅ Migrate Tables
-	database.DB.AutoMigrate(&models.User{}, &models.Farmer{}, &models.Certification{}, &models.Logistics{}, &models.Factory{}, &models.Retailer{})
+	database.DB.AutoMigrate(&models.User{}, &models.Farmer{}, &models.Logistics{}, &models.Factory{}, &models.Retailer{})
 
 	// ✅ เริ่มต้น Blockchain Service
 	err = services.InitBlockchainService()

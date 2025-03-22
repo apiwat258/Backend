@@ -406,7 +406,6 @@ func UpdateUserInfo(c *fiber.Ctx) error {
 
 	// ✅ ใช้ `c.FormValue()` เพื่ออ่านค่า
 	email := c.FormValue("email")
-	password := c.FormValue("password")
 	telephone := c.FormValue("telephone")
 	firstName := c.FormValue("firstName")
 	lastName := c.FormValue("lastName")
@@ -440,24 +439,11 @@ func UpdateUserInfo(c *fiber.Ctx) error {
 	}
 
 	// ✅ อัปเดตรหัสผ่านเฉพาะถ้ามีการเปลี่ยน
-	var hashedPassword string
-	if password != "" && password != user.Password {
-		hashedPass, err := utils.HashPassword(password)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to hash password"})
-		}
-		hashedPassword = hashedPass
-	} else {
-		hashedPassword = user.Password // ไม่เปลี่ยนรหัสผ่าน
-	}
 
 	// ✅ อัปเดตเฉพาะฟิลด์ที่ถูกส่งมา
 	updateData := map[string]interface{}{}
 	if email != "" {
 		updateData["email"] = email
-	}
-	if password != "" {
-		updateData["password"] = hashedPassword
 	}
 	if telephone != "" {
 		updateData["telephone"] = telephone
