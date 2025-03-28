@@ -179,6 +179,10 @@ function getProductLotStatus(bytes32 _lotId) public view returns (ProductLotStat
     require(productLots[_lotId].lotId != bytes32(0), "Error: Product Lot does not exist");
     return productLots[_lotId].status;
 }
+function getAllProductLotIds() public view returns (bytes32[] memory) {
+    return productLotIds;
+}
+
 
 
 }

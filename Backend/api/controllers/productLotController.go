@@ -1306,6 +1306,7 @@ func (plc *ProductLotController) GetRetailerReceivedProduct(c *fiber.Ctx) error 
 	return c.Status(http.StatusOK).JSON(response)
 }
 
+/*
 func (plc *ProductLotController) GetLogisticsWaitingForPickup(c *fiber.Ctx) error {
 	fmt.Println("📌 Request received: Get Logistics Waiting for Pickup")
 
@@ -1379,39 +1380,111 @@ func (plc *ProductLotController) GetLogisticsWaitingForPickup(c *fiber.Ctx) erro
 		"trackingList": filteredList,
 	})
 }
+*/
+
+func (plc *ProductLotController) GetLogisticsWaitingForPickup(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get Logistics Waiting for Pickup")
+
+	walletAddress := c.Locals("walletAddress").(string)
+	userID := c.Locals("userID").(string)
+
+	var inspectorName string
+	err := database.DB.Table("users").Where("userid = ?", userID).Select("username").Scan(&inspectorName).Error
+	if err != nil || inspectorName == "" {
+		fmt.Println("❌ Failed to find inspector name:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve inspector name"})
+	}
+
+	trackingList, err := plc.BlockchainService.GetAllTrackingIds(walletAddress)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch tracking IDs:", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking IDs"})
+	}
+
+	var filteredList []map[string]interface{}
+
+	for _, tracking := range trackingList {
+		status := tracking.Status
+		personInCharge := tracking.PersonInChargePrevious
+		walletPrevious := tracking.WalletAddressPrevious
+		trackingID := tracking.TrackingId
+
+		if status == 2 {
+			continue
+		}
+
+		productLotId, err := plc.BlockchainService.GetProductLotByTrackingId(trackingID)
+		if err != nil {
+			fmt.Println("⚠️ Failed to fetch ProductLotId for TrackingID:", trackingID)
+			productLotId = ""
+		}
+
+		// ✅ ดึง Checkpoints จาก Blockchain
+		before, during, after, err := plc.BlockchainService.GetLogisticsCheckpointsByTrackingId(trackingID)
+		if err != nil {
+			fmt.Println("⚠️ Failed to fetch checkpoints:", err)
+			continue
+		}
+
+		// ✅ ตรวจสอบว่ากรอกไม่ครบ
+		if len(before) == 0 || len(during) == 0 || len(after) == 0 {
+			filteredList = append(filteredList, map[string]interface{}{
+				"trackingId":             trackingID,
+				"status":                 status,
+				"productLotId":           productLotId,
+				"personInChargePrevious": personInCharge,
+				"walletAddressPrevious":  walletPrevious,
+				"sameLogistics":          tracking.SameLogistics,
+			})
+		}
+	}
+
+	fmt.Println("✅ Filtered Waiting Tracking IDs:", filteredList)
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"trackingList": filteredList,
+	})
+}
 
 func (plc *ProductLotController) GetOngoingShipmentsByLogistics(c *fiber.Ctx) error {
 	fmt.Println("📌 Request: Ongoing Shipments by Logistics")
 
-	// ✅ ดึง Wallet Address จาก JWT Token
 	walletAddress := c.Locals("walletAddress").(string)
 
-	// ✅ เรียก BlockchainService
 	shipmentList, err := plc.BlockchainService.GetOngoingShipmentsByLogistics(walletAddress)
 	if err != nil {
 		fmt.Println("❌ Failed to fetch ongoing shipments:", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch ongoing shipments"})
 	}
 
-	// ✅ วนลูปเพิ่ม ProductLotId
-	for i, shipment := range shipmentList {
+	var completedList []map[string]interface{}
+
+	for _, shipment := range shipmentList {
 		trackingID := shipment["trackingId"].(string)
 
-		// ✅ ดึง ProductLotId
-		productLotId, err := plc.BlockchainService.GetProductLotByTrackingId(trackingID)
+		// ✅ ดึง Checkpoints จาก Blockchain
+		before, during, after, err := plc.BlockchainService.GetLogisticsCheckpointsByTrackingId(trackingID)
 		if err != nil {
-			fmt.Println("⚠️ Failed to fetch ProductLotId for TrackingID:", trackingID)
-			productLotId = "" // ถ้าดึงไม่เจอ → ใส่ค่าว่าง
+			fmt.Println("⚠️ Failed to fetch checkpoints:", err)
+			continue
 		}
 
-		// ✅ เพิ่มเข้าไปใน shipment map
-		shipmentList[i]["productLotId"] = productLotId
+		// ✅ แสดงเฉพาะที่มีครบทุกช่วง
+		if len(before) > 0 && len(during) > 0 && len(after) > 0 {
+			productLotId, err := plc.BlockchainService.GetProductLotByTrackingId(trackingID)
+			if err != nil {
+				fmt.Println("⚠️ Failed to fetch ProductLotId for TrackingID:", trackingID)
+				productLotId = ""
+			}
+			shipment["productLotId"] = productLotId
+			completedList = append(completedList, shipment)
+		}
 	}
 
-	fmt.Println("✅ Ongoing Shipments with ProductLotId:", shipmentList)
+	fmt.Println("✅ Completed Ongoing Shipments:", completedList)
 
 	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"ongoingShipments": shipmentList,
+		"ongoingShipments": completedList,
 	})
 }
 
@@ -1448,5 +1521,98 @@ func (plc *ProductLotController) GetRetailerInTransitTracking(c *fiber.Ctx) erro
 	fmt.Println("✅ InTransit Tracking List for Retailer:", trackingList)
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"trackingList": trackingList,
+	})
+}
+
+/*
+	func (pc *ProductLotController) SearchProductLot(c *fiber.Ctx) error {
+		fmt.Println("📌 Request received: Search Product Lot")
+
+		// ✅ 1. ดึง Lot ID จาก Query Param
+		lotID := c.Query("lotId")
+		if lotID == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Lot ID is required"})
+		}
+		fmt.Println("🔍 Searching for Lot ID:", lotID)
+
+		// ✅ 2. ดึงข้อมูล Product Lot จาก Blockchain
+		productLotData, err := pc.BlockchainService.SearchProductLotByLotID(lotID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch product lot from blockchain:", err)
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Product Lot not found"})
+		}
+
+		// ✅ 3. ดึงข้อมูล Product Name จาก Product Smart Contract
+		productID := productLotData.ProductID
+		productData, err := pc.BlockchainService.GetProductDetails(productID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch product details:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch product details"})
+		}
+
+		// ✅ 4. ดึง Tracking IDs และ Retailer IDs จาก Smart Contract
+		trackingIds, retailerIds, _, err := pc.BlockchainService.GetTrackingByLotId(lotID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch tracking info:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tracking info"})
+		}
+
+		// ✅ 5. ดึงชื่อ Retailer จาก DB
+		var retailerNames []string
+		for _, retailerId := range retailerIds {
+			var retailer models.Retailer
+			if err := database.DB.Where("retailerid = ?", retailerId).First(&retailer).Error; err != nil {
+				fmt.Println("⚠️ Retailer not found for ID:", retailerId)
+				retailerNames = append(retailerNames, "Unknown Retailer")
+				continue
+			}
+			retailerNames = append(retailerNames, retailer.CompanyName)
+		}
+
+		// ✅ 6. เตรียมข้อมูลส่งกลับ
+		response := fiber.Map{
+			"lotId":         productLotData.LotID,
+			"productName":   productData["productName"],
+			"factory":       productLotData.Inspector,
+			"retailerNames": retailerNames,
+			"trackingIds":   trackingIds,
+			"status":        productLotData.Status, // ส่ง Status ด้วย (0=Created, 1=InTransit, 2=Received)
+		}
+
+		fmt.Println("✅ Search Result:", response)
+		return c.Status(http.StatusOK).JSON(response)
+	}
+*/
+func (pc *ProductLotController) GetAllFactoryProductLots(c *fiber.Ctx) error {
+	fmt.Println("📌 Request received: Get ALL Factory Product Lots (Only Lot IDs)")
+
+	// 1️⃣ ดึงรายชื่อโรงงานทั้งหมดจาก DB
+	var factories []models.Factory
+	if err := database.DB.Find(&factories).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch factories"})
+	}
+
+	var lotIds []string
+
+	for _, factory := range factories {
+		factoryWallet := factory.WalletAddress
+
+		// 2️⃣ ดึง Product Lots ของโรงงานนี้
+		productLots, err := pc.BlockchainService.GetProductLotsByFactory(factoryWallet)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch product lots for factory:", factoryWallet)
+			continue
+		}
+
+		// 3️⃣ เก็บ Lot ID ทั้งหมด
+		for _, lot := range productLots {
+			lotId := lot["Product Lot No"]
+			lotIds = append(lotIds, lotId)
+		}
+	}
+
+	fmt.Println("✅ Successfully fetched all product lot IDs")
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"lotIds": lotIds,
 	})
 }

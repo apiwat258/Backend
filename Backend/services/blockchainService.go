@@ -1104,6 +1104,7 @@ func (b *BlockchainService) GetProductLotByLotID(lotId string) (*ProductLotInfo,
 		Grade:                  productLotData.Grade,
 		QualityAndNutritionCID: productLotData.QualityAndNutritionCID,
 		MilkTankIDs:            convertBytes32ArrayToStrings(productLotData.MilkTankIds),
+		Status:                 productLotData.Status,
 	}
 
 	fmt.Println("✅ Product Lot Found:", result)
@@ -1162,6 +1163,60 @@ func (b *BlockchainService) GetProductLotsByFactory(factoryAddress string) ([]ma
 	return productLots, nil
 }
 
+/*
+func (b *BlockchainService) GetAllProductLots() ([]map[string]interface{}, error) {
+	fmt.Println("📌 Fetching All Product Lots")
+
+	// ✅ Get all ProductLot IDs
+	lotIds, err := b.productLotContract.GetAllProductLotIds(nil)
+	if err != nil {
+		fmt.Println("❌ Failed to fetch all product lot IDs:", err)
+		return nil, err
+	}
+
+	// ✅ Convert to string array
+	lotIdStrings := convertBytes32ArrayToStrings(lotIds)
+
+	var productLots []map[string]interface{}
+
+	for _, lotId := range lotIdStrings {
+		// ✅ Get Product Lot details
+		productLotData, err := b.GetProductLotByLotID(lotId)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch product lot:", lotId)
+			continue
+		}
+
+		// ✅ Get Product Name
+		productID := productLotData.ProductID
+		productData, err := b.GetProductDetails(productID)
+		if err != nil {
+			fmt.Println("❌ Failed to fetch product name:", productID)
+			continue
+		}
+
+		// ✅ Get Tracking IDs & Retailers
+		trackingIds, retailerIds, _, err := b.trackingContract.GetTrackingByLotId(nil, StringToBytes32(lotId))
+		if err != nil {
+			fmt.Println("⚠️ No Tracking Data for:", lotId)
+		}
+		simplifiedTrackingIds := convertBytes32ArrayToStrings(trackingIds.ResultTrackingIds)
+
+		// ✅ Prepare Retailer Names placeholder (can fill in controller)
+		productLots = append(productLots, map[string]interface{}{
+			"lotId":       lotId,
+			"productName": productData["productName"],
+			"factory":     productLotData.Inspector,
+			"retailerIds": retailerIds,
+			"trackingIds": simplifiedTrackingIds,
+			"status":      productLotData.Status,
+		})
+	}
+
+	fmt.Println("✅ All Product Lots Fetched")
+	return productLots, nil
+}
+*/
 // ✅ Helper Function: แปลง `bytes32[]` เป็น `[]string`
 func convertBytes32ArrayToStrings(arr [][32]byte) []string {
 	var result []string
@@ -1393,7 +1448,7 @@ func (b *BlockchainService) UpdateLogisticsCheckpoint(
 	auth.GasPrice = big.NewInt(20000000000) // ✅ กำหนด Gas Price
 
 	// ✅ แปลง `trackingId` เป็น `bytes32`
-	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	trackingIdBytes := StringToBytes32(trackingId)
 
 	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
 	fmt.Println("📌 Debug - Sending to Blockchain:")
@@ -1455,9 +1510,9 @@ func (b *BlockchainService) GetLogisticsCheckpointsByTrackingId(trackingId strin
 	fmt.Println("📌 Fetching Logistics Checkpoints for Tracking ID:", trackingId)
 
 	// ✅ แปลง `trackingId` เป็น `bytes32`
-	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	trackingIdBytes := StringToBytes32(trackingId)
 	fmt.Println("🛠 Debug - Tracking ID Before Query:", trackingId)
-	fmt.Println("🛠 Debug - Tracking ID as Bytes32:", trackingIdBytes.Hex())
+	fmt.Println("🛠 Debug - Tracking ID as Bytes32:", trackingIdBytes)
 
 	// ✅ สร้างตัวแปรรับค่าผลลัพธ์จาก Smart Contract
 	result, err := b.trackingContract.GetLogisticsCheckpointsByTrackingId(nil, trackingIdBytes)
@@ -1566,7 +1621,7 @@ func (b *BlockchainService) RetailerReceiveProduct(
 	auth.GasPrice = big.NewInt(20000000000)
 
 	// ✅ แปลง `trackingId` เป็น `bytes32`
-	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	trackingIdBytes := StringToBytes32(trackingId)
 
 	// ✅ Debug Log ก่อนส่งไปยัง Blockchain
 	fmt.Println("📌 Debug - Sending to Blockchain:")
@@ -1607,7 +1662,7 @@ func (b *BlockchainService) GetRetailerConfirmation(trackingId string) (map[stri
 	fmt.Println("📌 Fetching Retailer Confirmation for Tracking ID:", trackingId)
 
 	// ✅ แปลง Tracking ID เป็น bytes32
-	trackingIdBytes := common.BytesToHash([]byte(trackingId))
+	trackingIdBytes := StringToBytes32(trackingId)
 
 	// ✅ ดึงเฉพาะข้อมูล Retailer Confirmation จาก Smart Contract
 	_, _, retailerConfirmation, err := b.trackingContract.GetTrackingById(nil, trackingIdBytes)
@@ -1671,8 +1726,10 @@ func (b *BlockchainService) GetProductLotByTrackingId(trackingId string) (string
 func (b *BlockchainService) GetOngoingShipmentsByLogistics(walletAddress string) ([]map[string]interface{}, error) {
 	fmt.Println("📌 Fetching Ongoing Shipments for Logistics Wallet:", walletAddress)
 
-	// ✅ Call Smart Contract function
-	result, err := b.trackingContract.GetOngoingShipmentsByLogistics(nil)
+	// ✅ ต้องใส่ CallOpts เพื่อส่ง From Address
+	result, err := b.trackingContract.GetOngoingShipmentsByLogistics(&bind.CallOpts{
+		From: common.HexToAddress(walletAddress),
+	})
 	if err != nil {
 		fmt.Println("❌ Failed to fetch ongoing shipments:", err)
 		return nil, fmt.Errorf("❌ Failed to fetch ongoing shipments: %v", err)
@@ -1689,7 +1746,7 @@ func (b *BlockchainService) GetOngoingShipmentsByLogistics(walletAddress string)
 		shipmentList = append(shipmentList, map[string]interface{}{
 			"trackingId":     trackingId,
 			"personInCharge": personInChargeList[i],
-			"walletAddress":  walletAddress, // ✅ เพิ่ม Wallet Address เดียวกับ msg.sender
+			"walletAddress":  walletAddress, // ✅ แสดง wallet ที่ใช้เรียก
 		})
 	}
 

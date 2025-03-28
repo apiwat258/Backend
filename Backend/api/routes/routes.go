@@ -84,6 +84,8 @@ func SetupRoutes(app *fiber.App, rmc *controllers.RawMilkController, pc *control
 	productLot.Post("/create", plc.CreateProductLot)    // ✅ โรงงานสร้าง Product Lot ใหม่
 	productLot.Get("/list", plc.GetFactoryProductLots)  // ✅ ดึงรายการ Product Lot ของโรงงาน
 	productLot.Get("/:lotId", plc.GetProductLotDetails) // ✅ ดึงรายละเอียด Product Lot โดยใช้ lotId
+	//productLot.Get("/search", plc.SearchProductLot)     // ✅ 🔍 Search Product Lot (ใหม่)
+	productLot.Get("/search-list", plc.GetAllFactoryProductLots) // ✅ 🔍 ดึงข้อมูล Factory + Product + ProductLot + Tracking (ใหม่)
 
 	// ✅ กลุ่ม Routing ของ Tracking
 	tracking := api.Group("/tracking", middleware.AuthMiddleware())
